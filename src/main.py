@@ -1,6 +1,10 @@
-def main():
-    print("Hello from log-analyzer!")
+from dishka import make_async_container
+
+from src.core import MyProvider
+
+
+container = make_async_container(MyProvider())
 
 
 if __name__ == "__main__":
-    main()
+    ...
