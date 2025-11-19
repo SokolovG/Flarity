@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide
 
 from src.core.settings import Settings
-from src.services.base_http_client import HTTPClient
+from src.clients.base_http_client import HTTPClient
 
 
 class MyProvider(Provider):
