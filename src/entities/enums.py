@@ -17,3 +17,8 @@ class LogLevel(Enum):
 class Directions(Enum):
     BACKWARD = "backward"
     FORWARD = "forward"
+
+
+class Status(Enum):
+    ERROR = "error"
+    SUCCESS = "success"

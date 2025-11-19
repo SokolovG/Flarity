@@ -1,9 +1,13 @@
 from datetime import datetime
+
 from http import HTTPMethod, HTTPStatus
+import msgspec
+
 from src.clients.base_client import BaseClient
 from src.core.settings import settings
 from src.entities.enums import Directions
-from src.responses.loki_responses import LokiLogsResponse
+from src.entities.loki import LogEntry
+from src.responses.loki_responses import LokiQueryRangeResponse, LokiQueryResult
 
 
 class LokiClient(BaseClient):
@@ -16,11 +20,26 @@ class LokiClient(BaseClient):
         end_time: datetime,
         limit: int = 1000,
         direction: Directions = Directions.BACKWARD,
-    ) -> LokiLogsResponse:
-        return LokiLogsResponse()
+    ) -> LokiQueryResult:
+        response = await self._http.make_request()
+        loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
+        logs = []
+        # TODO: накидал предварительно чтобы саму идею не забыть(хочу работать с сущностями)- скорее всего пиздец неэфекктивно, фикс
+        for stream in loki_resp.data.result:
+            for timestamp_ns, message in stream.values:
+                logs.append(
+                    LogEntry(
+                        timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
+                        message=message,
+                        level=stream.stream.get("level", "unknown"),
+                        app=stream.stream.get("app", "unknown"),
+                    )
+                )
+        result = LokiQueryResult(logs=logs, total_count=len(logs))
+        return result
 
-    async def get_recent_errors(self, hours: int = 1) -> LokiLogsResponse:
-        return LokiLogsResponse()
+    async def get_recent_errors(self, hours: int = 1) -> LokiQueryRangeResponse:
+        return LokiQueryRangeResponse()
 
     async def is_loki_is_ready(self) -> bool:
         try:
