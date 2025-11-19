@@ -15,7 +15,7 @@ class HTTPClient:
 
     async def make_request(
         self,
-        headers: dict[str, str],
+        headers: dict[str, str] = {},
         method: HTTPMethod = HTTPMethod.POST,
         url: str = "",
         data: dict | str | None = None,
