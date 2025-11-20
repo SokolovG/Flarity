@@ -1,10 +1,9 @@
+import json
 import time
 from http import HTTPMethod
-import json
 from logging import getLogger
 
 from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
-
 
 logger = getLogger(__name__)
 

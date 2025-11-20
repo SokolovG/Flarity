@@ -1,7 +1,6 @@
-from src.entities.enums import Status
-
 from msgspec import Struct
 
+from src.entities.enums import Status
 from src.entities.loki import LogEntry
 
 

@@ -1,6 +1,6 @@
 from datetime import datetime
-
 from http import HTTPMethod, HTTPStatus
+
 import msgspec
 
 from src.clients.base_client import BaseClient
