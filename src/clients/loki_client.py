@@ -1,5 +1,6 @@
 from datetime import datetime
 from http import HTTPMethod, HTTPStatus
+from logging import getLogger
 
 import msgspec
 
@@ -8,6 +9,8 @@ from src.core.settings import settings
 from src.entities.enums import Directions
 from src.entities.loki import LogEntry
 from src.responses.loki_responses import LokiQueryRangeResponse, LokiQueryResult
+
+logger = getLogger(__name__)
 
 
 class LokiClient(BaseClient):
@@ -21,6 +24,7 @@ class LokiClient(BaseClient):
         limit: int = 1000,
         direction: Directions = Directions.BACKWARD,
     ) -> LokiQueryResult:
+        logger.debug("Gettings logs from loki...")
         response = await self._http.make_request()
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
@@ -35,14 +39,17 @@ class LokiClient(BaseClient):
                         app=stream.stream.get("app", "unknown"),
                     )
                 )
+        logger.debug(f"Logs - {logs}")
         result = LokiQueryResult(logs=logs, total_count=len(logs))
         return result
 
     async def is_loki_is_ready(self) -> bool:
+        logger.debug("Calling for loki client!")
         try:
             response = await self._http.make_request(
                 url=f"{self.URL}/ready", method=HTTPMethod.GET, timeout=5
             )
+            logger.debug(f"Status code - {response.status_code}")
             return bool(response.status_code == HTTPStatus.OK)
         except Exception:
             return False

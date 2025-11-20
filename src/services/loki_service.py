@@ -1,10 +1,13 @@
 import datetime
+from logging import getLogger
 
 from src.clients.loki_client import LokiClient
 from src.core.settings import settings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
 from src.responses.loki_responses import LogGroupByErrorType, LogsByErrorType, LokiQueryResult
+
+logger = getLogger(__name__)
 
 
 class LokiService:
@@ -14,12 +17,14 @@ class LokiService:
 
     async def get_recent_errors(self, hours: int = 1) -> LokiQueryResult:
         """Получает только ERROR логи за N часов"""
+        logger.debug("Calling for get logs by level!")
         return await self.get_logs_by_level(LogLevel.ERROR, hours)
 
     async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
         query = ""
         end_time = datetime.datetime.now()
         start_time = end_time - datetime.timedelta(hours=hours)
+        logger.debug("Calling for loki client!")
         logs = await self.loki_client.query_range(
             query=query, start_time=start_time, end_time=end_time
         )
@@ -53,6 +58,7 @@ class LokiService:
         return LogsByErrorType(logs_groups=groups, total_count=len(groups))
 
     async def check_if_loki_is_ready(self) -> bool:
+        logger.debug("Calling for loki client!")
         ready = await self.loki_client.is_loki_is_ready()
         return ready
 
