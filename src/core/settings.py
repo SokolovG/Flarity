@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     DB_USER: str = os.getenv("DB_USER", "postgres")
     DB_PASSWORD: str = os.getenv("DB_PASSWORD", "password")
     LOKI_URL: str = os.getenv("LOKI_URL", "loki_url")
+    LOKI_APP_NAME: str = os.getenv("LOKI_APP_NAME", "loki_app_name")
 
 
 settings = Settings()

@@ -38,9 +38,6 @@ class LokiClient(BaseClient):
         result = LokiQueryResult(logs=logs, total_count=len(logs))
         return result
 
-    async def get_recent_errors(self, hours: int = 1) -> LokiQueryRangeResponse:
-        return LokiQueryRangeResponse()
-
     async def is_loki_is_ready(self) -> bool:
         try:
             response = await self._http.make_request(
