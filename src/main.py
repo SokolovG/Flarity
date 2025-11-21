@@ -31,8 +31,9 @@ async def main() -> None:
         ready = await log_analyzer_service.check_readiness()
         logger.debug(f"Services is ready - it is {ready}")
 
-        while True:
-            await log_analyzer_service.analyze_and_notify()
+        # while True:
+        await log_analyzer_service.analyze_and_notify()
+
     finally:
         await container.close()
 
