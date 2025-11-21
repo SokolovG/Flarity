@@ -21,10 +21,12 @@ class LokiService:
         return await self.get_logs_by_level(LogLevel.ERROR, hours)
 
     async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
-        query = ""
+        query = f'{{level="{level.value}"}}'
+
         end_time = datetime.datetime.now()
         start_time = end_time - datetime.timedelta(hours=hours)
-        logger.debug("Calling for loki client!")
+
+        logger.debug(f"Querying Loki with: {query}")
         logs = await self.loki_client.query_range(
             query=query, start_time=start_time, end_time=end_time
         )
