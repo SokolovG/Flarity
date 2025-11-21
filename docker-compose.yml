@@ -26,7 +26,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 120s
     ports:
       - "3100:3100"
 
@@ -62,9 +61,6 @@ services:
       - /etc/alloy/config.alloy
     ports:
       - "12345:12345"
-    depends_on:
-      loki:
-        condition: service_healthy
     environment:
       - HOSTNAME=${HOSTNAME:-alloy}
 
