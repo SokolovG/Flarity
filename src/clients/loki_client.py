@@ -39,6 +39,11 @@ class LokiClient(BaseClient):
             url=f"{self.URL}/loki/api/v1/query_range",
             params=params,
         )
+
+        if response.status_code != 200:
+            logger.error(f"Loki returned {response.status_code}: {response.text}")
+            return LokiQueryResult(logs=[], total_count=0)
+
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
         # TODO: накидал предварительно чтобы саму идею не забыть(хочу работать с сущностями)- скорее всего пиздец неэфекктивно, фикс
