@@ -14,7 +14,11 @@ logging.basicConfig(
         logging.StreamHandler(sys.stdout),
     ],
 )
-
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("src").setLevel(logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
