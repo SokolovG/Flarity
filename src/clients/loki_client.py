@@ -24,8 +24,21 @@ class LokiClient(BaseClient):
         limit: int = 1000,
         direction: Directions = Directions.BACKWARD,
     ) -> LokiQueryResult:
-        logger.debug("Gettings logs from loki...")
-        response = await self._http.make_request()
+        logger.debug("Getting logs from loki...")
+
+        params = {
+            "query": query,
+            "start": str(int(start_time.timestamp() * 1_000_000_000)),
+            "end": str(int(end_time.timestamp() * 1_000_000_000)),
+            "limit": str(limit),
+            "direction": direction.value,
+        }
+
+        response = await self._http.make_request(
+            method=HTTPMethod.GET,
+            url=f"{self.URL}/loki/api/v1/query_range",
+            params=params,
+        )
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
         # TODO: накидал предварительно чтобы саму идею не забыть(хочу работать с сущностями)- скорее всего пиздец неэфекктивно, фикс
