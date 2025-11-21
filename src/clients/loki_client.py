@@ -62,7 +62,7 @@ class LokiClient(BaseClient):
         logger.debug("Calling for loki client!")
         try:
             response = await self._http.make_request(
-                url=f"{self.URL}/ready", method=HTTPMethod.GET, timeout=5
+                url=f"{self.URL}/ready", method=HTTPMethod.GET, timeout=5, no_log_answer=True
             )
             logger.debug(f"Status code - {response.status_code}")
             return bool(response.status_code == HTTPStatus.OK)
