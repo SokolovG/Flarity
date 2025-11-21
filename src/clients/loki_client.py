@@ -6,7 +6,7 @@ import msgspec
 
 from src.clients.base_client import BaseClient
 from src.core.settings import settings
-from src.entities.enums import Directions
+from src.entities.enums import Directions, LogLevel
 from src.entities.loki import LogEntry
 from src.responses.loki_responses import LokiQueryRangeResponse, LokiQueryResult
 
@@ -49,13 +49,18 @@ class LokiClient(BaseClient):
         # TODO: накидал предварительно чтобы саму идею не забыть(хочу работать с сущностями)- скорее всего пиздец неэфекктивно, фикс
         for stream in loki_resp.data.result:
             for timestamp_ns, message in stream.values:
+                level_str = stream.stream.get("level", "error")
+                try:
+                    level = LogLevel(level_str)
+                except ValueError:
+                    level = LogLevel.ERROR  # fallback
+                    logger.warning(f"Unknown log level: {level_str}")
+
                 logs.append(
                     LogEntry(
                         timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
                         message=message,
-                        level=stream.stream.get(
-                            "level", "unknown"
-                        ),  # TODO: переделать str -> LogLevel
+                        level=level,
                         app=stream.stream.get("app", "unknown"),
                     )
                 )
