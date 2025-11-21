@@ -5,7 +5,7 @@ from src.clients import LokiClient
 from src.core.settings import settings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
-from src.responses.loki_responses import LogGroupByErrorType, LogsByErrorType, LokiQueryResult
+from src.responses import LogGroupByErrorType, LogsByErrorType, LokiQueryResult
 
 logger = getLogger(__name__)
 
