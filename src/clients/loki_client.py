@@ -35,7 +35,9 @@ class LokiClient(BaseClient):
                     LogEntry(
                         timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
                         message=message,
-                        level=stream.stream.get("level", "unknown"),
+                        level=stream.stream.get(
+                            "level", "unknown"
+                        ),  # TODO: переделать str -> LogLevel
                         app=stream.stream.get("app", "unknown"),
                     )
                 )

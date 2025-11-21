@@ -12,4 +12,4 @@ RUN uv sync --frozen
 
 COPY . .
 
-CMD ["uv", "run", "python", "-m", "main.py"]
+CMD ["uv", "run", "python", "-m", "src/main.py"]
