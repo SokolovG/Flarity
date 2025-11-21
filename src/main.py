@@ -8,15 +8,19 @@ from src.services.log_analyzer_service import LogAnalysisService
 
 logger = getLogger(__name__)
 
-container = make_async_container(MyProvider())
-log_analyzer_service = container.get(LogAnalysisService)
-
 
 async def main() -> None:
-    ready = await log_analyzer_service.check_readiness()  #  type: ignore
-    logger.debug(f"Services is ready - it is {ready}")
-    while True:
-        await log_analyzer_service.analyze_and_notify()  # type: ignore
+    container = make_async_container(MyProvider())
+
+    try:
+        log_analyzer_service = await container.get(LogAnalysisService)
+        ready = await log_analyzer_service.check_readiness()
+        logger.debug(f"Services is ready - it is {ready}")
+
+        while True:
+            await log_analyzer_service.analyze_and_notify()
+    finally:
+        await container.close()
 
 
 if __name__ == "__main__":
