@@ -1,7 +1,7 @@
 import datetime
 from logging import getLogger
 
-from src.clients.loki_client import LokiClient
+from src.clients import LokiClient
 from src.core.settings import settings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
