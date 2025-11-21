@@ -1,12 +1,22 @@
 import asyncio
-from logging import getLogger
+import logging
+import sys
 
 from dishka import make_async_container
 
 from src.core import MyProvider
 from src.services.log_analyzer_service import LogAnalysisService
 
-logger = getLogger(__name__)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="[%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+    ],
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
