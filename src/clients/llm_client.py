@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 class LLMClient(BaseClient):
     URL: Final[str] = settings.LOCAL_LLM_URL
-    PROVIDER: Final[LLMProvider] = settings.LLMProvider
+    PROVIDER: Final[str] = settings.LLMProvider
 
     async def is_llm_is_ready(self) -> bool:
         logger.debug("Calling for llm to check if she is ready!")

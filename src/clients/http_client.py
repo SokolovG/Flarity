@@ -41,7 +41,7 @@ class HTTPClient:
         """
         start_time = time.time()
         try:
-            logger.info(f"{method} REQUEST to {url}")
+            logger.debug(f"{method} REQUEST to {url}")
 
             if method == HTTPMethod.GET:
                 params = params or {}
