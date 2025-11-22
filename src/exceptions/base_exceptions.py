@@ -12,3 +12,7 @@ class BaseCustomException(Exception):
         self.error_code = error_code
         self.details = details if details else {}
         super().__init__(message)
+
+
+class SettingsFieldIsEmpty(BaseCustomException):
+    pass

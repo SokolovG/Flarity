@@ -15,7 +15,7 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 
-def retry_network_errors(
+def handle_errors(
     func: Callable[P, Coroutine[Any, Any, T]],
 ) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(func)
