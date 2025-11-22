@@ -47,6 +47,7 @@ class LokiClient(BaseClient):
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
         # TODO: накидал предварительно чтобы саму идею не забыть(хочу работать с сущностями)- скорее всего пиздец неэфекктивно, фикс
+        # также вынести лучше в сервис бизнес логику
         for stream in loki_resp.data.result:
             for timestamp_ns, message in stream.values:
                 level_str = stream.stream.get("level", "error")
