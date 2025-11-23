@@ -5,6 +5,9 @@ from logging import getLogger
 
 from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
 
+from src.core.constants import NETWORK_ERRORS
+from src.core.decorators import retry
+
 logger = getLogger(__name__)
 
 
@@ -12,6 +15,7 @@ class HTTPClient:
     def __init__(self, default_timeout: int = 10) -> None:
         self.client = AsyncClient(timeout=default_timeout)
 
+    @retry(max_attempts=3, backoff=1.0, retryable_exceptions=NETWORK_ERRORS)
     async def make_request(
         self,
         headers: dict[str, str] = {},

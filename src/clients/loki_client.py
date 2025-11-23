@@ -5,9 +5,11 @@ from logging import getLogger
 import msgspec
 
 from src.clients.base_client import BaseClient
+from src.core.decorators import retry
 from src.core.settings import settings
 from src.entities.enums import Directions, LogLevel
 from src.entities.loki import LogEntry
+from src.exceptions import LokiError, LokiUnavailableError
 from src.responses.loki_responses import LokiQueryRangeResponse, LokiQueryResult
 
 logger = getLogger(__name__)
@@ -16,6 +18,7 @@ logger = getLogger(__name__)
 class LokiClient(BaseClient):
     URL = settings.LOKI_URL
 
+    @retry(max_attempts=3, backoff=2.0, retryable_exceptions=(LokiUnavailableError,))
     async def query_range(
         self,
         query: str,
@@ -40,9 +43,14 @@ class LokiClient(BaseClient):
             params=params,
         )
 
-        if response.status_code != 200:
-            logger.error(f"Loki returned {response.status_code}: {response.text}")
-            return LokiQueryResult(logs=[], total_count=0)
+        if response.status_code == 503:
+            raise LokiUnavailableError(
+                "Loki is temporarily unavailable", error_code="LOKI_UNAVAILBLE"
+            )
+        elif response.status_code >= 500:
+            raise LokiError(f"Loki server error: {response.status_code}", error_code="LOKI_ERROR")
+        elif response.status_code >= 400:
+            raise LokiError(f"Bad request: {response.status_code}", error_code="LOKI_ERROR")
 
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
