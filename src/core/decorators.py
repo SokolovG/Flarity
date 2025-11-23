@@ -4,14 +4,7 @@ from functools import wraps
 from logging import getLogger
 from typing import Any, ParamSpec, TypeVar
 
-from src.exceptions import (
-    LLMError,
-    LLMRateLimitError,
-    LogParsingError,
-    LokiError,
-    LokiUnavailableError,
-    NetworkError,
-)
+from src.core.constants import NETWORK_ERRORS
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -46,7 +39,7 @@ def log_errors(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Corouti
 def retry(
     max_attempts: int,
     backoff: float,
-    retryable_exceptions: tuple[type[Exception], ...] = (Exception,),
+    retryable_exceptions: tuple[type[Exception], ...] = NETWORK_ERRORS,
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         @wraps(func)
