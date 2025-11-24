@@ -27,8 +27,6 @@ class LokiClient(BaseClient):
         limit: int = 1000,
         direction: Directions = Directions.BACKWARD,
     ) -> LokiQueryResult:
-        logger.debug("Getting logs from loki...")
-
         params = {
             "query": query,
             "start": str(int(start_time.timestamp() * 1_000_000_000)),
@@ -44,13 +42,11 @@ class LokiClient(BaseClient):
         )
 
         if response.status_code == 503:
-            raise LokiUnavailableError(
-                "Loki is temporarily unavailable", error_code="LOKI_UNAVAILBLE"
-            )
+            raise LokiUnavailableError("Loki is temporarily unavailable")
         elif response.status_code >= 500:
-            raise LokiError(f"Loki server error: {response.status_code}", error_code="LOKI_ERROR")
+            raise LokiError(f"Loki server error: {response.status_code}")
         elif response.status_code >= 400:
-            raise LokiError(f"Bad request: {response.status_code}", error_code="LOKI_ERROR")
+            raise LokiError(f"Bad request: {response.status_code}")
 
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
@@ -73,17 +69,15 @@ class LokiClient(BaseClient):
                         app=stream.stream.get("app", "unknown"),
                     )
                 )
-        logger.debug(f"Logs - {logs}")
+        logger.info(f"Logs from loki: {logs}")
         result = LokiQueryResult(logs=logs, total_count=len(logs))
         return result
 
     async def is_loki_is_ready(self) -> bool:
-        logger.debug("Calling for loki client!")
         try:
             response = await self._http.make_request(
-                url=f"{self.URL}/ready", method=HTTPMethod.GET, timeout=5, no_log_answer=True
+                url=f"{self.URL}/ready", method=HTTPMethod.GET, timeout=5
             )
-            logger.debug(f"Status code - {response.status_code}")
             return bool(response.status_code == HTTPStatus.OK)
         except Exception:
             return False

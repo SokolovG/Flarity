@@ -1,4 +1,4 @@
-from src.exceptions.base_exceptions import SettingsFieldIsEmpty
+from src.exceptions.base_exceptions import ServiceNotReadyError, SettingsFieldIsEmpty
 from src.exceptions.llm_exceptions import LLMError, LLMRateLimitError
 from src.exceptions.loki_exceptions import LogParsingError, LokiError, LokiUnavailableError
 from src.exceptions.network_exeptions import (
@@ -14,4 +14,5 @@ __all__ = [
     "LLMError",
     "LokiError",
     "SettingsFieldIsEmpty",
+    "ServiceNotReadyError",
 ]

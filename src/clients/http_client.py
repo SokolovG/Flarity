@@ -45,7 +45,7 @@ class HTTPClient:
         """
         start_time = time.time()
         try:
-            logger.debug(f"{method} REQUEST to {url}")
+            logger.info(f"{method} REQUEST to {url}, params: {params}")
 
             if method == HTTPMethod.GET:
                 params = params or {}
@@ -81,7 +81,7 @@ class HTTPClient:
                     logger.warning(
                         {
                             "duration_ms": duration_ms,
-                            "error": f"Не удалось обработать ответ для логирования: {e}",
+                            "error": f"Failed to process the response for logging: {e}",
                             "response": str(response),
                         }
                     )

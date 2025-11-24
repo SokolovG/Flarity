@@ -17,8 +17,7 @@ class LokiService:
 
     async def get_recent_errors(self, hours: int = 1) -> LokiQueryResult:
         """Получает только ERROR логи за N часов"""
-        logger.debug("Calling for get logs by level!")
-        return await self.get_logs_by_level(LogLevel.INFO, 24)  # TODO: to error, hours to 1
+        return await self.get_logs_by_level(LogLevel.ERROR, 1)
 
     async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
         query = f'{{level="{level.value}"}}'
@@ -26,7 +25,6 @@ class LokiService:
         end_time = datetime.datetime.now()
         start_time = end_time - datetime.timedelta(hours=hours)
 
-        logger.debug(f"Querying Loki with: {query}")
         logs = await self.loki_client.query_range(
             query=query, start_time=start_time, end_time=end_time
         )
@@ -60,7 +58,6 @@ class LokiService:
         return LogsByErrorType(logs_groups=groups, total_count=len(groups))
 
     async def check_if_loki_is_ready(self) -> bool:
-        logger.debug("Calling for loki client!")
         ready = await self.loki_client.is_loki_is_ready()
         return ready
 
