@@ -15,12 +15,12 @@ class MyProvider(Provider):
         return HTTPClient()
 
     @provide(scope=Scope.APP)
-    def get_loki_client(self, http_client: HTTPClient) -> LokiClient:
-        return LokiClient(http_client=http_client)
+    def get_loki_client(self, http_client: HTTPClient, app_settings: Settings) -> LokiClient:
+        return LokiClient(http_client=http_client, settings=app_settings)
 
     @provide(scope=Scope.APP)
-    def get_loki_service(self, loki_client: LokiClient) -> LokiService:
-        return LokiService(loki_client=loki_client)
+    def get_loki_service(self, loki_client: LokiClient, app_settings: Settings) -> LokiService:
+        return LokiService(loki_client=loki_client, settings=app_settings)
 
     @provide(scope=Scope.APP)
     def get_log_analyzer_service(
@@ -29,9 +29,13 @@ class MyProvider(Provider):
         return LogAnalysisService(loki_service=loki_service, llm_service=llm_service)
 
     @provide(scope=Scope.APP)
-    def get_llm_client(self, http_client: HTTPClient) -> LLMClient:
-        return LLMClient(http_client=http_client)
+    def get_llm_client(self, http_client: HTTPClient, app_settings: Settings) -> LLMClient:
+        return LLMClient(http_client=http_client, settings=app_settings)
 
     @provide(scope=Scope.APP)
     def get_llm_service(self, llm_client: LLMClient) -> LLMService:
         return LLMService(llm_client=llm_client)
+
+    @provide(scope=Scope.APP)
+    def get_app_settings(self) -> Settings:
+        return Settings()

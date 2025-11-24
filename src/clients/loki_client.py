@@ -6,7 +6,7 @@ import msgspec
 
 from src.clients.base_client import BaseClient
 from src.core.decorators import retry
-from src.core.settings import settings
+from src.core.settings import Settings
 from src.entities.enums import Directions, LogLevel
 from src.entities.loki import LogEntry
 from src.exceptions import LokiError, LokiUnavailableError
@@ -16,8 +16,6 @@ logger = getLogger(__name__)
 
 
 class LokiClient(BaseClient):
-    URL = settings.LOKI_URL
-
     @retry(max_attempts=3, backoff=2.0, retryable_exceptions=(LokiUnavailableError,))
     async def query_range(
         self,
@@ -37,7 +35,7 @@ class LokiClient(BaseClient):
 
         response = await self._http.make_request(
             method=HTTPMethod.GET,
-            url=f"{self.URL}/loki/api/v1/query_range",
+            url=f"{self.settings.LOKI_URL}/loki/api/v1/query_range",
             params=params,
         )
 
@@ -76,7 +74,7 @@ class LokiClient(BaseClient):
     async def is_loki_is_ready(self) -> bool:
         try:
             response = await self._http.make_request(
-                url=f"{self.URL}/ready", method=HTTPMethod.GET, timeout=5
+                url=f"{self.settings.LOKI_URL}/ready", method=HTTPMethod.GET, timeout=5
             )
             return bool(response.status_code == HTTPStatus.OK)
         except Exception:
