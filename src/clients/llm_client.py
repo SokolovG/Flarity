@@ -14,7 +14,6 @@ class LLMClient(BaseClient):
     PROVIDER: Final[str] = settings.LLMProvider
 
     async def is_llm_is_ready(self) -> bool:
-        logger.debug("Calling for llm to check if she is ready!")
         return True
 
     async def send_request_to_llm(self, logs: LokiQueryResult) -> LLMResponse: ...  # type: ignore

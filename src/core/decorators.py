@@ -12,26 +12,16 @@ P = ParamSpec("P")
 logger = getLogger(__name__)
 
 
-def handle_errors(
-    func: Callable[P, Coroutine[Any, Any, T]],
-) -> Callable[P, Coroutine[Any, Any, T]]:
+def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
+        logger.info(f"Calling {func.__name__} with args={args}, kwargs={kwargs}")
         try:
+            logger.info(f"{func.__name__} completed successfully")
             return await func(*args, **kwargs)
-        except Exception:
-            ...
-
-    return wrapper
-
-
-def log_errors(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
-    @wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
-        try:
-            return await func(*args, **kwargs)
-        except Exception:
-            ...
+        except Exception as e:
+            logger.error(f"{func.__name__} failed: {e}")
+            raise
 
     return wrapper
 

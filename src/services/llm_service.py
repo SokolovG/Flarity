@@ -11,7 +11,6 @@ class LLMService:
         self.llm_client = llm_client
 
     async def check_if_llm_is_ready(self) -> bool:
-        logger.debug("Calling for llm client to check if he is ready")
         ready = await self.llm_client.is_llm_is_ready()
         return ready
 

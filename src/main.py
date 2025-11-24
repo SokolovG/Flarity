@@ -5,10 +5,11 @@ import sys
 from dishka import make_async_container
 
 from src.core import MyProvider
-from src.services.log_analyzer_service import LogAnalysisService
+from src.exceptions import ServiceNotReadyError
+from src.services import LogAnalysisService
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="[%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
@@ -29,10 +30,15 @@ async def main() -> None:
     try:
         log_analyzer_service = await container.get(LogAnalysisService)
         ready = await log_analyzer_service.check_readiness()
-        logger.debug(f"Services is ready - it is {ready}")
+        if not ready:
+            ...
 
         # while True:
         await log_analyzer_service.analyze_and_notify()
+
+    except ServiceNotReadyError as e:
+        logger.error(f"Services failed to become ready: {e}")
+        # TODO: отправить alert в Telegram
 
     finally:
         await container.close()
