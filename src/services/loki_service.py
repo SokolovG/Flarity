@@ -2,7 +2,7 @@ import datetime
 from logging import getLogger
 
 from src.clients import LokiClient
-from src.core.settings import settings
+from src.core.settings import Settings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
 from src.responses import LogGroupByErrorType, LogsByErrorType, LokiQueryResult
@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 
 class LokiService:
-    def __init__(self, loki_client: LokiClient) -> None:
+    def __init__(self, loki_client: LokiClient, settings: Settings) -> None:
         self.loki_client = loki_client
         self.app_name = settings.LOKI_APP_NAME
 

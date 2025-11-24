@@ -43,7 +43,7 @@ class LogAnalysisService:
         if not_ready:
             raise ServiceNotReadyError(f"Services not ready: {', '.join(not_ready)}")
 
-        logger.info("All services are ready ✓")
+        logger.info("All services are ready!")
         return True
 
     async def prepare_report(self) -> None: ...
