@@ -30,7 +30,7 @@ class _YandexRequest(Struct):
 
 class YandexAdapter(BaseLLMAdapter):
     @retry(max_attempts=5, backoff=10)
-    async def anylize_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
+    async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         yandex_msg_obj = _YandexMessage(text=self.format_logs_for_llm(logs))
         options_obj = _YandexCompletionOptions()
         request = _YandexRequest(
