@@ -1,17 +1,14 @@
 from logging import getLogger
 
-from src.clients.llm_client import LLMClient
-from src.responses import LLMResponse, LokiQueryResult
+from src.responses import LLMAnalysisResult, LokiQueryResult
 
 logger = getLogger(__name__)
 
 
 class LLMService:
-    def __init__(self, llm_client: LLMClient) -> None:
-        self.llm_client = llm_client
+    def __init__(self) -> None: ...
 
     async def check_if_llm_is_ready(self) -> bool:
-        ready = await self.llm_client.is_llm_is_ready()
-        return ready
+        return True
 
-    async def anylize_logs(self, logs: LokiQueryResult) -> LLMResponse: ...  # type: ignore
+    async def anylize_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult: ...  # type: ignore

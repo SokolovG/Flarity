@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     LLMProvider: LLMProvider
     LLMModel: LLMModel
     YANDEX_API_KEY: str | None
+    YANDEX_CATALOG_ID: str | None
     GIGACHAT_API_KEY: str | None
     LLM_TEMPERATURE: float
 
@@ -22,8 +23,26 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_api_keys(self) -> Self:
-        if self.LLMProvider == LLMProvider.YANDEX and not self.YANDEX_API_KEY:
-            raise ValueError(f"For {LLMProvider.YANDEX} YANDEX_API_KEY is empty")
-        elif self.LLMProvider == LLMProvider.GIGACHAT and not self.GIGACHAT_API_KEY:
-            raise ValueError(f"For {LLMProvider.GIGACHAT} GIGACHAT_API_KEY is empty")
+        match self.LLMProvider:
+            case LLMProvider.YANDEX:
+                if not self.YANDEX_API_KEY:
+                    raise ValueError(f"For {LLMProvider.YANDEX} YANDEX_API_KEY is empty")
+
+            case LLMProvider.GIGACHAT:
+                if not self.GIGACHAT_API_KEY:
+                    raise ValueError(f"For {LLMProvider.GIGACHAT} GIGACHAT_API_KEY is empty")
         return self
+
+    @property
+    def get_api_key(self) -> str:
+        match self.LLMProvider:
+            case LLMProvider.YANDEX:
+                key = self.YANDEX_API_KEY
+                assert key is not None, "Validated in model_validator"
+                return key
+            case LLMProvider.GIGACHAT:
+                key = self.GIGACHAT_API_KEY
+                assert key is not None, "Validated in model_validator"
+                return key
+            case _:
+                return ""
