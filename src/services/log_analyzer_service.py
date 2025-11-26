@@ -15,9 +15,28 @@ class LogAnalysisService:
         self.llm_service = llm_service
 
     async def analyze_and_notify(self) -> None:
+        logger.info("Fetching recent error logs...")
         logs = await self.loki_service.get_recent_errors()
 
-        # ANALYZE
+        if logs.total_count == 0:
+            logger.warning("No error logs found in the last hour")
+            return
+
+        logger.info(f"Found {logs.total_count} error logs")
+        logger.info("Grouping errors by type...")
+        grouped = await self.loki_service.group_errors_by_type(logs)
+
+        for group in grouped.logs_groups:
+            logger.info(f"  - {group.error}: {len(group.logs)} occurrences")
+
+        logger.info("Analyzing logs with LLM...")
+        analysis = await self.llm_service.analyze_logs(logs)
+
+        logger.info("Analysis complete!")
+        logger.info(f"Analysis result:\n{analysis.analysis_text}")
+        logger.info(
+            f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
+        )
 
     @retry(max_attempts=5, backoff=10.0, retryable_exceptions=(ServiceNotReadyError,))
     async def check_readiness(self) -> bool:
