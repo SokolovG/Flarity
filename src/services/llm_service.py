@@ -11,8 +11,15 @@ class LLMService:
         self.adapter = adapter
 
     async def check_if_llm_is_ready(self) -> bool:
-        return True
+        try:
+            # TODO: Простой health check
+            return True
+        except:
+            return False
 
     async def anylize_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult:
-        #
-        return await self.adapter.analyze_logs(logs)
+        if not logs:
+            raise ValueError("No logs to analyze")
+
+        result = await self.adapter.analyze_logs(logs)
+        return result
