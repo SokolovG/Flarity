@@ -4,7 +4,12 @@ from enum import Enum
 class LLMProvider(Enum):
     GIGACHAT = "gigachat"
     LOCAL = "local"
-    YANDEX_GPT = "yandex_gpt"
+    YANDEX = "yandex"
+
+
+class LLMModel(Enum):
+    YANDEX_GPT_LITE = "yandex-gpt-lite"
+    YANDEX_GPT_PRO = "yandex-gpt-pro"
 
 
 class LogLevel(Enum):
