@@ -1,20 +1,17 @@
-from dataclasses import dataclass
+from msgspec import Struct
 
 
-@dataclass
-class HTTPClientConfig:
+class HTTPClientConfig(Struct):
     base_url: str
     timeout: int
 
 
-@dataclass
-class LokiConfig:
+class LokiConfig(Struct):
     base_url: str
     timeout: int
 
 
-@dataclass
-class TelegramConfig:
+class TelegramConfig(Struct):
     base_url: str
     token: str
     timeout: int

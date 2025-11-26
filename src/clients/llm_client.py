@@ -9,6 +9,7 @@ from src.core.decorators import retry
 from src.entities.llm import CompletionOptions, LLMRequest, Message
 from src.exceptions.llm_exceptions import LLMError
 from src.responses import LLMResponse, LokiQueryResult
+from src.utils import format_logs_for_llm
 
 logger = getLogger(__name__)
 
@@ -22,17 +23,18 @@ class LLMClient(BaseClient):
         API_KEY = "CHOOSE API KEY"
         headers = {"Content-Type": "application/json", "Authorization": API_KEY}
         completion_options = CompletionOptions()
+        str_logs = format_logs_for_llm(logs=logs.logs)
         message = Message(
-            text=str(logs.logs)  # TODO: transfer to str?
+            text=str_logs  # TODO: transfer to str?
         )
-        data = LLMRequest(
+        request_obj = LLMRequest(
             modelUri="",  # TODO: str with model and catalog
             completionOptions=completion_options,
-            messages=message,
+            messages=[message],
         )
-        # transfer data to dict!
+        data_json = msgspec.json.encode(request_obj)
         response = await self._http.make_request(
-            headers=headers, method=HTTPMethod.POST, url=YANDEX_GPT_URl, data=data
+            headers=headers, method=HTTPMethod.POST, url=YANDEX_GPT_URl, data=data_json
         )
 
         if response.status_code >= 500:
