@@ -16,10 +16,15 @@ class Settings(BaseSettings):
     YANDEX_CATALOG_ID: str | None
     GIGACHAT_API_KEY: str | None
     LLM_TEMPERATURE: float
+    _system_prompt: str
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
     )
+
+    @property
+    def get_system_prompt(self) -> str:
+        return self._system_prompt
 
     @model_validator(mode="after")
     def validate_api_keys(self) -> Self:
@@ -47,9 +52,8 @@ class Settings(BaseSettings):
             case _:
                 return ""
 
-    @property
-    def get_system_prompt(self) -> str:
+    @model_validator(mode="after")
+    def load_system_prompt(self) -> Self:
         with open("prompts/base_prompt.txt", "r") as f:
-            content = f.read()
-
-        return content
+            self._system_prompt = f.read()
+        return self

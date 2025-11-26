@@ -53,10 +53,11 @@ class YandexAdapter(BaseLLMAdapter):
         return self._parse_response(response_bytes=response.content)
 
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
-        yandex_resp = msgspec.json.decode(response_bytes, type=YandexResponse)
-        text = yandex_resp["alternatives"][0]["message"]["text"]
-        input_used_token = yandex_resp["usage"]["inputTextTokens"]
-        output_used_token = yandex_resp["usage"]["completionTokens"]
+        response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
+        text = response_model["alternatives"][0]["message"]["text"]
+        text = response_model.result.alternatives[0].message.text
+        input_used_token = response_model.result.usage.inputTextTokens
+        output_used_token = response_model.result.usage.completionTokens
 
         return LLMAnalysisResult(
             analysis_text=text,

@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from src.exceptions.llm_exceptions import LLMError
 from src.llm_adapters import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, LokiQueryResult
 
@@ -14,10 +15,10 @@ class LLMService:
         try:
             # TODO: Простой health check
             return True
-        except:
+        except LLMError:
             return False
 
-    async def anylize_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult:
+    async def anylyze_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult:
         if not logs:
             raise ValueError("No logs to analyze")
 
