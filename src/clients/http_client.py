@@ -3,6 +3,7 @@ import time
 from http import HTTPMethod
 from logging import getLogger
 
+import msgspec
 from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
 
 from src.core.constants import NETWORK_ERRORS
@@ -21,7 +22,7 @@ class HTTPClient:
         headers: dict[str, str] = {},
         method: HTTPMethod = HTTPMethod.POST,
         url: str = "",
-        data: dict | str | None = None,
+        data: dict | str | bytes | None = None,
         no_log_answer: bool = False,
         params: dict | None = None,
         timeout: int | None = 10,
@@ -58,12 +59,22 @@ class HTTPClient:
                 )
 
             else:
+                if isinstance(data, dict):
+                    content = msgspec.json.encode(data)
+                    if "Content-Type" not in headers:
+                        headers = {**headers, "Content-Type": "application/json"}
+                elif isinstance(data, str):
+                    content = data.encode("utf-8")
+                elif isinstance(data, bytes):
+                    content = data
+                else:
+                    content = None
                 response = await self.client.request(
                     method=method.value,
                     url=url,
                     headers=headers,
                     timeout=timeout,
-                    content=data,
+                    content=content,
                 )
             duration_ms = int((time.time() - start_time) * 1000)
             if no_log_answer:

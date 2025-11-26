@@ -40,7 +40,7 @@ class YandexAdapter(BaseLLMAdapter):
         options_obj = _YandexCompletionOptions()
         request = _YandexRequest(
             modelUri=f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}",
-            messages=[messages],
+            messages=messages,
             completionOptions=options_obj,
         )
         data = msgspec.json.encode(request)
