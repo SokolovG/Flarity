@@ -21,5 +21,5 @@ class LLMService:
         if not logs:
             raise ValueError("No logs to analyze")
 
-        result = await self.adapter.analyze_logs(logs)
+        result = await self.adapter.analyze_logs(logs.logs)
         return result
