@@ -3,7 +3,11 @@ from msgspec import Struct
 from src.entities.enums import LLMProvider
 
 
+class YandexResponse(Struct): ...
+
+
 class LLMAnalysisResult(Struct):
     analysis_text: str
     provider: LLMProvider
-    tokens_used: int | None = None
+    input_tokens_used: int | None = None
+    output_tokens_used: int | None = None
