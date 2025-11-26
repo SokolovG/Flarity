@@ -2,6 +2,8 @@ from dishka import Provider, Scope, provide
 
 from src.clients import HTTPClient, LokiClient
 from src.core.settings import Settings
+from src.entities.enums import LLMProvider
+from src.llm_adapters import BaseLLMAdapter, GigaChatAdapter, LocalAdapter, YandexAdapter
 from src.services import LLMService, LogAnalysisService, LokiService
 
 
@@ -29,9 +31,19 @@ class MyProvider(Provider):
         return LogAnalysisService(loki_service=loki_service, llm_service=llm_service)
 
     @provide(scope=Scope.APP)
-    def get_llm_service(self) -> LLMService:
-        return LLMService()
+    def get_llm_service(self, llm_adapter: BaseLLMAdapter) -> LLMService:
+        return LLMService(adapter=llm_adapter)
 
     @provide(scope=Scope.APP)
     def get_app_settings(self) -> Settings:
         return Settings()
+
+    @provide(scope=Scope.APP)
+    def get_llm_adapter(self, http_client: HTTPClient, settings: Settings) -> BaseLLMAdapter:
+        match settings.LLMProvider:
+            case LLMProvider.YANDEX:
+                return YandexAdapter(http_client, settings)
+            case LLMProvider.GIGACHAT:
+                return GigaChatAdapter(http_client, settings)
+            case LLMProvider.LOCAL:
+                return LocalAdapter(http_client, settings)
