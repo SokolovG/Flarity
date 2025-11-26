@@ -21,6 +21,6 @@ class BaseLLMAdapter(ABC):
     def format_logs_for_llm(logs: list[LogEntry], prompt: str) -> str:
         logs_text = ""
         for log in logs:
-            logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level} {log.app} {log.message} \n"
+            logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level.value} {log.app} {log.message} \n"
 
         return logs_text + prompt

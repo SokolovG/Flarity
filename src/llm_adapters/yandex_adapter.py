@@ -1,4 +1,5 @@
 from http import HTTPMethod
+from logging import getLogger
 
 import msgspec
 from msgspec import Struct
@@ -10,6 +11,8 @@ from src.entities.loki import LogEntry
 from src.exceptions.llm_exceptions import LLMError
 from src.llm_adapters.base_adapter import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, YandexResponse
+
+logger = getLogger(__name__)
 
 
 class _YandexCompletionOptions(Struct):
@@ -44,6 +47,7 @@ class YandexAdapter(BaseLLMAdapter):
             completionOptions=options_obj,
         )
         data = msgspec.json.encode(request)
+        logger.info(f"Data: {data}")
         response = await self.http.make_request(
             method=HTTPMethod.POST,
             url=YANDEX_GPT_URl,
