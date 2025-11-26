@@ -74,7 +74,10 @@ class LokiClient(BaseClient):
     async def is_loki_is_ready(self) -> bool:
         try:
             response = await self._http.make_request(
-                url=f"{self.settings.LOKI_URL}/ready", method=HTTPMethod.GET, timeout=5
+                url=f"{self.settings.LOKI_URL}/ready",
+                method=HTTPMethod.GET,
+                timeout=5,
+                no_log_answer=True,
             )
             return bool(response.status_code == HTTPStatus.OK)
         except Exception:
