@@ -18,7 +18,7 @@ class LLMService:
         except LLMError:
             return False
 
-    async def anylyze_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult:
+    async def analyze_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult:
         if not logs:
             raise ValueError("No logs to analyze")
 
