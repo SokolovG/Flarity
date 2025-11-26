@@ -1,13 +1,11 @@
-from dataclasses import dataclass
 from datetime import datetime
+
+from msgspec import Struct
 
 from src.entities.enums import LogLevel
 
 
-@dataclass
-class LogEntry:
-    """Одна запись лога"""
-
+class LogEntry(Struct):
     timestamp: datetime
     message: str
     level: LogLevel

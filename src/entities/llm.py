@@ -1,24 +1,21 @@
-from dataclasses import dataclass
+from msgspec import Struct
 
 # model uri!
 "gpt://<ВАШ_ИДЕНТИФИКАТОР_КАТАЛОГА>/yandexgpt-lite"
 
 
-@dataclass
-class CompletionOptions:
+class CompletionOptions(Struct):
     stream: bool = False
     temperature: float = 0.6
     maxTokens: str = "2000"
 
 
-@dataclass
-class Message:
+class Message(Struct):
     text: str
     role: str = "user"
 
 
-@dataclass
-class LLMRequest:
+class LLMRequest(Struct):
     modelUri: str
     completionOptions: CompletionOptions
-    messages: Message
+    messages: list[Message]
