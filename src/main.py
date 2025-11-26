@@ -78,13 +78,13 @@ async def main() -> None:
     container = make_async_container(MyProvider())
 
     try:
-        settings = await container.get(Settings)
+        # settings = await container.get(Settings)
 
-        logger.info("Sending fake logs to Loki...")
-        await send_fake_logs_to_loki(settings.LOKI_URL, settings.LOKI_APP_NAME)
+        # logger.info("Sending fake logs to Loki...")
+        # await send_fake_logs_to_loki(settings.LOKI_URL, settings.LOKI_APP_NAME)
 
-        logger.info("Waiting 10 seconds for Loki to index logs...")
-        await asyncio.sleep(10)
+        # logger.info("Waiting 10 seconds for Loki to index logs...")
+        # await asyncio.sleep(10)
 
         log_analyzer_service = await container.get(LogAnalysisService)
 
