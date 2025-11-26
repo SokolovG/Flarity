@@ -46,3 +46,10 @@ class Settings(BaseSettings):
                 return key
             case _:
                 return ""
+
+    @property
+    def get_system_prompt(self) -> str:
+        with open("prompts/base_prompt.txt", "r") as f:
+            content = f.read()
+
+        return content

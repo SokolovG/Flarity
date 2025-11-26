@@ -31,7 +31,9 @@ class _YandexRequest(Struct):
 class YandexAdapter(BaseLLMAdapter):
     @retry(max_attempts=5, backoff=10)
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        yandex_msg_obj = _YandexMessage(text=self.format_logs_for_llm(logs))
+        yandex_msg_obj = _YandexMessage(
+            text=self.format_logs_for_llm(logs=logs, prompt=self.settings.get_system_prompt)
+        )
         options_obj = _YandexCompletionOptions()
         request = _YandexRequest(
             modelUri=f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}",
@@ -55,6 +57,7 @@ class YandexAdapter(BaseLLMAdapter):
         text = yandex_resp["alternatives"][0]["message"]["text"]
         input_used_token = yandex_resp["usage"]["inputTextTokens"]
         output_used_token = yandex_resp["usage"]["completionTokens"]
+
         return LLMAnalysisResult(
             analysis_text=text,
             provider=LLMProvider.YANDEX,
