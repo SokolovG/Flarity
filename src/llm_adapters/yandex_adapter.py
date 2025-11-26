@@ -15,30 +15,32 @@ from src.responses import LLMAnalysisResult, YandexResponse
 class _YandexCompletionOptions(Struct):
     stream: bool = False
     temperature: float = 0.6
-    maxTokens: str = "2000"
+    maxTokens: str = "500"
 
 
 class _YandexMessage(Struct):
+    role: str
     text: str
-    role: str = "user"
 
 
 class _YandexRequest(Struct):
     modelUri: str
-    messages: list[_YandexMessage]
     completionOptions: _YandexCompletionOptions
+    messages: list[_YandexMessage]
 
 
 class YandexAdapter(BaseLLMAdapter):
     @retry(max_attempts=5, backoff=10)
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        yandex_msg_obj = _YandexMessage(
-            text=self.format_logs_for_llm(logs=logs, prompt=self.settings.get_system_prompt)
-        )
+        logs_text = self.format_logs_for_llm(logs=logs, prompt="")
+        messages = [
+            _YandexMessage(role="system", text=self.settings.get_system_prompt),
+            _YandexMessage(role="user", text=logs_text),
+        ]
         options_obj = _YandexCompletionOptions()
         request = _YandexRequest(
             modelUri=f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}",
-            messages=[yandex_msg_obj],
+            messages=[messages],
             completionOptions=options_obj,
         )
         data = msgspec.json.encode(request)
