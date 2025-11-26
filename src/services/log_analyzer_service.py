@@ -3,7 +3,8 @@ from logging import getLogger
 
 from src.core.decorators import retry
 from src.exceptions import ServiceNotReadyError
-from src.services import LLMService, LokiService
+from src.services.llm_service import LLMService
+from src.services.loki_service import LokiService
 
 logger = getLogger(__name__)
 
