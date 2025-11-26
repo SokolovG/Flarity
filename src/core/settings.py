@@ -9,7 +9,7 @@ from src.entities.enums import LLMModel, LLMProvider
 class Settings(BaseSettings):
     LOKI_URL: str
     LOKI_APP_NAME: str
-    LOCAL_LLM_URL: str
+    LOCAL_LLM_URL: str | None
     LLMProvider: LLMProvider
     LLMModel: LLMModel
     YANDEX_API_KEY: str | None
