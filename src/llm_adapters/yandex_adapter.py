@@ -7,6 +7,7 @@ from src.core.constants import YANDEX_GPT_URl
 from src.core.decorators import retry
 from src.entities.enums import LLMProvider
 from src.entities.loki import LogEntry
+from src.exceptions.llm_exceptions import LLMError
 from src.llm_adapters.base_adapter import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, YandexResponse
 
@@ -50,11 +51,17 @@ class YandexAdapter(BaseLLMAdapter):
             },
             data=data,
         )
+
+        if response.status_code != 200:
+            error_text = response.text
+            raise LLMError(
+                f"Yandex API error: {response.status_code}", details={"response": error_text}
+            )
+
         return self._parse_response(response_bytes=response.content)
 
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
         response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
-        text = response_model["alternatives"][0]["message"]["text"]
         text = response_model.result.alternatives[0].message.text
         input_used_token = response_model.result.usage.inputTextTokens
         output_used_token = response_model.result.usage.completionTokens
@@ -62,6 +69,6 @@ class YandexAdapter(BaseLLMAdapter):
         return LLMAnalysisResult(
             analysis_text=text,
             provider=LLMProvider.YANDEX,
-            input_tokens_used=input_used_token,
-            output_tokens_used=output_used_token,
+            input_tokens_used=int(input_used_token),
+            output_tokens_used=int(output_used_token),
         )
