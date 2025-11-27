@@ -15,9 +15,9 @@ class LokiService:
         self.loki_client = loki_client
         self.app_name = settings.LOKI_APP_NAME
 
-    async def get_recent_errors(self, hours: int = 1) -> LokiQueryResult:
+    async def get_recent_errors(self, hours: int = 24) -> LokiQueryResult:
         """Получает только ERROR логи за N часов"""
-        return await self.get_logs_by_level(LogLevel.ERROR, 1)
+        return await self.get_logs_by_level(LogLevel.ERROR, 24)
 
     async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
         query = f'{{level="{level.value}"}}'
