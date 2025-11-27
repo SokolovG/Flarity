@@ -18,10 +18,10 @@ class BaseLLMAdapter(ABC):
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult: ...
 
     @staticmethod
-    def format_logs_for_llm(logs: list[LogEntry], prompt: str) -> str:
+    def format_logs_for_llm(logs: list[LogEntry]) -> str:
         logs_text = ""
         for log in logs:
             clean_message = log.message.encode().decode("unicode_escape")
             logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level.value} {log.app} {clean_message}\n"
 
-        return logs_text + prompt
+        return logs_text
