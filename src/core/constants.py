@@ -1,4 +1,4 @@
-from typing import Final, TypedDict
+from typing import Final
 
 from httpx import ConnectError, ConnectTimeout, ReadTimeout
 
