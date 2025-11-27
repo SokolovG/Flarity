@@ -6,7 +6,7 @@ from msgspec import Struct
 
 from src.core.constants import YANDEX_GPT_URl
 from src.core.decorators import retry
-from src.entities.enums import LLMProvider
+from src.entities.enums import LLMModel, LLMProvider
 from src.entities.loki import LogEntry
 from src.exceptions.llm_exceptions import LLMError
 from src.llm_adapters.base_adapter import BaseLLMAdapter
@@ -42,7 +42,7 @@ class YandexAdapter(BaseLLMAdapter):
         ]
         options_obj = _YandexCompletionOptions()
         request = _YandexRequest(
-            modelUri=f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}",
+            modelUri=self._get_model_uri(),
             messages=messages,
             completionOptions=options_obj,
         )
@@ -78,3 +78,12 @@ class YandexAdapter(BaseLLMAdapter):
             input_tokens_used=int(input_used_token),
             output_tokens_used=int(output_used_token),
         )
+
+    def _get_model_uri(self) -> str:
+        modelUri = f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}"
+        match self.settings.LLMModel:
+            case LLMModel.YANDEX_GPT_5:
+                modelUri += "latest"
+            case LLMModel.YANDEX_GPT_PRO_5_1:
+                modelUri += "rc"
+        return modelUri

@@ -8,8 +8,10 @@ class LLMProvider(Enum):
 
 
 class LLMModel(Enum):
-    YANDEX_GPT_LITE = "yandex-gpt-lite"
-    YANDEX_GPT_PRO = "yandex-gpt-pro"
+    YANDEX_GPT_LITE = "yandexgpt-lite"
+    YANDEX_GPT_PRO_5_1 = "yandexgpt"
+    YANDEX_GPT_5 = "yandexgpt"
+    ALICE_LLM = "aliceai-llm"
 
 
 class LogLevel(Enum):
