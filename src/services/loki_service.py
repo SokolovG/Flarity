@@ -17,7 +17,9 @@ class LokiService:
 
     async def get_recent_errors(self, hours: int = 24) -> LokiQueryResult:
         """Получает только ERROR логи за N часов"""
-        return await self.get_logs_by_level(LogLevel.ERROR, 24)
+        logs = await self.get_logs_by_level(LogLevel.ERROR, hours)
+        grouped = await self.group_errors_by_type(logs)
+        return grouped
 
     async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
         query = f'{{level="{level.value}"}}'
@@ -63,5 +65,7 @@ class LokiService:
 
     def _extract_error_type(self, message: str) -> str:
         # TODO: парсинг логов из стетхема, надо понять это и докинуть сервис а лучше переписать логику
+        # Regex паттерны для типовых ошибок (Database, API, Auth)
+        # Первые N слов до двоеточия?
         words = message.split()[:20]
         return " ".join(words)
