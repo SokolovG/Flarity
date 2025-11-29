@@ -1,4 +1,4 @@
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
 from logging import getLogger
 
 import msgspec
@@ -7,7 +7,7 @@ from src.core.constants import YANDEX_GPT_URl
 from src.core.decorators import retry
 from src.entities.enums import LLMModel, LLMProvider
 from src.entities.loki import LogEntry
-from src.exceptions.llm_exceptions import LLMError
+from src.exceptions.llm_exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.llm_adapters.base_adapter import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, YandexResponse
 
@@ -15,11 +15,11 @@ logger = getLogger(__name__)
 
 
 class YandexAdapter(BaseLLMAdapter):
-    @retry(max_attempts=5, backoff=10)
+    @retry(max_attempts=5, backoff=10, retryable_exceptions=(LLMError, LLMRateLimitError))
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
         request_data = {
-            "modelUri": f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}/latest",
+            "modelUri": self._get_model_uri(),
             "completionOptions": {
                 "stream": False,
                 "temperature": self.settings.LLM_TEMPERATURE,
@@ -39,11 +39,19 @@ class YandexAdapter(BaseLLMAdapter):
             },
             data=request_data,
         )
-
-        if response.status_code != 200:
-            error_text = response.text
+        if response.status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
+            raise LLMAuthError("Authorization failed!", details={"status": response.status_code})
+        elif response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+            raise LLMRateLimitError("Rate limit exceeded", details={"status": response.status_code})
+        if response.status_code >= 500:
             raise LLMError(
-                f"Yandex API error: {response.status_code}", details={"response": error_text}
+                f"Yandex server error: {response.status_code}",
+                details={"status": response.status_code, "response": response.text},
+            )
+        if response.status_code != 200:
+            raise LLMError(
+                f"Yandex API error: {response.status_code}",
+                details={"status": response.status_code, "response": response.text},
             )
 
         return self._parse_response(response_bytes=response.content)
