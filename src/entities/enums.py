@@ -2,7 +2,6 @@ from enum import Enum
 
 
 class LLMProvider(Enum):
-    GIGACHAT = "gigachat"
     LOCAL = "local"
     YANDEX = "yandex"
 

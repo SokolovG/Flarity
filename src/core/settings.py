@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     LLMModel: LLMModel
     YANDEX_API_KEY: str | None
     YANDEX_CATALOG_ID: str | None
-    GIGACHAT_API_KEY: str | None
     LLM_TEMPERATURE: float
     MAX_TOKENS_LLM_ANSWER: int
     _system_prompt: str
@@ -33,10 +32,6 @@ class Settings(BaseSettings):
             case LLMProvider.YANDEX:
                 if not self.YANDEX_API_KEY:
                     raise ValueError(f"For {LLMProvider.YANDEX} YANDEX_API_KEY is empty")
-
-            case LLMProvider.GIGACHAT:
-                if not self.GIGACHAT_API_KEY:
-                    raise ValueError(f"For {LLMProvider.GIGACHAT} GIGACHAT_API_KEY is empty")
         return self
 
     @property
@@ -44,10 +39,6 @@ class Settings(BaseSettings):
         match self.LLMProvider:
             case LLMProvider.YANDEX:
                 key = self.YANDEX_API_KEY
-                assert key is not None, "Validated in model_validator"
-                return key
-            case LLMProvider.GIGACHAT:
-                key = self.GIGACHAT_API_KEY
                 assert key is not None, "Validated in model_validator"
                 return key
             case _:
