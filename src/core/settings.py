@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     YANDEX_CATALOG_ID: str | None
     GIGACHAT_API_KEY: str | None
     LLM_TEMPERATURE: float
+    MAX_TOKENS_LLM_ANSWER: int
     _system_prompt: str
 
     model_config = SettingsConfigDict(

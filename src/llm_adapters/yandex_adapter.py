@@ -23,7 +23,7 @@ class YandexAdapter(BaseLLMAdapter):
             "completionOptions": {
                 "stream": False,
                 "temperature": self.settings.LLM_TEMPERATURE,
-                "maxTokens": "500",
+                "maxTokens": self.settings.MAX_TOKENS_LLM_ANSWER,
             },
             "messages": [
                 {"role": "system", "text": self.settings.get_system_prompt},
@@ -58,6 +58,14 @@ class YandexAdapter(BaseLLMAdapter):
 
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
         response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
+        text = response_model.result.alternatives[0].message.text
+
+        if not text or len(text.strip()) < 10:
+            raise LLMError("LLM returned empty or too short response")
+
+        if not text.rstrip().endswith((".", "!", "?")):
+            logger.warning("LLM response might be truncated")
+
         text = response_model.result.alternatives[0].message.text
         input_used_token = response_model.result.usage.inputTextTokens
         output_used_token = response_model.result.usage.completionTokens
