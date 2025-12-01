@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class LLMProvider(Enum):
-    LOCAL = "local"
+    OLLAMA = "ollama"
     YANDEX = "yandex"
 
 

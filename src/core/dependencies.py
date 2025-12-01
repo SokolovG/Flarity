@@ -3,7 +3,8 @@ from dishka import Provider, Scope, provide
 from src.clients import HTTPClient, LokiClient
 from src.core.settings import Settings
 from src.entities.enums import LLMProvider
-from src.llm_adapters import BaseLLMAdapter, LocalAdapter, YandexAdapter
+from src.llm_adapters import BaseLLMAdapter, OllamaAdapter, YandexAdapter
+from src.llm_adapters.ollama_adapter import OllamaAdapter
 from src.services import LLMService, LogAnalysisService, LokiService
 
 
@@ -43,5 +44,5 @@ class MyProvider(Provider):
         match settings.LLMProvider:
             case LLMProvider.YANDEX:
                 return YandexAdapter(http_client, settings)
-            case LLMProvider.LOCAL:
-                return LocalAdapter(http_client, settings)
+            case LLMProvider.OLLAMA:
+                return OllamaAdapter(http_client, settings)
