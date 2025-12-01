@@ -18,8 +18,7 @@ class LokiService:
     async def get_recent_errors(self, hours: int = 24) -> LokiQueryResult:
         """Получает только ERROR логи за N часов"""
         logs = await self.get_logs_by_level(LogLevel.ERROR, hours)
-        grouped = await self.group_errors_by_type(logs)
-        return grouped
+        return logs
 
     async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
         query = f'{{level="{level.value}"}}'

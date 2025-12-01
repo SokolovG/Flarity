@@ -1,7 +1,7 @@
 from msgspec import Struct
 
 
-class _OllamaMessage(Struct):
+class OllamaMessage(Struct):
     role: str
     content: str
 
@@ -9,11 +9,16 @@ class _OllamaMessage(Struct):
 class OllamaResponse(Struct):
     model: str
     created_at: str
-    message: _OllamaMessage
+    message: OllamaMessage
     done: bool
+
+    done_reason: str | None = None
     total_duration: int | None = None
+    load_duration: int | None = None
     prompt_eval_count: int | None = None
+    prompt_eval_duration: int | None = None
     eval_count: int | None = None
+    eval_duration: int | None = None
 
 
 class OllamaErrorResponse(Struct):
