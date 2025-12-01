@@ -57,7 +57,11 @@ class YandexAdapter(BaseLLMAdapter):
         return self._parse_response(response_bytes=response.content)
 
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
-        response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
+        try:
+            response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
+        except msgspec.DecodeError as e:
+            raise LLMError(f"Error during llm generation {e}")
+
         text = response_model.result.alternatives[0].message.text
 
         if not text or len(text.strip()) < 10:
