@@ -37,6 +37,7 @@ class LokiClient(BaseClient):
             method=HTTPMethod.GET,
             url=f"{self.settings.LOKI_URL}/loki/api/v1/query_range",
             params=params,
+            no_log_answer=True,
         )
 
         if response.status_code == 503:
@@ -67,7 +68,6 @@ class LokiClient(BaseClient):
                         app=stream.stream.get("app", "unknown"),
                     )
                 )
-        logger.info(f"Logs from loki: {logs}")
         result = LokiQueryResult(logs=logs, total_count=len(logs))
         return result
 

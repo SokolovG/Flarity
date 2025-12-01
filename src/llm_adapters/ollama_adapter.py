@@ -1,3 +1,4 @@
+import re
 from http import HTTPMethod, HTTPStatus
 from logging import getLogger
 
@@ -32,6 +33,7 @@ class OllamaAdapter(BaseLLMAdapter):
             method=HTTPMethod.POST,
             data=request_data,
             timeout=self.settings.OLLAMA_TIMEOUT,
+            no_log_answer=True,
         )
 
         if response.status_code == HTTPStatus.NOT_FOUND:
@@ -80,6 +82,8 @@ class OllamaAdapter(BaseLLMAdapter):
             output_tokens_used=response_model.eval_count,
         )
 
-    def _clean_llm_answer(self, text: str) -> str:
-        # TODO: clean <think>
-        return text
+    @staticmethod
+    def _clean_llm_answer(text: str) -> str:
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+        text = text.replace("<think>", "").replace("</think>", "")
+        return text.strip()
