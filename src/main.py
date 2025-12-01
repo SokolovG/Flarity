@@ -7,7 +7,6 @@ import httpx
 from dishka import make_async_container
 
 from src.core import MyProvider
-from src.core.settings import Settings
 from src.exceptions import ServiceNotReadyError
 from src.services import LogAnalysisService
 

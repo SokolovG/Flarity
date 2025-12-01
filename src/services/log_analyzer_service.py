@@ -3,16 +3,21 @@ from logging import getLogger
 
 from src.core.decorators import retry
 from src.exceptions import ServiceNotReadyError
-from src.services.llm_service import LLMService
-from src.services.loki_service import LokiService
+from src.services import LLMService, LokiService, NotificationService
 
 logger = getLogger(__name__)
 
 
 class LogAnalysisService:
-    def __init__(self, loki_service: LokiService, llm_service: LLMService) -> None:
+    def __init__(
+        self,
+        loki_service: LokiService,
+        llm_service: LLMService,
+        notification_service: NotificationService,
+    ) -> None:
         self.loki_service = loki_service
         self.llm_service = llm_service
+        self.notification_service = notification_service
 
     async def analyze_and_notify(self) -> None:
         logger.info("Fetching recent error logs...")
@@ -37,6 +42,11 @@ class LogAnalysisService:
         logger.info(
             f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
         )
+
+        message_send = await self.notification_service.send_analysis_report(
+            analysis=analysis, grouped_logs=grouped
+        )
+        logger.info(f"Telegram message has sent is {message_send}")
 
     @retry(max_attempts=5, backoff=10.0, retryable_exceptions=(ServiceNotReadyError,))
     async def check_readiness(self) -> bool:
