@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float
     MAX_TOKENS_LLM_ANSWER: int
     OLLAMA_TIMEOUT: int
+    TELEGRAM_BOT_TOKEN: str
+    TELEGRAM_CHAT_ID: str
     _system_prompt: str
 
     model_config = SettingsConfigDict(
@@ -56,4 +58,12 @@ class Settings(BaseSettings):
         if self.LLMProvider == LLMProvider.OLLAMA:
             if not self.OLLAMA_BASE_URL:
                 raise ValueError("For OLLANA provider, OLLAMA_BASE_URL is required")
+        return self
+
+    @model_validator(mode="after")
+    def validate_telegram(self) -> Self:
+        if not self.TELEGRAM_BOT_TOKEN:
+            raise ValueError("TELEGRAM_BOT_TOKEN is required")
+        if not self.TELEGRAM_CHAT_ID:
+            raise ValueError("TELEGRAM_CHAT_ID is required")
         return self
