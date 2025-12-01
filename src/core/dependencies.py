@@ -5,7 +5,10 @@ from src.core.settings import Settings
 from src.entities.enums import LLMProvider
 from src.llm_adapters import BaseLLMAdapter, OllamaAdapter, YandexAdapter
 from src.llm_adapters.ollama_adapter import OllamaAdapter
-from src.services import LLMService, LogAnalysisService, LokiService, NotificationService
+from src.services.llm_service import LLMService
+from src.services.log_analyzer_service import LogAnalysisService
+from src.services.loki_service import LokiService
+from src.services.notification_service import NotificationService
 
 
 class MyProvider(Provider):
@@ -24,6 +27,10 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_loki_service(self, loki_client: LokiClient, app_settings: Settings) -> LokiService:
         return LokiService(loki_client=loki_client, settings=app_settings)
+
+    @provide(scope=Scope.APP)
+    def get_telegram_client(self, http_client: HTTPClient, settings: Settings) -> TelegramClient:
+        return TelegramClient(http_client=http_client, settings=settings)
 
     @provide(scope=Scope.APP)
     def get_notification_service(

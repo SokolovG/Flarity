@@ -18,7 +18,7 @@ class OllamaAdapter(BaseLLMAdapter):
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
         request_data = {
-            "model": self.settings.OLLAMA_MODEL,
+            "model": self.settings.LLMModel,
             "messages": [
                 {"role": "system", "content": self.settings.get_system_prompt},
                 {"role": "user", "content": logs_text},
@@ -64,7 +64,8 @@ class OllamaAdapter(BaseLLMAdapter):
             except msgspec.DecodeError:
                 raise LLMError(f"Failed to parse Ollama response: {response_bytes.decode()[:200]}")
 
-        text = response_model.response
+        text = response_model.message.content
+        text = self._clean_llm_answer(text)
 
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
@@ -78,3 +79,7 @@ class OllamaAdapter(BaseLLMAdapter):
             input_tokens_used=response_model.prompt_eval_count,
             output_tokens_used=response_model.eval_count,
         )
+
+    def _clean_llm_answer(self, text: str) -> str:
+        # TODO: clean <think>
+        return text

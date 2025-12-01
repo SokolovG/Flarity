@@ -7,6 +7,7 @@ import httpx
 from dishka import make_async_container
 
 from src.core import MyProvider
+from src.core.settings import Settings
 from src.exceptions import ServiceNotReadyError
 from src.services import LogAnalysisService
 
@@ -77,7 +78,7 @@ async def main() -> None:
     container = make_async_container(MyProvider())
 
     try:
-        # settings = await container.get(Settings)
+        settings = await container.get(Settings)
 
         # logger.info("Sending fake logs to Loki...")
         # await send_fake_logs_to_loki(settings.LOKI_URL, settings.LOKI_APP_NAME)
