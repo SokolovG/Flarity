@@ -17,11 +17,18 @@ class OllamaAdapter(BaseLLMAdapter):
     @retry(max_attempts=5, backoff=10, retryable_exceptions=(LLMError,))
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
-        full_text = self.settings.get_system_prompt + logs_text
-        request_data: dict = {"model": self.settings.LLMModel.value, "prompt": full_text}
+        request_data = {
+            "model": self.settings.OLLAMA_MODEL,
+            "messages": [
+                {"role": "system", "content": self.settings.get_system_prompt},
+                {"role": "user", "content": logs_text},
+            ],
+            "stream": False,
+            "options": {"num_predict": self.settings.MAX_TOKENS_LLM_ANSWER},
+        }
 
         response = await self.http.make_request(
-            url=f"{self.settings.OLLAMA_BASE_URL}/api/generate",
+            url=f"{self.settings.OLLAMA_BASE_URL}/api/chat",
             method=HTTPMethod.POST,
             data=request_data,
             timeout=self.settings.OLLAMA_TIMEOUT,

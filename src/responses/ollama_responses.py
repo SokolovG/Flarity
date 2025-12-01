@@ -1,19 +1,20 @@
 from msgspec import Struct
 
 
-class OllamaErrorResponse(Struct):
-    error: str
+class _OllamaMessage(Struct):
+    role: str
+    content: str
 
 
 class OllamaResponse(Struct):
     model: str
     created_at: str
-    response: str
+    message: _OllamaMessage
     done: bool
-    done_reason: str
-    total_duration: int
-    load_duration: int
-    prompt_eval_count: int
-    prompt_eval_duration: int
-    eval_count: int
-    eval_duration: int
+    total_duration: int | None = None
+    prompt_eval_count: int | None = None
+    eval_count: int | None = None
+
+
+class OllamaErrorResponse(Struct):
+    error: str
