@@ -9,7 +9,7 @@ from src.entities.enums import LLMModel, LLMProvider
 class Settings(BaseSettings):
     LOKI_URL: str
     LOKI_APP_NAME: str
-    LOCAL_LLM_URL: str | None
+    OLLAMA_BASE_URL: str | None
     LLMProvider: LLMProvider
     LLMModel: LLMModel
     YANDEX_API_KEY: str | None
@@ -48,4 +48,11 @@ class Settings(BaseSettings):
     def load_system_prompt(self) -> Self:
         with open("prompts/base_prompt.txt", "r") as f:
             self._system_prompt = f.read()
+        return self
+
+    @model_validator(mode="after")
+    def validate_ollama(self) -> Self:
+        if self.LLMProvider == LLMProvider.OLLAMA:
+            if not self.OLLAMA_BASE_URL:
+                raise ValueError("For OLLANA provider, OLLAMA_BASE_URL is required")
         return self
