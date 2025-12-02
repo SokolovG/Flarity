@@ -9,7 +9,7 @@ class TelegramClient:
 
     @property
     def _base_url(self) -> str:
-        return f"https://api.telegram.org/bot{self.settings.TELEGRAM_BOT_TOKEN}"
+        return f"https://api.telegram.org/bot{self.settings.telegram_bot_token}"
 
     async def send_message(
         self, text: str, parse_mode: str = "Markdown", disable_notification: bool = False

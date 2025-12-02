@@ -19,9 +19,9 @@ class OllamaAdapter(BaseLLMAdapter):
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
         request_data = {
-            "model": self.settings.LLMModel,
+            "model": self.settings.llm.model,
             "messages": [
-                {"role": "system", "content": self.settings.get_system_prompt},
+                {"role": "system", "content": self.settings.llm.system_prompt},
                 {"role": "user", "content": logs_text},
             ],
             "stream": False,
@@ -29,10 +29,10 @@ class OllamaAdapter(BaseLLMAdapter):
         }
 
         response = await self.http.make_request(
-            url=f"{self.settings.OLLAMA_BASE_URL}/api/chat",
+            url=f"{self.settings.llm_provider.ollama.base_url}/api/chat",
             method=HTTPMethod.POST,
             data=request_data,
-            timeout=self.settings.OLLAMA_TIMEOUT,
+            timeout=self.settings.llm_provider.ollama.timeout,
             no_log_answer=True,
         )
 
