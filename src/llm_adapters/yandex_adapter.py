@@ -3,7 +3,6 @@ from logging import getLogger
 
 import msgspec
 
-from src.core.constants import YANDEX_GPT_URl
 from src.core.decorators import retry
 from src.entities.enums import LLMModel, LLMProvider
 from src.entities.loki import LogEntry
@@ -32,7 +31,7 @@ class YandexAdapter(BaseLLMAdapter):
         }
         response = await self.http.make_request(
             method=HTTPMethod.POST,
-            url=YANDEX_GPT_URl,
+            url=self.settings.llm_provider.yandex.base_url,
             headers={
                 "Authorization": f"Api-Key {self.settings.llm_provider.yandex.api_key}",
                 "Content-Type": "application/json",
