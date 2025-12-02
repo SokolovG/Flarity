@@ -5,12 +5,15 @@ from logging import getLogger
 import msgspec
 
 from src.clients import HTTPClient
+from src.core.app_settings import Settings
 from src.core.decorators import retry
-from src.core.settings import Settings
 from src.entities.enums import Directions, LogLevel
 from src.entities.loki import LogEntry
 from src.exceptions import LokiError, LokiUnavailableError
-from src.responses.loki_responses import LokiQueryRangeResponse, LokiQueryResult
+from src.responses import (
+    LogsSourceQueryResult,
+    LokiQueryRangeResponse,
+)
 
 logger = getLogger(__name__)
 
@@ -28,7 +31,7 @@ class LokiClient:
         end_time: datetime,
         limit: int = 1000,
         direction: Directions = Directions.BACKWARD,
-    ) -> LokiQueryResult:
+    ) -> LogsSourceQueryResult:
         params = {
             "query": query,
             "start": str(int(start_time.timestamp() * 1_000_000_000)),
@@ -72,7 +75,7 @@ class LokiClient:
                         app=stream.stream.get("app", "unknown"),
                     )
                 )
-        result = LokiQueryResult(logs=logs, total_count=len(logs))
+        result = LokiQueryRangeResponse(logs=logs, total_count=len(logs))
         return result
 
     async def is_loki_is_ready(self) -> bool:

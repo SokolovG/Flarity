@@ -1,10 +1,11 @@
 from dishka import Provider, Scope, provide
 
 from src.clients import HTTPClient, LokiClient, TelegramClient
-from src.core.settings import Settings
+from src.core.app_settings import Settings
 from src.entities.enums import LLMProvider
 from src.llm_adapters import BaseLLMAdapter, OllamaAdapter, YandexAdapter
 from src.llm_adapters.ollama_adapter import OllamaAdapter
+from src.services.base_services import LogSourceService
 from src.services.llm_service import LLMService
 from src.services.log_analyzer_service import LogAnalysisService
 from src.services.loki_service import LokiService
@@ -25,8 +26,8 @@ class MyProvider(Provider):
         return LokiClient(http_client=http_client, settings=app_settings)
 
     @provide(scope=Scope.APP)
-    def get_loki_service(self, loki_client: LokiClient, app_settings: Settings) -> LokiService:
-        return LokiService(loki_client=loki_client, settings=app_settings)
+    def get_log_source_service(self, app_settings: Settings) -> LogSourceService:
+        return LogSourceService(settings=app_settings)
 
     @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: Settings) -> TelegramClient:
@@ -41,12 +42,12 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_log_analyzer_service(
         self,
-        loki_service: LokiService,
+        log_source_service: LogSourceService,
         llm_service: LLMService,
         notification_service: NotificationService,
     ) -> LogAnalysisService:
         return LogAnalysisService(
-            loki_service=loki_service,
+            log_source_service = log_source_service,
             llm_service=llm_service,
             notification_service=notification_service,
         )

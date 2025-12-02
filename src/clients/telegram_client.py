@@ -1,5 +1,5 @@
 from src.clients import HTTPClient
-from src.core.settings import Settings
+from src.core.app_settings import Settings
 
 
 class TelegramClient:

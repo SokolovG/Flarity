@@ -2,25 +2,24 @@ import datetime
 from logging import getLogger
 
 from src.clients import LokiClient
-from src.core.settings import Settings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
-from src.responses import LogGroupByErrorType, LogsByErrorType, LokiQueryResult
+from src.responses import LogGroupByErrorType, LogsByErrorType, LogsSourceQueryResult
+from src.services import LogSourceService
 
 logger = getLogger(__name__)
 
 
-class LokiService:
-    def __init__(self, loki_client: LokiClient, settings: Settings) -> None:
+class LokiService(LogSourceService):
+    def __init__(self, loki_client: LokiClient) -> None:
         self.loki_client = loki_client
-        self.app_name = settings.LOKI_APP_NAME
 
-    async def get_recent_errors(self, hours: int = 24) -> LokiQueryResult:
+    async def get_recent_errors(self, hours: int = 24) -> LogsSourceQueryResult:
         """Получает только ERROR логи за N часов"""
         logs = await self.get_logs_by_level(LogLevel.ERROR, hours)
         return logs
 
-    async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LokiQueryResult:
+    async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LogsSourceQueryResult:
         query = f'{{level="{level.value}"}}'
 
         end_time = datetime.datetime.now()
@@ -31,7 +30,7 @@ class LokiService:
         )
         return logs
 
-    async def group_errors_by_type(self, logs: LokiQueryResult) -> LogsByErrorType:
+    async def group_errors_by_type(self, logs: LogsSourceQueryResult) -> LogsByErrorType:
         """
         Группирует ошибки по типу.
 
@@ -58,7 +57,7 @@ class LokiService:
 
         return LogsByErrorType(logs_groups=groups, total_count=len(groups))
 
-    async def check_if_loki_is_ready(self) -> bool:
+    async def check_readnisess(self) -> bool:
         ready = await self.loki_client.is_loki_is_ready()
         return ready
 

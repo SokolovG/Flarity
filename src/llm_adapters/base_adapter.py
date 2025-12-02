@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.clients.http_client import HTTPClient
-from src.core.settings import Settings
+from src.core.app_settings import Settings
 from src.entities.loki import LogEntry
 from src.responses import LLMAnalysisResult
 
