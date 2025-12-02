@@ -1,10 +1,10 @@
 from src.clients import TelegramClient
-from src.core.app_settings import Settings
+from src.core.settings.notification_settings import NotificationSettings
 from src.responses import LLMAnalysisResult, LogsByErrorType
 
 
 class NotificationService:
-    def __init__(self, telegram_client: TelegramClient, settings: Settings):
+    def __init__(self, telegram_client: TelegramClient, settings: NotificationSettings):
         self.telegram_client = telegram_client
         self.settings = settings
 

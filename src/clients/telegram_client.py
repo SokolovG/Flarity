@@ -1,9 +1,9 @@
 from src.clients import HTTPClient
-from src.core.app_settings import Settings
+from src.core.settings.notification_settings import NotificationSettings
 
 
 class TelegramClient:
-    def __init__(self, http_client: HTTPClient, settings: Settings):
+    def __init__(self, http_client: HTTPClient, settings: NotificationSettings):
         self._http = http_client
         self.settings = settings
 
