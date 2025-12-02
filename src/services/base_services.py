@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
-from src.core.app_settings import Settings
+from src.core.settings.log_source_settings import LogsSourceSettings
 from src.responses import LogsByErrorType, LogsSourceQueryResult
 
 
 class LogSourceService(ABC):
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: LogsSourceSettings):
         self.settings = settings
 
     @abstractmethod

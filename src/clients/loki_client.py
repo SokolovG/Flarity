@@ -7,6 +7,7 @@ import msgspec
 from src.clients import HTTPClient
 from src.core.app_settings import Settings
 from src.core.decorators import retry
+from src.core.settings.log_source_settings import LogsSourceSettings
 from src.entities.enums import Directions, LogLevel
 from src.entities.loki import LogEntry
 from src.exceptions import LokiError, LokiUnavailableError
@@ -19,7 +20,7 @@ logger = getLogger(__name__)
 
 
 class LokiClient:
-    def __init__(self, http_client: HTTPClient, settings: Settings):
+    def __init__(self, http_client: HTTPClient, settings: LogsSourceSettings):
         self._http = http_client
         self.settings = settings
 
