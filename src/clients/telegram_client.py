@@ -1,7 +1,12 @@
-from src.clients.base_client import BaseClient
+from src.clients import HTTPClient
+from src.core.settings import Settings
 
 
-class TelegramClient(BaseClient):
+class TelegramClient:
+    def __init__(self, http_client: HTTPClient, settings: Settings):
+        self._http = http_client
+        self.settings = settings
+
     @property
     def _base_url(self) -> str:
         return f"https://api.telegram.org/bot{self.settings.TELEGRAM_BOT_TOKEN}"
