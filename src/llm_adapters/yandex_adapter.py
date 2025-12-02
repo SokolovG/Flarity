@@ -22,11 +22,11 @@ class YandexAdapter(BaseLLMAdapter):
             "modelUri": self._get_model_uri(),
             "completionOptions": {
                 "stream": False,
-                "temperature": self.settings.LLM_TEMPERATURE,
-                "maxTokens": self.settings.MAX_TOKENS_LLM_ANSWER,
+                "temperature": self.settings.llm.temperature,
+                "maxTokens": self.settings.llm.max_tokens,
             },
             "messages": [
-                {"role": "system", "text": self.settings.get_system_prompt},
+                {"role": "system", "text": self.settings.llm.system_prompt},
                 {"role": "user", "text": logs_text},
             ],
         }
@@ -34,7 +34,7 @@ class YandexAdapter(BaseLLMAdapter):
             method=HTTPMethod.POST,
             url=YANDEX_GPT_URl,
             headers={
-                "Authorization": f"Api-Key {self.settings.YANDEX_API_KEY}",
+                "Authorization": f"Api-Key {self.settings.llm_provider.yandex.api_key}",
                 "Content-Type": "application/json",
             },
             data=request_data,
@@ -82,8 +82,10 @@ class YandexAdapter(BaseLLMAdapter):
         )
 
     def _get_model_uri(self) -> str:
-        modelUri = f"gpt://{self.settings.YANDEX_CATALOG_ID}/{self.settings.LLMModel.value}"
-        match self.settings.LLMModel:
+        modelUri = (
+            f"gpt://{self.settings.llm_provider.yandex.api_key}/{self.settings.llm.model.value}"
+        )
+        match self.settings.llm.model:
             case LLMModel.YANDEX_GPT_5:
                 modelUri += "latest"
             case LLMModel.YANDEX_GPT_PRO_5_1:
