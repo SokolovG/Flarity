@@ -52,7 +52,7 @@ class LogAnalysisService:
     @retry(max_attempts=5, backoff=10.0, retryable_exceptions=(ServiceNotReadyError,))
     async def check_readiness(self) -> bool:
         coros = (
-            self.log_source_service.check_readnisess(),
+            self.log_source_service.check_readiness(),
             self.llm_service.check_if_llm_is_ready(),
         )
 

@@ -26,8 +26,10 @@ class MyProvider(Provider):
         return LokiClient(http_client=http_client, settings=app_settings)
 
     @provide(scope=Scope.APP)
-    def get_log_source_service(self, app_settings: Settings) -> LogSourceService:
-        return LogSourceService(settings=app_settings)
+    def get_log_source_service(
+        self, loki_client: LokiClient, settings: Settings
+    ) -> LogSourceService:
+        return LokiService(loki_client=loki_client, settings=settings)
 
     @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: Settings) -> TelegramClient:
@@ -47,7 +49,7 @@ class MyProvider(Provider):
         notification_service: NotificationService,
     ) -> LogAnalysisService:
         return LogAnalysisService(
-            log_source_service = log_source_service,
+            log_source_service=log_source_service,
             llm_service=llm_service,
             notification_service=notification_service,
         )

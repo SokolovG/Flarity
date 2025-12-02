@@ -2,6 +2,7 @@ import datetime
 from logging import getLogger
 
 from src.clients import LokiClient
+from src.core.app_settings import Settings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
 from src.responses import LogGroupByErrorType, LogsByErrorType, LogsSourceQueryResult
@@ -11,8 +12,9 @@ logger = getLogger(__name__)
 
 
 class LokiService(LogSourceService):
-    def __init__(self, loki_client: LokiClient) -> None:
+    def __init__(self, loki_client: LokiClient, settings: Settings) -> None:
         self.loki_client = loki_client
+        super.__init__(settings)
 
     async def get_recent_errors(self, hours: int = 24) -> LogsSourceQueryResult:
         """Получает только ERROR логи за N часов"""
@@ -57,7 +59,7 @@ class LokiService(LogSourceService):
 
         return LogsByErrorType(logs_groups=groups, total_count=len(groups))
 
-    async def check_readnisess(self) -> bool:
+    async def check_readiness(self) -> bool:
         ready = await self.loki_client.is_loki_is_ready()
         return ready
 
