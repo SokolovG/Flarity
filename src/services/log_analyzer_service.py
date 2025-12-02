@@ -3,8 +3,7 @@ from logging import getLogger
 
 from src.core.decorators import retry
 from src.exceptions import ServiceNotReadyError
-from src.services.llm_service import LLMService
-from src.services.loki_service import LokiService
+from src.services import LLMService, LogSourceService
 from src.services.notification_service import NotificationService
 
 logger = getLogger(__name__)
@@ -13,17 +12,17 @@ logger = getLogger(__name__)
 class LogAnalysisService:
     def __init__(
         self,
-        loki_service: LokiService,
+        log_source_service: LogSourceService,
         llm_service: LLMService,
         notification_service: NotificationService,
     ) -> None:
-        self.loki_service = loki_service
+        self.log_source_service = log_source_service
         self.llm_service = llm_service
         self.notification_service = notification_service
 
     async def analyze_and_notify(self) -> None:
         logger.info("Fetching recent error logs...")
-        logs = await self.loki_service.get_recent_errors()
+        logs = await self.log_source_service.get_recent_errors()
 
         if logs.total_count == 0:
             logger.warning("No error logs found in the last hour")
@@ -31,7 +30,7 @@ class LogAnalysisService:
 
         logger.info(f"Found {logs.total_count} error logs")
         logger.info("Grouping errors by type...")
-        grouped = await self.loki_service.group_errors_by_type(logs)
+        grouped = await self.log_source_service.group_errors_by_type(logs)
 
         for group in grouped.logs_groups:
             logger.info(f"  - {group.error}: {len(group.logs)} occurrences")
@@ -53,7 +52,7 @@ class LogAnalysisService:
     @retry(max_attempts=5, backoff=10.0, retryable_exceptions=(ServiceNotReadyError,))
     async def check_readiness(self) -> bool:
         coros = (
-            self.loki_service.check_if_loki_is_ready(),
+            self.log_source_service.check_readnisess(),
             self.llm_service.check_if_llm_is_ready(),
         )
 

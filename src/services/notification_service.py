@@ -1,5 +1,5 @@
 from src.clients import TelegramClient
-from src.core.settings import Settings
+from src.core.app_settings import Settings
 from src.responses import LLMAnalysisResult, LogsByErrorType
 
 

@@ -2,7 +2,7 @@ from logging import getLogger
 
 from src.exceptions.llm_exceptions import LLMError
 from src.llm_adapters import BaseLLMAdapter
-from src.responses import LLMAnalysisResult, LokiQueryResult
+from src.responses import LLMAnalysisResult, LogsSourceQueryResult
 
 logger = getLogger(__name__)
 
@@ -18,7 +18,7 @@ class LLMService:
         except LLMError:
             return False
 
-    async def analyze_logs(self, logs: LokiQueryResult) -> LLMAnalysisResult:
+    async def analyze_logs(self, logs: LogsSourceQueryResult) -> LLMAnalysisResult:
         if not logs:
             raise ValueError("No logs to analyze")
 
