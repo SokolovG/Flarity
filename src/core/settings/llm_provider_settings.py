@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class YandexConfig(BaseSettings):
     api_key: str
     catalog_id: str
+    base_url: str
 
     model_config = SettingsConfigDict(env_prefix="YANDEX_")
 
