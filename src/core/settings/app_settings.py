@@ -7,7 +7,6 @@ from src.core.settings.llm_provider_settings import LLMProviderSettings
 from src.core.settings.llm_settings import LLMSettings
 from src.core.settings.log_source_settings import LogsSourceSettings
 from src.core.settings.notification_settings import NotificationSettings
-from src.entities.enums import LLMProvider
 
 
 class AppSettings(BaseSettings):
@@ -19,9 +18,9 @@ class AppSettings(BaseSettings):
     @model_validator(mode="after")
     def validate_llm_provider_config(self) -> Self:
         if self.llm_provider.provider == "yandex":
-            if not self.llm_provider.yandex:
-                raise ValueError("Yandex config required")
+            if not self.llm_provider.yandex_api_key or not self.llm_provider.yandex_catalog_id:
+                raise ValueError("Yandex API key and catalog ID are required")
         elif self.llm_provider.provider == "ollama":
-            if not self.llm_provider.ollama:
-                raise ValueError("Ollama config required")
+            if not self.llm_provider.ollama_base_url:
+                raise ValueError("Ollama base URL is required")
         return self

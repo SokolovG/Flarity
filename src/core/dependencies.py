@@ -4,7 +4,6 @@ from src.clients import HTTPClient, LokiClient, TelegramClient
 from src.core.settings.app_settings import AppSettings
 from src.entities.enums import LLMProvider
 from src.llm_adapters import BaseLLMAdapter, OllamaAdapter, YandexAdapter
-from src.llm_adapters.ollama_adapter import OllamaAdapter
 from src.services.base_services import LogSourceService
 from src.services.llm_service import LLMService
 from src.services.log_analyzer_service import LogAnalysisService
@@ -61,7 +60,6 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> BaseLLMAdapter:
         provider = LLMProvider(settings.llm_provider.provider)
-
         match provider:
             case LLMProvider.YANDEX:
                 return YandexAdapter(http_client, settings)

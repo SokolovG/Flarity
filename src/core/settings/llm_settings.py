@@ -7,7 +7,6 @@ from src.entities.enums import LLMModel, LLMProvider
 
 
 class LLMSettings(BaseSettings):
-    provider: LLMProvider
     model: LLMModel
     temperature: float = 0.6
     max_tokens: int = 1000
