@@ -2,12 +2,12 @@ from src.exceptions.base_exceptions import BaseCustomException
 
 
 class LokiError(BaseCustomException):
-    pass
+    default_retryable = True
 
 
 class LokiUnavailableError(LokiError):
-    pass
+    default_retryable = True
 
 
 class LogParsingError(LokiError):
-    pass
+    default_retryable = True

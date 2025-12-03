@@ -4,8 +4,6 @@ from functools import wraps
 from logging import getLogger
 from typing import Any, ParamSpec, TypeVar
 
-from src.core.constants import NETWORK_ERRORS
-
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -29,7 +27,6 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
 def retry(
     max_attempts: int,
     backoff: float,
-    retryable_exceptions: tuple[type[Exception], ...] = NETWORK_ERRORS,
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         @wraps(func)
@@ -39,16 +36,13 @@ def retry(
                     result = await func(*args, **kwargs)
                     return result
                 except Exception as e:
-                    if not isinstance(e, retryable_exceptions):
-                        raise
-                    if attempt == max_attempts - 1:
+                    should_retry = getattr(e, "is_retryable", False)
+                    if not should_retry or attempt == max_attempts - 1:
                         raise
 
-                    logger.warning(
-                        f"Attempt {attempt + 1}/{max_attempts} failed: {e}. "
-                        f"Retrying in {backoff * (attempt + 1)}s..."
-                    )
-                    await asyncio.sleep(backoff * (attempt + 1))
+                    wait_time = backoff * (2**attempt)
+                    logger.warning(f"Retrying in {wait_time}s...")
+                    await asyncio.sleep(wait_time)
 
         return wrapper
 

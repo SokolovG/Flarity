@@ -2,6 +2,8 @@ from typing import Any
 
 
 class BaseCustomException(Exception):
+    default_retryable: bool = False
+
     def __init__(
         self,
         message: str,
@@ -15,8 +17,8 @@ class BaseCustomException(Exception):
 
 
 class SettingsFieldIsEmpty(BaseCustomException):
-    pass
+    default_retryable = False
 
 
 class ServiceNotReadyError(Exception):
-    pass
+    default_retryable = True

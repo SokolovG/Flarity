@@ -2,12 +2,12 @@ from src.exceptions.base_exceptions import BaseCustomException
 
 
 class LLMError(BaseCustomException):
-    pass
+    default_retryable = True
 
 
 class LLMRateLimitError(LLMError):
-    pass
+    default_retryable = True
 
 
 class LLMAuthError(LLMError):
-    pass
+    default_retryable = False

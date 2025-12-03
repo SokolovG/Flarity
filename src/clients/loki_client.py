@@ -23,7 +23,7 @@ class LokiClient:
         self._http = http_client
         self.settings = settings
 
-    @retry(max_attempts=3, backoff=2.0, retryable_exceptions=(LokiUnavailableError,))
+    @retry(max_attempts=3, backoff=2.0)
     async def query_range(
         self,
         query: str,
