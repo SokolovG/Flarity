@@ -21,10 +21,18 @@ class TelegramClient:
     async def send_message(
         self, text: str, parse_mode: str = "Markdown", disable_notification: bool = False
     ) -> bool:
-        data = {"text": text, "parse_mode": "HTML"}
+        if not text or len(text.strip()) == 0:
+            raise ValueError("Message text is empty")
+        data = {
+            "text": text,
+            "parse_mode": "HTML",
+            "chat_id": self.settings.telegram_chat_id,
+        }
         response = await self._http.make_request(
             method=HTTPMethod.POST,
             url=f"https://api.telegram.org/bot{self.settings.telegram_bot_token}/sendMessage",
+            data=data,
+            no_log_answer=True,
         )
 
         if response.status_code != HTTPStatus.OK:
