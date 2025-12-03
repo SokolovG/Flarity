@@ -47,11 +47,11 @@ class LokiClient:
             no_log_answer=True,
         )
 
-        if response.status_code == 503:
+        if response.status_code == HTTPStatus.SERVICE_UNAVAILABLE:
             raise LokiUnavailableError("Loki is temporarily unavailable")
-        elif response.status_code >= 500:
+        elif response.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR:
             raise LokiError(f"Loki server error: {response.status_code}")
-        elif response.status_code >= 400:
+        elif response.status_code >= HTTPStatus.BAD_REQUEST:
             raise LokiError(f"Bad request: {response.status_code}")
 
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)

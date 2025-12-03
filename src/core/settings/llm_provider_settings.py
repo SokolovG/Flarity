@@ -1,4 +1,3 @@
-# src/core/settings/llm_provider_settings.py
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,6 +20,8 @@ class OllamaConfig(BaseSettings):
 
 class LLMProviderSettings(BaseSettings):
     provider: Literal["yandex", "ollama"]
+
+    model_config = SettingsConfigDict(env_prefix="LLM_")
 
     @property
     def yandex(self) -> YandexConfig | None:

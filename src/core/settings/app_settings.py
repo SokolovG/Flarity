@@ -7,6 +7,7 @@ from src.core.settings.llm_provider_settings import LLMProviderSettings
 from src.core.settings.llm_settings import LLMSettings
 from src.core.settings.log_source_settings import LogsSourceSettings
 from src.core.settings.notification_settings import NotificationSettings
+from src.entities.enums import LLMProvider
 
 
 class AppSettings(BaseSettings):
