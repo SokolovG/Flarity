@@ -18,4 +18,5 @@ class NotificationService(BaseNotificationService):
     def _format_report(
         self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, time_range_hours: int
     ) -> str:
-        return ""
+        lines = "<b>Отчет по ошибкам за последний час</b>\n"
+        return lines

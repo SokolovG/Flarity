@@ -60,8 +60,10 @@ class MyProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> BaseLLMAdapter:
-        match settings.llm_provider.provider:
-            case "yandex":
+        provider = LLMProvider(settings.llm_provider.provider)
+
+        match provider:
+            case LLMProvider.YANDEX:
                 return YandexAdapter(http_client, settings)
-            case "ollama":
+            case LLMProvider.OLLAMA:
                 return OllamaAdapter(http_client, settings)
