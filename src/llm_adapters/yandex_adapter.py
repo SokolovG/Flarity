@@ -82,7 +82,7 @@ class YandexAdapter(BaseLLMAdapter):
 
     def _get_model_uri(self) -> str:
         modelUri = (
-            f"gpt://{self.settings.llm_provider.yandex.api_key}/{self.settings.llm.model.value}"
+            f"gpt://{self.settings.llm_provider.yandex.catalog_id}/{self.settings.llm.model.value}"
         )
         match self.settings.llm.model:
             case LLMModel.YANDEX_GPT_5:
