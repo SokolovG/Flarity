@@ -75,7 +75,7 @@ class LokiClient:
                         app=stream.stream.get("app", "unknown"),
                     )
                 )
-        result = LokiQueryRangeResponse(logs=logs, total_count=len(logs))
+        result = LogsSourceQueryResult(logs=logs, total_count=len(logs))
         return result
 
     async def is_loki_is_ready(self) -> bool:

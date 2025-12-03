@@ -25,7 +25,7 @@ class OllamaAdapter(BaseLLMAdapter):
                 {"role": "user", "content": logs_text},
             ],
             "stream": False,
-            "options": {"num_predict": self.settings.MAX_TOKENS_LLM_ANSWER},
+            "options": {"num_predict": self.settings.llm.max_tokens},
         }
 
         response = await self.http.make_request(
@@ -39,7 +39,7 @@ class OllamaAdapter(BaseLLMAdapter):
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise LLMError(
                 "Ollama model not found. Did you run 'ollama pull'?",
-                details={"status": response.status_code, "model": self.settings.OLLAMA_MODEL},
+                details={"status": response.status_code, "model": self.settings.llm.model},
             )
 
         if response.status_code >= 500:
