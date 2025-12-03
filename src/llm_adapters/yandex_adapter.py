@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 
 
 class YandexAdapter(BaseLLMAdapter):
-    @retry(max_attempts=5, backoff=10, retryable_exceptions=(LLMError, LLMRateLimitError))
+    @retry(max_attempts=5, backoff=10)
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
         request_data = {

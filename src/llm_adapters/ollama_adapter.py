@@ -15,7 +15,7 @@ logger = getLogger(__name__)
 
 
 class OllamaAdapter(BaseLLMAdapter):
-    @retry(max_attempts=5, backoff=10, retryable_exceptions=(LLMError,))
+    @retry(max_attempts=5, backoff=10)
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
         request_data = {

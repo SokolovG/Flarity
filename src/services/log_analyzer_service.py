@@ -49,7 +49,7 @@ class LogAnalysisService:
         )
         logger.info(f"Telegram message has sent is {message_send}")
 
-    @retry(max_attempts=5, backoff=10.0, retryable_exceptions=(ServiceNotReadyError,))
+    @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:
         coros = (
             self.log_source_service.check_readiness(),
