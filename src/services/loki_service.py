@@ -16,7 +16,7 @@ class LokiService(LogSourceService):
         super().__init__(settings)
         self.loki_client = loki_client
 
-    async def get_recent_errors(self, hours: int = 24) -> LogsSourceQueryResult:
+    async def get_recent_errors(self, hours: int = 6) -> LogsSourceQueryResult:
         """Получает только ERROR логи за N часов"""
         logs = await self.get_logs_by_level(LogLevel.ERROR, hours)
         return logs
@@ -51,7 +51,7 @@ class LokiService(LogSourceService):
 
             groups_dict[error_type].append(log)
 
-        # TODO: можно упростить и убрать лишние действия. например сделать через датаклассы или TypedDict
+        # TODO: можно упростить и убрать лишние действия.
         groups = [
             LogGroupByErrorType(error=error_type, logs=log_list)
             for error_type, log_list in groups_dict.items()

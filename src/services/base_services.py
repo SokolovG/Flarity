@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.core.settings.log_source_settings import LogsSourceSettings
+from src.entities.report import ReportData
 from src.responses import LogsByErrorType, LogsSourceQueryResult
 from src.responses.llm_base_responses import LLMAnalysisResult
 
@@ -10,7 +11,7 @@ class LogSourceService(ABC):
         self.settings = settings
 
     @abstractmethod
-    async def get_recent_errors(self, hours: int = 24) -> LogsSourceQueryResult: ...
+    async def get_recent_errors(self, hours: int = 6) -> LogsSourceQueryResult: ...
     @abstractmethod
     async def group_errors_by_type(self, logs: LogsSourceQueryResult) -> LogsByErrorType: ...
     @abstractmethod
@@ -19,6 +20,4 @@ class LogSourceService(ABC):
 
 class BaseNotificationService(ABC):
     @abstractmethod
-    async def send_analysis_report(
-        self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, time_range_hours: int = 24
-    ) -> bool: ...
+    async def send_analysis_report(self, report_data: ReportData) -> bool: ...

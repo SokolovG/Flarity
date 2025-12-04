@@ -2,9 +2,13 @@ import asyncio
 from logging import getLogger
 
 from src.core.decorators import retry
+from src.entities.report import ReportData
 from src.exceptions import ServiceNotReadyError
+from src.responses.llm_base_responses import LLMAnalysisResult
+from src.responses.logs_base_responses import LogsByErrorType
 from src.services import LLMService, LogSourceService
 from src.services.notification_service import NotificationService
+from src.services.report_formatter_service import ReportFormatter
 
 logger = getLogger(__name__)
 
@@ -43,25 +47,20 @@ class LogAnalysisService:
             f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
         )
 
-        message_send = await self.notification_service.send_analysis_report(
-            analysis=analysis, grouped_logs=grouped
-        )
+        report_obj = self.prepare_report(analysis=analysis, grouped_logs=grouped)
+        message_send = await self.notification_service.send_analysis_report(report_data=report_obj)
         logger.info(f"Telegram message has sent is {message_send}")
 
     @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:
-        coros = (
-            self.log_source_service.check_readiness(),
-            self.llm_service.check_if_llm_is_ready(),
-        )
+        coros = (self.log_source_service.check_readiness(),)
 
-        loki_ready, llm_ready = await asyncio.gather(*coros, return_exceptions=True)
+        loki_ready = await asyncio.gather(*coros, return_exceptions=True)
         services = {
             "Loki": loki_ready,
-            "LLM": llm_ready,
         }
 
-        not_ready = []
+        not_ready: list = []
         for service_name, result in services.items():
             if isinstance(result, Exception):
                 logger.error(f"{service_name} check failed: {result}")
@@ -76,4 +75,18 @@ class LogAnalysisService:
         logger.info("All services are ready!")
         return True
 
-    async def prepare_report(self) -> None: ...
+    def prepare_report(
+        self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, time_range_hours: int = 6
+    ) -> ReportData:
+        total_errors = sum(len(group.logs) for group in grouped_logs.logs_groups)
+        report_obj = ReportData(
+            title="<b>Отчет по ошибкам за последний час</b>\n",
+            time_range_hours=time_range_hours,
+            total_errors=total_errors,
+            unique_types=len(grouped_logs.logs_groups),
+            ai_analysis=analysis.analysis_text,
+            provider=analysis.provider.value,
+            tokens_in=analysis.input_tokens_used,
+            tokens_out=analysis.output_tokens_used,
+        )
+        return report_obj
