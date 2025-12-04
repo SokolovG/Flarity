@@ -5,7 +5,6 @@ from logging import getLogger
 import msgspec
 
 from src.clients import HTTPClient
-from src.core.decorators import retry
 from src.core.settings.log_source_settings import LogsSourceSettings
 from src.entities.enums import Directions, LogLevel
 from src.entities.loki import LogEntry
@@ -23,7 +22,6 @@ class LokiClient:
         self._http = http_client
         self.settings = settings
 
-    @retry(max_attempts=3, backoff=2.0)
     async def query_range(
         self,
         query: str,
