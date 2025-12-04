@@ -39,7 +39,6 @@ class LogAnalysisService:
         analysis = await self.llm_service.analyze_logs(logs)
 
         logger.info("Analysis complete!")
-        logger.info(f"Analysis result:\n{analysis.analysis_text}")
         logger.info(
             f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
         )
