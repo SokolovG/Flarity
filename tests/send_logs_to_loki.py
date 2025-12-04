@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 async def send_fake_logs_to_loki() -> None:
+    #TODO: добавить тож самое но в json
     settings = AppSettings()
 
     loki_url = settings.log_source.loki_url
@@ -21,7 +22,7 @@ async def send_fake_logs_to_loki() -> None:
 
     now_ns = str(int(datetime.now().timestamp() * 1_000_000_000))
 
-    payload = {
+    str_payload = {
         "streams": [
             {
                 "stream": {"app": app_name, "level": "error", "service": "backend"},
@@ -52,10 +53,10 @@ async def send_fake_logs_to_loki() -> None:
 
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(push_url, json=payload, timeout=10)
+            response = await client.post(push_url, json=str_payload, timeout=10)
             if response.status_code == 204:
                 logger.info(
-                    f"Successfully sent {len(payload['streams'][0]['values'])} test logs to Loki"
+                    f"Successfully sent {len(str_payload['streams'][0]['values'])} test logs to Loki"
                 )
             else:
                 logger.error(f"Failed to send logs: {response.status_code} {response.text}")

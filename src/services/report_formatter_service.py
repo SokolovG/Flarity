@@ -4,6 +4,7 @@ from src.entities.report import ReportData
 class ReportFormatter:
     @staticmethod
     def to_html(data: ReportData) -> str:
+        # TODO: обдумать покрасивее
         return f"""
             <b>{data.title}</b>
 

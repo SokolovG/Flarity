@@ -65,7 +65,7 @@ class LokiService(LogSourceService):
 
     def _extract_error_type(self, message: str) -> str:
         try:
-            # TODO: получить формат логов, загнать его x
+            # TODO: получить формат логов!
             log_data = json.loads(message)
             error_type: str = log_data.get("error_type", "UnknownError")
             return error_type
