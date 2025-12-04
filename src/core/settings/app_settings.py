@@ -14,6 +14,7 @@ class AppSettings(BaseSettings):
     llm: LLMSettings = Field(default_factory=LLMSettings)
     llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
     notification: NotificationSettings = Field(default_factory=NotificationSettings)
+    analysis_time_range_hours: str
 
     @model_validator(mode="after")
     def validate_llm_provider_config(self) -> Self:
@@ -24,6 +25,3 @@ class AppSettings(BaseSettings):
             if not self.llm_provider.ollama_base_url:
                 raise ValueError("Ollama base URL is required")
         return self
-
-
-settings = AppSettings()
