@@ -4,7 +4,6 @@ import logging
 
 import httpx
 
-from src.core.settings.app_settings import settings
 from src.core.settings.app_settings import AppSettings
 
 
@@ -12,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 async def send_fake_logs_to_loki() -> None:
+    settings = AppSettings()
 
     loki_url = settings.log_source.loki_url
     app_name = settings.log_source.loki_app_name

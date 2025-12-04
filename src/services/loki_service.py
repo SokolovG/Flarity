@@ -1,4 +1,5 @@
 import datetime
+import json
 from logging import getLogger
 
 from src.clients import LokiClient
@@ -16,12 +17,12 @@ class LokiService(LogSourceService):
         super().__init__(settings)
         self.loki_client = loki_client
 
-    async def get_recent_errors(self, hours: int = 6) -> LogsSourceQueryResult:
+    async def get_recent_errors(self, hours: int) -> LogsSourceQueryResult:
         """Получает только ERROR логи за N часов"""
         logs = await self.get_logs_by_level(LogLevel.ERROR, hours)
         return logs
 
-    async def get_logs_by_level(self, level: LogLevel, hours: int = 1) -> LogsSourceQueryResult:
+    async def get_logs_by_level(self, level: LogLevel, hours: int) -> LogsSourceQueryResult:
         query = f'{{level="{level.value}"}}'
 
         end_time = datetime.datetime.now()
@@ -51,7 +52,6 @@ class LokiService(LogSourceService):
 
             groups_dict[error_type].append(log)
 
-        # TODO: можно упростить и убрать лишние действия.
         groups = [
             LogGroupByErrorType(error=error_type, logs=log_list)
             for error_type, log_list in groups_dict.items()
@@ -64,8 +64,12 @@ class LokiService(LogSourceService):
         return ready
 
     def _extract_error_type(self, message: str) -> str:
-        # TODO: парсинг логов из стетхема, надо понять это и докинуть сервис а лучше переписать логику
-        # Regex паттерны для типовых ошибок (Database, API, Auth)
-        # Первые N слов до двоеточия?
-        words = message.split()[:20]
-        return " ".join(words)
+        try:
+            # TODO: получить формат логов, загнать его x
+            log_data = json.loads(message)
+            error_type: str = log_data.get("error_type", "UnknownError")
+            return error_type
+
+        except (json.JSONDecodeError, KeyError):
+            words = message.split(":", 1)[0].strip()
+            return words[:50]

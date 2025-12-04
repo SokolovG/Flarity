@@ -2,13 +2,13 @@ import asyncio
 from logging import getLogger
 
 from src.core.decorators import retry
+from src.core.settings.app_settings import AppSettings
 from src.entities.report import ReportData
 from src.exceptions import ServiceNotReadyError
 from src.responses.llm_base_responses import LLMAnalysisResult
 from src.responses.logs_base_responses import LogsByErrorType
 from src.services import LLMService, LogSourceService
 from src.services.notification_service import NotificationService
-from src.services.report_formatter_service import ReportFormatter
 
 logger = getLogger(__name__)
 
@@ -19,14 +19,18 @@ class LogAnalysisService:
         log_source_service: LogSourceService,
         llm_service: LLMService,
         notification_service: NotificationService,
+        app_settings: AppSettings,
     ) -> None:
         self.log_source_service = log_source_service
         self.llm_service = llm_service
         self.notification_service = notification_service
+        self.app_settings = app_settings
 
     async def analyze_and_notify(self) -> None:
         logger.info("Fetching recent error logs...")
-        logs = await self.log_source_service.get_recent_errors()
+        logs = await self.log_source_service.get_recent_errors(
+            hours=int(self.app_settings.analysis_time_range_hours)
+        )
 
         if logs.total_count == 0:
             logger.warning("No error logs found in the last hour")
@@ -76,12 +80,12 @@ class LogAnalysisService:
         return True
 
     def prepare_report(
-        self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, time_range_hours: int = 6
+        self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType
     ) -> ReportData:
         total_errors = sum(len(group.logs) for group in grouped_logs.logs_groups)
         report_obj = ReportData(
             title="<b>Отчет по ошибкам за последний час</b>\n",
-            time_range_hours=time_range_hours,
+            time_range_hours=int(self.app_settings.analysis_time_range_hours),
             total_errors=total_errors,
             unique_types=len(grouped_logs.logs_groups),
             ai_analysis=analysis.analysis_text,

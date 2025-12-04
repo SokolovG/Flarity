@@ -46,11 +46,13 @@ class MyProvider(Provider):
         log_source_service: LogSourceService,
         llm_service: LLMService,
         notification_service: NotificationService,
+        app_settings: AppSettings,
     ) -> LogAnalysisService:
         return LogAnalysisService(
             log_source_service=log_source_service,
             llm_service=llm_service,
             notification_service=notification_service,
+            app_settings=app_settings,
         )
 
     @provide(scope=Scope.APP)
