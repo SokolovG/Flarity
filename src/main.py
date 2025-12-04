@@ -52,7 +52,7 @@ async def main() -> None:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         scheduled_analysis,
-        trigger=IntervalTrigger(hours=SCHEDULE_INTERVAL_HOURS),
+        trigger=IntervalTrigger(hours=int(SCHEDULE_INTERVAL_HOURS)),
         id="log_analysis",
         max_instances=1,
     )
