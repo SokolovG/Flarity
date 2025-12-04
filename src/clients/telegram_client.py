@@ -31,9 +31,9 @@ class TelegramClient:
         return await self._send_single_message(text, parse_mode=parse_mode)
 
     async def _send_single_message(self, text: str, parse_mode: str) -> bool:
+        text = self._check_text(text)
         data = {
             "text": text,
-            "parse_mode": "HTML",
             "chat_id": self.settings.telegram_chat_id,
             "parse_mode": parse_mode,
         }
@@ -56,6 +56,11 @@ class TelegramClient:
             elif response.status_code >= 400:
                 raise TelegramBadRequestError(f"Bad request: {response.status_code}")
         return True
+
+    @staticmethod
+    def _check_text(logs: str) -> str:
+        return logs
+        # Нужна функция экранирования.
 
     @staticmethod
     def _split_message(text: str, max_length: int = 4096) -> list[str]:
