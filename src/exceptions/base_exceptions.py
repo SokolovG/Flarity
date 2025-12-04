@@ -20,5 +20,5 @@ class SettingsFieldIsEmpty(BaseCustomException):
     default_retryable = False
 
 
-class ServiceNotReadyError(Exception):
+class ServiceNotReadyError(BaseCustomException):
     default_retryable = True

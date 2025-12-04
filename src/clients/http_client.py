@@ -7,6 +7,7 @@ import msgspec
 from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
 
 from src.core.decorators import retry
+from src.exceptions.network_exeptions import NetworkError
 
 logger = getLogger(__name__)
 
@@ -97,37 +98,11 @@ class HTTPClient:
                     )
                 return response
 
-        except (ReadTimeout, ConnectTimeout) as error:
-            duration_ms = int((time.time() - start_time) * 1000)
-            logger.error(
-                {
-                    "duration_ms": duration_ms,
-                    "error": str(error),
-                },
-                exc_info=True,
-            )
-            raise
-
-        except ConnectError as error:
-            duration_ms = int((time.time() - start_time) * 1000)
-            logger.error(
-                {
-                    "duration_ms": duration_ms,
-                    "error": str(error),
-                },
-                exc_info=True,
-            )
-            raise
+        except (ReadTimeout, ConnectTimeout, ConnectError) as error:
+            raise NetworkError(f"Connection failed: {error}", is_retryable=True) from error
 
         except Exception as error:
-            duration_ms = int((time.time() - start_time) * 1000)
-            logger.error(
-                {
-                    "duration_ms": duration_ms,
-                    "error": str(error),
-                },
-                exc_info=True,
-            )
+            logger.exception(f"Unexpected HTTP error: {error}")
             raise
 
     async def close(self) -> None:

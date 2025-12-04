@@ -20,7 +20,7 @@ class NotificationService(BaseNotificationService):
     def _format_report(
         self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, time_range_hours: int
     ) -> str:
-        total_errors = sum(len(logs) for logs in grouped_logs.values())
+        total_errors = sum(len(group.logs) for group in grouped_logs.logs_groups)
         report_data = ReportData(
             title="<b>Отчет по ошибкам за последний час</b>\n",
             time_range_hours=time_range_hours,
@@ -28,7 +28,7 @@ class NotificationService(BaseNotificationService):
             unique_types=len(grouped_logs.logs_groups),
             ai_analysis=analysis.analysis_text,
             # top_errors=[],
-            provider=analysis.provider,
+            provider=analysis.provider.value,
             tokens_in=analysis.input_tokens_used,
             tokens_out=analysis.output_tokens_used,
         )

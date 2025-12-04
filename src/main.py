@@ -8,7 +8,7 @@ from dishka import make_async_container
 
 from src.core import MyProvider
 from src.core.settings.app_settings import AppSettings
-from src.exceptions import ServiceNotReadyError
+from src.exceptions.base_exceptions import BaseCustomException
 from src.services import LogAnalysisService
 
 logging.basicConfig(
@@ -78,28 +78,32 @@ async def main() -> None:
     container = make_async_container(MyProvider())
 
     try:
-        # settings = await container.get(AppSettings)
+        settings = await container.get(AppSettings)
 
-        # logger.info("Sending fake logs to Loki...")
-        # await send_fake_logs_to_loki(
-        #     settings.log_source.loki_url, settings.log_source.loki_app_name
-        # )
+        logger.info("Sending fake logs to Loki...")
+        await send_fake_logs_to_loki(
+            settings.log_source.loki_url, settings.log_source.loki_app_name
+        )
 
-        # logger.info("Waiting 10 seconds for Loki to index logs...")
-        # await asyncio.sleep(10)
+        logger.info("Waiting 10 seconds for Loki to index logs...")
+        await asyncio.sleep(10)
 
         log_analyzer_service = await container.get(LogAnalysisService)
 
         ready = await log_analyzer_service.check_readiness()
         if not ready:
             logger.error("Services not ready!")
-            return
+            sys.exit(1)
 
-        logger.info("Starting log analysis...")
         await log_analyzer_service.analyze_and_notify()
 
-    except ServiceNotReadyError as e:
-        logger.error(f"Services failed to become ready: {e}")
+    except BaseCustomException as e:
+        logger.error(f"{e.__class__.__name__}: {e}")
+        sys.exit(1)
+
+    except Exception as e:
+        logger.exception(f"Unexpected error: {e}")
+        sys.exit(1)
 
     finally:
         await container.close()

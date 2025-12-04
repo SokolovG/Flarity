@@ -3,7 +3,6 @@ from logging import getLogger
 
 import msgspec
 
-from src.core.decorators import retry
 from src.entities.enums import LLMModel, LLMProvider
 from src.entities.loki import LogEntry
 from src.exceptions.llm_exceptions import LLMAuthError, LLMError, LLMRateLimitError
@@ -14,7 +13,6 @@ logger = getLogger(__name__)
 
 
 class YandexAdapter(BaseLLMAdapter):
-    @retry(max_attempts=5, backoff=10)
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         logs_text = self.format_logs_for_llm(logs=logs)
         request_data = {
