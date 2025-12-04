@@ -224,3 +224,5 @@ ollama list
 5. Expose local llm for api
 Ollama exposes a HTTP API at localhost:11434.
 Add url to .env
+
+Autor: Sokolov Grigory
