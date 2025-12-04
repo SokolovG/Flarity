@@ -47,12 +47,6 @@ class HTTPClient:
         start_time = time.time()
 
         try:
-            if params:
-                api_key: str | None = params.get("Authorization")
-                if api_key:
-                    clean_api_key = (len(api_key) - 5) * "" + api_key[:-5]
-                    params["api_key"] = clean_api_key
-
             logger.info(f"{method} REQUEST to {url}, params: {params}")
             if method == HTTPMethod.GET:
                 params = params or {}

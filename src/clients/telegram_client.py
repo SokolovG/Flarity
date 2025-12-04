@@ -1,3 +1,4 @@
+import html
 from http import HTTPMethod, HTTPStatus
 
 from src.clients import HTTPClient
@@ -31,7 +32,7 @@ class TelegramClient:
         return await self._send_single_message(text, parse_mode=parse_mode)
 
     async def _send_single_message(self, text: str, parse_mode: str) -> bool:
-        text = self._check_text(text)
+        text = self._escape_html(text)
         data = {
             "text": text,
             "chat_id": self.settings.telegram_chat_id,
@@ -58,9 +59,9 @@ class TelegramClient:
         return True
 
     @staticmethod
-    def _check_text(logs: str) -> str:
-        return logs
-        # Нужна функция экранирования.
+    def _escape_html(text: str) -> str:
+        clear_text = html.escape(text)
+        return clear_text
 
     @staticmethod
     def _split_message(text: str, max_length: int = 4096) -> list[str]:
