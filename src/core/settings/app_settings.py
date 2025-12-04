@@ -24,3 +24,6 @@ class AppSettings(BaseSettings):
             if not self.llm_provider.ollama_base_url:
                 raise ValueError("Ollama base URL is required")
         return self
+
+
+settings = AppSettings()
