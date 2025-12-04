@@ -29,7 +29,7 @@ class LogAnalysisService:
     async def analyze_and_notify(self) -> None:
         logger.info("Fetching recent error logs...")
         logs = await self.log_source_service.get_recent_errors(
-            hours=int(self.app_settings.analysis_time_range_hours)
+            hours=int(self.app_settings.schedule_interval_hours)
         )
 
         if logs.total_count == 0:
@@ -85,7 +85,7 @@ class LogAnalysisService:
         total_errors = sum(len(group.logs) for group in grouped_logs.logs_groups)
         report_obj = ReportData(
             title="<b>Отчет по ошибкам за последний час</b>\n",
-            time_range_hours=int(self.app_settings.analysis_time_range_hours),
+            time_range_hours=int(self.app_settings.schedule_interval_hours),
             total_errors=total_errors,
             unique_types=len(grouped_logs.logs_groups),
             ai_analysis=analysis.analysis_text,

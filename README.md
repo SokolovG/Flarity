@@ -1,4 +1,3 @@
-```markdown
 # Flarity
 
 AI-powered log analyzer that automatically fetches error logs from Log Source, analyzes them using LLM providers, and sends intelligent digest reports to Telegram.
@@ -64,7 +63,7 @@ TELEGRAM_BOT_TOKEN=your-bot-token
 TELEGRAM_CHAT_ID=your-chat-id
 
 # Analysis Settings
-ANALYSIS_TIME_RANGE_HOURS=24
+SCHEDULE_INTERVAL_HOURS=24
 ```
 
 **Key Components:**

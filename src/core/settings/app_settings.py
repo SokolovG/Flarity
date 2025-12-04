@@ -14,7 +14,7 @@ class AppSettings(BaseSettings):
     llm: LLMSettings = Field(default_factory=LLMSettings)
     llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
     notification: NotificationSettings = Field(default_factory=NotificationSettings)
-    analysis_time_range_hours: str
+    schedule_interval_hours: str
 
     @model_validator(mode="after")
     def validate_llm_provider_config(self) -> Self:
