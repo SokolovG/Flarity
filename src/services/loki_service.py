@@ -33,7 +33,7 @@ class LokiService(LogSourceService):
         )
         return logs
 
-    async def group_errors_by_type(self, logs: LogsSourceQueryResult) -> LogsByErrorType:
+    async def _group_errors_by_type(self, logs: LogsSourceQueryResult) -> LogsByErrorType:
         """
         Группирует ошибки по типу.
 

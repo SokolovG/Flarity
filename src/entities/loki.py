@@ -10,3 +10,7 @@ class LogEntry(Struct):
     message: str
     level: LogLevel
     app: str
+    target: str | None = None
+    request_id: str | None = None
+    method: str | None = None
+    uri: str | None = None

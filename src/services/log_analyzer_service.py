@@ -38,7 +38,7 @@ class LogAnalysisService:
 
         logger.info(f"Found {logs.total_count} error logs")
         logger.info("Grouping errors by type...")
-        grouped = await self.log_source_service.group_errors_by_type(logs)
+        grouped = await self.log_source_service._group_errors_by_type(logs)
 
         for group in grouped.logs_groups:
             logger.info(f"  - {group.error}: {len(group.logs)} occurrences")
