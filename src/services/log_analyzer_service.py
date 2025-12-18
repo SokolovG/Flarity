@@ -7,8 +7,9 @@ from src.entities.report import ReportData
 from src.exceptions import ServiceNotReadyError
 from src.responses.llm_base_responses import LLMAnalysisResult
 from src.responses.logs_base_responses import LogsByErrorType
-from src.services import LLMService, LogSourceService, ReportFormatter
+from src.services import LLMService, LogSourceService
 from src.services.notification_service import NotificationService
+from src.services.report_formatter_service import ReportFormatter
 
 logger = getLogger(__name__)
 

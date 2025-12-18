@@ -42,5 +42,5 @@ class Status(Enum):
 
 
 class ReportTemplate(Enum):
-    SHORT = "short"
-    DETAILED = "detailed"
+    SHORT = "report_short.html"
+    DETAILED = "report_detailed.html"
