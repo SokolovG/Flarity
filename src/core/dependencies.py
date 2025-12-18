@@ -9,6 +9,7 @@ from src.services.llm_service import LLMService
 from src.services.log_analyzer_service import LogAnalysisService
 from src.services.loki_service import LokiService
 from src.services.notification_service import NotificationService
+from src.services.report_formatter_service import ReportFormatter
 
 
 class MyProvider(Provider):
@@ -41,18 +42,24 @@ class MyProvider(Provider):
         return NotificationService(telegram_client=telegram_client, settings=settings.notification)
 
     @provide(scope=Scope.APP)
+    def get_formatter(self) -> ReportFormatter:
+        return ReportFormatter()
+
+    @provide(scope=Scope.APP)
     def get_log_analyzer_service(
         self,
         log_source_service: LogSourceService,
         llm_service: LLMService,
         notification_service: NotificationService,
         app_settings: AppSettings,
+        fornatter: ReportFormatter,
     ) -> LogAnalysisService:
         return LogAnalysisService(
             log_source_service=log_source_service,
             llm_service=llm_service,
             notification_service=notification_service,
             app_settings=app_settings,
+            formatter=fornatter,
         )
 
     @provide(scope=Scope.APP)

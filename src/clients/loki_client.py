@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from http import HTTPMethod, HTTPStatus
 from logging import getLogger
@@ -56,23 +57,30 @@ class LokiClient:
         logs = []
         for stream in loki_resp.data.result:
             for timestamp_ns, message in stream.values:
-                level_str = stream.stream.get("level", "error")
-                try:
-                    level = LogLevel(level_str)
-                except ValueError:
-                    level = LogLevel.ERROR  # fallback
-                    logger.warning(f"Unknown log level: {level_str}")
+                parsed = self._parse_log_message(message)
 
                 logs.append(
                     LogEntry(
                         timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
-                        message=message,
-                        level=level,
+                        message=parsed.get("message", message),
+                        level=LogLevel.ERROR,
                         app=stream.stream.get("app", "unknown"),
+                        target=parsed.get("target"),
+                        request_id=parsed.get("span", {}).get("request_id"),
+                        method=parsed.get("span", {}).get("method"),
+                        uri=parsed.get("span", {}).get("uri"),
                     )
                 )
         result = LogsSourceQueryResult(logs=logs, total_count=len(logs))
         return result
+
+    def _parse_log_message(self, message: str) -> dict:
+        try:
+            _dict: dict = json.loads(message)
+            return _dict
+        except json.JSONDecodeError:
+            logger.warning(f"Failed to parse log as JSON: {message[:100]}")
+            return {}
 
     async def is_loki_is_ready(self) -> bool:
         try:

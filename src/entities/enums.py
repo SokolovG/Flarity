@@ -39,3 +39,8 @@ class Directions(Enum):
 class Status(Enum):
     ERROR = "error"
     SUCCESS = "success"
+
+
+class ReportTemplate(Enum):
+    SHORT = "short"
+    DETAILED = "detailed"

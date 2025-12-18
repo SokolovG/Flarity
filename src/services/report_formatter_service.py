@@ -1,17 +1,20 @@
+from jinja2 import Environment, FileSystemLoader
+
+from src.entities.enums import ReportTemplate
 from src.entities.report import ReportData
 
 
 class ReportFormatter:
-    @staticmethod
-    def to_html(data: ReportData) -> str:
-        # TODO: обдумать покрасивее
-        return f"""
-            <b>{data.title}</b>
+    def __init__(self) -> None:
+        self.env = Environment(loader=FileSystemLoader("templates"))
 
-            Статистика за {data.time_range_hours}ч:
-            - Всего ошибок: {data.total_errors}
-            - Уникальных типов: {data.unique_types}
-
-            AI Анализ:
-            {data.ai_analysis}
-            """
+    def to_html(self, data: ReportData, template_name: str = "report_detailed.html") -> str:
+        template = self.env.get_template(template_name)
+        return template.render(
+            title=data.title,
+            time_range_hours=data.time_range_hours,
+            total_errors=data.total_errors,
+            unique_types=data.unique_types,
+            groups=data.groups,
+            ai_analysis=data.ai_analysis,
+        )

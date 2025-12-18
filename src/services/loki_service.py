@@ -45,7 +45,7 @@ class LokiService(LogSourceService):
         """
         groups_dict: dict[str, list[LogEntry]] = {}
         for log in logs.logs:
-            error_type = self._extract_error_type(log.message)
+            error_type = self._extract_error_type(log)
 
             if error_type not in groups_dict:
                 groups_dict[error_type] = []
@@ -63,13 +63,14 @@ class LokiService(LogSourceService):
         ready = await self.loki_client.is_loki_is_ready()
         return ready
 
-    def _extract_error_type(self, message: str) -> str:
-        try:
-            # TODO: получить формат логов!
-            log_data = json.loads(message)
-            error_type: str = log_data.get("error_type", "UnknownError")
-            return error_type
+    def _extract_error_type(self, log: LogEntry) -> str:
+        if log.method and log.uri:
+            uri_without_params = log.uri.split("?")[0]
+            return f"HTTP {log.method} {uri_without_params}"
 
-        except (json.JSONDecodeError, KeyError):
-            words = message.split(":", 1)[0].strip()
-            return words[:50]
+        if log.target:
+            target_short = log.target.split("::")[-1]
+            message_prefix = log.message.split(":", 1)[0].strip()
+            return f"{target_short}: {message_prefix}"
+
+        return log.message.split(":", 1)[0].strip()[:50]

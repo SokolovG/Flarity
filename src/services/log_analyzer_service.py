@@ -7,7 +7,7 @@ from src.entities.report import ReportData
 from src.exceptions import ServiceNotReadyError
 from src.responses.llm_base_responses import LLMAnalysisResult
 from src.responses.logs_base_responses import LogsByErrorType
-from src.services import LLMService, LogSourceService
+from src.services import LLMService, LogSourceService, ReportFormatter
 from src.services.notification_service import NotificationService
 
 logger = getLogger(__name__)
@@ -20,11 +20,13 @@ class LogAnalysisService:
         llm_service: LLMService,
         notification_service: NotificationService,
         app_settings: AppSettings,
+        formatter: ReportFormatter,
     ) -> None:
         self.log_source_service = log_source_service
         self.llm_service = llm_service
         self.notification_service = notification_service
         self.app_settings = app_settings
+        self.formatter = formatter
 
     async def analyze_and_notify(self) -> None:
         logger.info("Fetching recent error logs...")
@@ -52,7 +54,8 @@ class LogAnalysisService:
         )
 
         report_obj = self.prepare_report(analysis=analysis, grouped_logs=grouped)
-        message_send = await self.notification_service.send_analysis_report(report_data=report_obj)
+        report = self.formatter.to_html(data=report_obj)
+        message_send = await self.notification_service.send_analysis_report(report=report)
         logger.info(f"Telegram message has sent is {message_send}")
 
     @retry(max_attempts=5, backoff=10.0)

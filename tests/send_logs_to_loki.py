@@ -1,19 +1,15 @@
-
+import json
 from datetime import datetime
 import logging
-
 import httpx
 
 from src.core.settings.app_settings import AppSettings
-
 
 logger = logging.getLogger(__name__)
 
 
 async def send_fake_logs_to_loki() -> None:
-    #TODO: добавить тож самое но в json
     settings = AppSettings()
-
     loki_url = settings.log_source.loki_url
     app_name = settings.log_source.loki_app_name
 
@@ -22,41 +18,108 @@ async def send_fake_logs_to_loki() -> None:
 
     now_ns = str(int(datetime.now().timestamp() * 1_000_000_000))
 
-    str_payload = {
+    fake_logs = [
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Database connection timeout: failed to connect to postgres",
+            "target": "ogonek_db::connection",
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Database connection timeout: connection refused after 30s",
+            "target": "ogonek_db::connection",
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "API rate limit exceeded: 429 Too Many Requests",
+            "target": "ogonek_server::api::middleware",
+            "span": {
+                "method": "GET",
+                "request_id": "test-req-001",
+                "uri": "/api/v1/lessons",
+                "name": "http_request"
+            }
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "API rate limit exceeded: 429 Too Many Requests",
+            "target": "ogonek_server::api::middleware",
+            "span": {
+                "method": "POST",
+                "request_id": "test-req-002",
+                "uri": "/api/v1/auth/refresh",
+                "name": "http_request"
+            }
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Null pointer exception in user service: user.email is null",
+            "target": "ogonek_server::services::user",
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Null pointer exception in user service: user.profile is null",
+            "target": "ogonek_server::services::user",
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Redis connection failed: ECONNREFUSED",
+            "target": "ogonek_cache::redis",
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Authentication failed: invalid JWT token signature",
+            "target": "ogonek_server::auth::jwt",
+            "span": {
+                "method": "POST",
+                "request_id": "test-req-003",
+                "uri": "/api/v1/auth/login",
+                "name": "http_request"
+            }
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "Authentication failed: JWT token expired",
+            "target": "ogonek_server::auth::jwt",
+            "span": {
+                "method": "GET",
+                "request_id": "test-req-004",
+                "uri": "/api/v1/state/context",
+                "name": "http_request"
+            }
+        },
+        {
+            "timestamp": datetime.now().isoformat() + "Z",
+            "level": "ERROR",
+            "message": "File not found: /var/app/uploads/user_avatar_123.png",
+            "target": "ogonek_server::storage::s3",
+        },
+    ]
+
+    json_payload = {
         "streams": [
             {
                 "stream": {"app": app_name, "level": "error", "service": "backend"},
-                "values": [
-                    [
-                        now_ns,
-                        "Database connection timeout: failed to connect to postgres at localhost:5432",
-                    ],
-                    [now_ns, "Database connection timeout: connection refused after 30s"],
-                    [
-                        now_ns,
-                        "API rate limit exceeded: 429 Too Many Requests from client 192.168.1.100",
-                    ],
-                    [
-                        now_ns,
-                        "API rate limit exceeded: 429 Too Many Requests from client 192.168.1.101",
-                    ],
-                    [now_ns, "Null pointer exception in user service: user.email is null"],
-                    [now_ns, "Null pointer exception in user service: user.profile is null"],
-                    [now_ns, "Redis connection failed: ECONNREFUSED 127.0.0.1:6379"],
-                    [now_ns, "Authentication failed: invalid JWT token signature"],
-                    [now_ns, "Authentication failed: JWT token expired"],
-                    [now_ns, "File not found: /var/app/uploads/user_avatar_123.png"],
-                ],
+                "values": [[now_ns, json.dumps(log)] for log in fake_logs],
             }
         ]
     }
 
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(push_url, json=str_payload, timeout=10)
+            response = await client.post(push_url, json=json_payload, timeout=10)
             if response.status_code == 204:
                 logger.info(
-                    f"Successfully sent {len(str_payload['streams'][0]['values'])} test logs to Loki"
+                    f"Successfully sent {len(fake_logs)} test logs to Loki"
                 )
             else:
                 logger.error(f"Failed to send logs: {response.status_code} {response.text}")
