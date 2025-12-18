@@ -25,7 +25,7 @@ class LLMProviderSettings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_timeout: int = 120
 
-    model_config = SettingsConfigDict(env_prefix="LLM_PROVIDER_")
+    model_config = SettingsConfigDict(env_prefix="LLM_PROVIDER_", case_sensitive=False)
 
     @property
     def yandex(self) -> YandexConfig:

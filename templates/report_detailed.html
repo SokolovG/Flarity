@@ -1,13 +1,13 @@
-<b>{{ title }}</b>
+<h1>{{ title }}</h1>
 
 Statistics for {{ time_range_hours }} hours:
 - Total errors: {{ total_errors }}
 - Unique types: {{ unique_types }}
 
 {% if groups %}
-📋 Top-{{ groups[:5] | length }} errors:
+Top-{{ groups[:5] | length }} errors:
 {% for group in groups[:5] %}
-{{ loop.index }}. {{ group.error_type }} ({{ group.count }} раз)
+{{ loop.index }}. {{ group.error_type }} ({{ group.count }} times)
 {% endfor %}
 {% endif %}
 

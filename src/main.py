@@ -58,7 +58,7 @@ async def main() -> None:
     )
 
     scheduler.start()
-    logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS}h, ")
+    logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")
 
     logger.info("Running initial analysis...")
     await scheduled_analysis()

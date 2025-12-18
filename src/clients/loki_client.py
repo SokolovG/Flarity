@@ -55,6 +55,7 @@ class LokiClient:
 
         loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
         logs = []
+        # TODO: проверка что если логов 0 то нужно скипунть!
         for stream in loki_resp.data.result:
             for timestamp_ns, message in stream.values:
                 parsed = self._parse_log_message(message)

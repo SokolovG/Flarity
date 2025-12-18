@@ -13,7 +13,7 @@ class LLMSettings(BaseSettings):
 
     _system_prompt: str = ""
 
-    model_config = SettingsConfigDict(env_prefix="LLM_")
+    model_config = SettingsConfigDict(env_prefix="LLM_", case_sensitive=False)
 
     @model_validator(mode="after")
     def load_system_prompt(self) -> Self:

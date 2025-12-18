@@ -3,7 +3,7 @@ from logging import getLogger
 
 from src.core.decorators import retry
 from src.core.settings.app_settings import AppSettings
-from src.entities.report import ReportData
+from src.entities.report import ErrorGroup, ReportData
 from src.exceptions import ServiceNotReadyError
 from src.responses.llm_base_responses import LLMAnalysisResult
 from src.responses.logs_base_responses import LogsByErrorType
@@ -87,8 +87,12 @@ class LogAnalysisService:
         self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType
     ) -> ReportData:
         total_errors = sum(len(group.logs) for group in grouped_logs.logs_groups)
+        groups = [
+            ErrorGroup(error_type=group.error, count=len(group.logs))
+            for group in grouped_logs.logs_groups
+        ]
         report_obj = ReportData(
-            title="<b>Отчет по ошибкам за последний час</b>\n",
+            title=f"Error report for the last {self.app_settings.schedule_interval_hours} hour/s.",
             time_range_hours=int(self.app_settings.schedule_interval_hours),
             total_errors=total_errors,
             unique_types=len(grouped_logs.logs_groups),
@@ -96,5 +100,6 @@ class LogAnalysisService:
             provider=analysis.provider.value,
             tokens_in=analysis.input_tokens_used,
             tokens_out=analysis.output_tokens_used,
+            groups=groups,
         )
         return report_obj

@@ -1,19 +1,28 @@
+import asyncio
 import json
 from datetime import datetime
 import logging
 import httpx
 
-from src.core.settings.app_settings import AppSettings
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="[%(levelname)s] %(message)s"
+)
 
 logger = logging.getLogger(__name__)
 
+# from src.core.settings.app_settings import AppSettings
+
 
 async def send_fake_logs_to_loki() -> None:
-    settings = AppSettings()
-    loki_url = settings.log_source.loki_url
-    app_name = settings.log_source.loki_app_name
+    # settings = AppSettings()
+    # loki_url = settings.log_source.loki_url
+    # app_name = settings.log_source.loki_app_name
+    loki_url = "http://localhost:3100"
+    app_name = "backend"
 
-    logger.info("Sending fake logs to Loki...")
+    logging.info("Sending fake logs to Loki...")
     push_url = f"{loki_url}/loki/api/v1/push"
 
     now_ns = str(int(datetime.now().timestamp() * 1_000_000_000))
@@ -118,10 +127,13 @@ async def send_fake_logs_to_loki() -> None:
         try:
             response = await client.post(push_url, json=json_payload, timeout=10)
             if response.status_code == 204:
-                logger.info(
+                logging.info(
                     f"Successfully sent {len(fake_logs)} test logs to Loki"
                 )
             else:
-                logger.error(f"Failed to send logs: {response.status_code} {response.text}")
+                logging.error(f"Failed to send logs: {response.status_code} {response.text}")
         except Exception as e:
-            logger.error(f"Error sending logs to Loki: {e}")
+            logging.error(f"Error sending logs to Loki: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(send_fake_logs_to_loki())

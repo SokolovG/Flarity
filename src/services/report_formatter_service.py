@@ -19,4 +19,7 @@ class ReportFormatter:
             unique_types=data.unique_types,
             groups=data.groups,
             ai_analysis=data.ai_analysis,
+            provider=data.provider,
+            tokens_in=data.tokens_in,
+            tokens_out=data.tokens_out,
         )
