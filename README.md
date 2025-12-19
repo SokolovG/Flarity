@@ -64,6 +64,7 @@ TELEGRAM_CHAT_ID=your-chat-id
 
 # Analysis Settings
 SCHEDULE_INTERVAL_HOURS=1
+SCHEDULE_ENABLEN=true
 ```
 
 **Key Components:**
@@ -108,7 +109,7 @@ Flarity follows **clean architecture** principles with strict separation of conc
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Dishka DI Container (core/container.py)        │
+│           Dishka DI Container (core/dependencies.py)        │
 │           Manages all dependencies & lifetimes              │
 └───────┬──────────────────┬──────────────────┬───────────────┘
         │                  │                  │
@@ -137,6 +138,7 @@ flarity/
 ├── prompts/
 │   ├── base_prompt.txt  # Basic prompt for llm
 ├── src/
+│   ├── bot/             # Telegram bot logic
 │   ├── main.py          # Entry point
 │   ├── llm_adapters/    # LLM provider adapters
 │   ├── clients/         # HTTP clients (Loki, Telegram, CustomHttp)

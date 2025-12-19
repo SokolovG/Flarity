@@ -27,27 +27,30 @@ class HTTPClient:
         params: dict | None = None,
         timeout: int | None = 10,
     ) -> Response:
-        """Выполняет HTTP-запрос к API.
+        """Performs an HTTP request to the API.
 
-        Формирует полный URL, выполняет запрос с заданными параметрами и обрабатывает
-        возможные ошибки, логируя информацию о них.
+        Forms the full URL, performs the request with the specified parameters, and handles
+        possible errors, logging information about them.
 
         Args:
-            method: HTTP-метод из списка разрешенных методов.
-            url: Базовый урл
-            headers: Заголовки HTTP-запроса.
-            data: Тело запроса. По умолчанию None.
-            content_type: content_type: Тип содержимого: "json", "form-data" или None.
-            no_log_answer: Не выводить в логи ответ
-            params: Query-параметры для URL (используется для GET-запросов)
+            method: HTTP method from the list of allowed methods.
+            url: Base URL.
+            headers: HTTP request headers.
+            data: Request body. Default is None.
+            content_type: Content type: “json”, “form-data”, or None.
+            no_log_answer: Do not log the response.
+            params: Query parameters for the URL (used for GET requests).
+
 
         Returns:
-            Response | None: Объект ответа или None в случае ошибки.
+            Response | None: The response object or None in case of an error.
         """
         start_time = time.time()
 
         try:
-            logger.info(f"{method} REQUEST to {url}, params: {params}")
+            logger.info(
+                f"{method} REQUEST to {url} {(p := f', params: {params}') if params else ''}"
+            )
             if method == HTTPMethod.GET:
                 params = params or {}
                 response = await self.client.request(
