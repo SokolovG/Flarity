@@ -9,5 +9,5 @@ class NotificationService(BaseNotificationService):
         self.telegram_client = telegram_client
         self.settings = settings
 
-    async def send_analysis_report(self, report: str) -> bool:
-        return await self.telegram_client.send_message(report)
+    async def send_message(self, message: str) -> bool:
+        return await self.telegram_client.send_message(message)

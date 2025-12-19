@@ -36,28 +36,27 @@ class LogAnalysisService:
         )
 
         if logs.total_count == 0:
-            logger.warning("No error logs found in the last hour")
+            msg = f"No error logs found in the {self.app_settings.schedule_interval_hours if self.app_settings.schedule_interval_hours else None} hour/s."
+            logger.info(msg)
+            await self.notification_service.send_message(msg)
             return
 
         logger.info(f"Found {logs.total_count} error logs")
-        logger.info("Grouping errors by type...")
         grouped = await self.log_source_service._group_errors_by_type(logs)
-
-        for group in grouped.logs_groups:
-            logger.info(f"  - {group.error}: {len(group.logs)} occurrences")
 
         logger.info("Analyzing logs with LLM...")
         analysis = await self.llm_service.analyze_logs(logs)
 
-        logger.info("Analysis complete!")
+        logger.info("Analysis completed successfully.")
         logger.info(
             f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
         )
 
         report_obj = self.prepare_report(analysis=analysis, grouped_logs=grouped)
         report = self.formatter.to_html(data=report_obj)
-        message_send = await self.notification_service.send_analysis_report(report=report)
-        logger.info(f"Telegram message has sent is {message_send}")
+        message_send = await self.notification_service.send_message(message=report)
+        if not message_send:
+            logger.error(f"Telegram message is not send!")
 
     @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:

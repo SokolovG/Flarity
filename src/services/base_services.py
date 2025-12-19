@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from src.core.settings.log_source_settings import LogsSourceSettings
 from src.entities.report import ReportData
 from src.responses import LogsByErrorType, LogsSourceQueryResult
-from src.responses.llm_base_responses import LLMAnalysisResult
 
 
 class LogSourceService(ABC):
@@ -20,4 +19,4 @@ class LogSourceService(ABC):
 
 class BaseNotificationService(ABC):
     @abstractmethod
-    async def send_analysis_report(self, report_data: ReportData) -> bool: ...
+    async def send_message(self, message: str) -> bool: ...

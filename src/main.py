@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from dishka import AsyncContainer, make_async_container
-from dishka.integrations.aiogram import AiogramProvider, setup_dishka
+from dishka.integrations.aiogram import setup_dishka
 
 from src.core import MyProvider
 from src.core.settings.app_settings import AppSettings
@@ -29,14 +29,10 @@ logging.getLogger("src").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-# def register_handlers(dispatcher: Dispatcher): ...
-
-
 async def scheduled_analysis(container: AsyncContainer) -> None:
     try:
         service = await container.get(LogAnalysisService)
         await service.analyze_and_notify()
-        logger.info("Analysis completed successfully")
     except BaseCustomException as e:
         logger.error(f"Analysis failed: {e.__class__.__name__}: {e}")
     except Exception as e:
@@ -63,7 +59,7 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
 
 
 async def main() -> None:
-    container = make_async_container(MyProvider(), AiogramProvider())
+    container = make_async_container(MyProvider())
 
     try:
         settings = await container.get(AppSettings)
@@ -71,7 +67,10 @@ async def main() -> None:
         dp = await container.get(Dispatcher)
 
         setup_dishka(container, dp)
-        # register_handlers(dp)
+        from src.bot.handlers import register_handlers, set_bot_commands  # TODO: fix!
+
+        await set_bot_commands(bot)
+        register_handlers(dp)
 
         tasks = []
 
