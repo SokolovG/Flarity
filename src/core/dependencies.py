@@ -1,3 +1,4 @@
+from aiogram import Bot, Dispatcher
 from dishka import Provider, Scope, provide
 
 from src.clients import HTTPClient, LokiClient, TelegramClient
@@ -13,6 +14,14 @@ from src.services.report_formatter_service import ReportFormatter
 
 
 class MyProvider(Provider):
+    @provide(scope=Scope.APP)
+    def get_bot(self, settings: AppSettings) -> Bot:
+        return Bot(token=settings.notification.telegram_bot_token)
+
+    @provide(scope=Scope.APP)
+    def get_dispatcher(self) -> Dispatcher:
+        return Dispatcher()
+
     @provide(scope=Scope.APP)
     def get_app_settings(self) -> AppSettings:
         return AppSettings()
