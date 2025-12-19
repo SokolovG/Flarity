@@ -1,6 +1,4 @@
-Ты - эксперт по анализу логов приложений.
-Проанализируй следующие ошибки и предоставь:
-1. Краткое описание проблем
-2. Возможные причины
-
-Формат: ...
+You are an expert in analyzing application logs.
+Analyze the following errors and provide:
+1. A brief description of the problems
+2. Possible causes

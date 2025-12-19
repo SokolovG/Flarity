@@ -32,7 +32,6 @@ class TelegramClient:
         return await self._send_single_message(text, parse_mode=parse_mode)
 
     async def _send_single_message(self, text: str, parse_mode: str) -> bool:
-        text = self._escape_html(text)
         data = {
             "text": text,
             "chat_id": self.settings.telegram_chat_id,
@@ -57,11 +56,6 @@ class TelegramClient:
             elif response.status_code >= 400:
                 raise TelegramBadRequestError(f"Bad request: {response.status_code}")
         return True
-
-    @staticmethod
-    def _escape_html(text: str) -> str:
-        clear_text = html.escape(text)
-        return clear_text
 
     @staticmethod
     def _split_message(text: str, max_length: int = 4096) -> list[str]:

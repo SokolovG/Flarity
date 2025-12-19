@@ -1,4 +1,4 @@
-<h1>{{ title }}</h1>
+{{ title }}
 
 Statistics for {{ time_range_hours }} hours:
 - Total errors: {{ total_errors }}
@@ -12,7 +12,7 @@ Top-{{ groups[:5] | length }} errors:
 {% endif %}
 
 AI analysis:
-{{ ai_analysis | e }}
+{{ ai_analysis}}
 
 ---
 Technical information:
