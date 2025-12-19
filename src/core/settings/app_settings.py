@@ -14,7 +14,14 @@ class AppSettings(BaseSettings):
     llm: LLMSettings = Field(default_factory=LLMSettings)
     llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
     notification: NotificationSettings = Field(default_factory=NotificationSettings)
-    schedule_interval_hours: str
+    schedule_interval_hours: str | None = None
+    schedule_enabled: bool
+
+    @model_validator(mode="after")
+    def validate_schedule(self) -> Self:
+        if self.schedule_enabled and not self.schedule_interval_hours:
+            raise ValueError("schedule_interval_hours is required! schedule_enabled is True!")
+        return self
 
     @model_validator(mode="after")
     def validate_llm_provider_config(self) -> Self:

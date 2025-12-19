@@ -63,7 +63,7 @@ TELEGRAM_BOT_TOKEN=your-bot-token
 TELEGRAM_CHAT_ID=your-chat-id
 
 # Analysis Settings
-SCHEDULE_INTERVAL_HOURS=24
+SCHEDULE_INTERVAL_HOURS=1
 ```
 
 **Key Components:**

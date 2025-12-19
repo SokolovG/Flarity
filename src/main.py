@@ -47,28 +47,28 @@ async def main() -> None:
     settings = await container.get(AppSettings)
     await container.close()
 
-    SCHEDULE_INTERVAL_HOURS = settings.schedule_interval_hours
+    if settings.schedule_enabled:
+        scheduler = AsyncIOScheduler()
+        SCHEDULE_INTERVAL_HOURS = settings.schedule_interval_hours
+        scheduler.add_job(
+            scheduled_analysis,
+            trigger=IntervalTrigger(hours=int(SCHEDULE_INTERVAL_HOURS)),  # type: ignore
+            id="log_analysis",
+            max_instances=1,
+        )
+        scheduler.start()
+        logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")
+        logger.info("Running initial analysis...")
+        await scheduled_analysis()
 
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        scheduled_analysis,
-        trigger=IntervalTrigger(hours=int(SCHEDULE_INTERVAL_HOURS)),
-        id="log_analysis",
-        max_instances=1,
-    )
-
-    scheduler.start()
-    logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")
-
-    logger.info("Running initial analysis...")
-    await scheduled_analysis()
-
-    try:
-        while True:
-            await asyncio.sleep(3600)
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Shutting down scheduler...")
-        scheduler.shutdown(wait=True)
+        try:
+            while True:
+                await asyncio.sleep(3600)
+        except (KeyboardInterrupt, SystemExit):
+            logger.info("Shutting down scheduler...")
+            scheduler.shutdown(wait=True)
+    else:
+        ...
 
 
 if __name__ == "__main__":

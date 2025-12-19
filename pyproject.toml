@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiogram>=3.23.0",
     "apscheduler>=3.11.1",
     "dishka>=1.7.2",
     "httpx>=0.28.1",
