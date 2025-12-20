@@ -19,6 +19,13 @@ def get_analysis_options() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="6 hours", callback_data="analyze_6")],
             [InlineKeyboardButton(text="12 hours", callback_data="analyze_12")],
             [InlineKeyboardButton(text="24 hours", callback_data="analyze_24")],
+            [InlineKeyboardButton(text="Back to menu", callback_data="back_to_menu")],
         ]
     )
     return keyboard
+
+
+def get_back_to_menu_button() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="Back to menu", callback_data="back_to_menu")]]
+    )

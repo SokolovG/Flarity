@@ -29,16 +29,24 @@ class LogAnalysisService:
         self.app_settings = app_settings
         self.formatter = formatter
 
-    async def analyze_logs(self, hours: int) -> str:
+        self._no_errors_count = 0
+
+    async def analyze_logs(self, hours: int, msg_without_errors: bool = False) -> str:
         logger.info("Fetching recent error logs...")
         logs = await self.log_source_service.get_recent_errors(hours=hours)
 
         if logs.total_count == 0:
+            self._no_errors_count += 1
             msg = f"No error logs found in the {self.app_settings.schedule_interval_hours if self.app_settings.schedule_interval_hours else None} hour/s."
             logger.info(msg)
-            await self.notification_service.send_message(msg)
-            return
+            if self._no_errors_count < 1:
+                await self.notification_service.send_message(msg)
+            if msg_without_errors:
+                await self.notification_service.send_message(msg)
 
+            return f"No errors found in last {hours} h."
+
+        self._no_errors_count = 0
         logger.info(f"Found {logs.total_count} error logs")
         grouped = await self.log_source_service._group_errors_by_type(logs)
 
