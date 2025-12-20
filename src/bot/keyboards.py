@@ -1,11 +1,24 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def get_start_keyboard() -> InlineKeyboardMarkup:
+def get_main_menu() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            InlineKeyboardButton(text="", callback_data=""),
-            InlineKeyboardButton(text="", callback_data=""),
+            [InlineKeyboardButton(text="LLM analysys", callback_data="llm_analysis")],
+            [InlineKeyboardButton(text="Statistics", callback_data="statistics")],
+            [InlineKeyboardButton(text="Recent errors", callback_data="recent")],
+        ]
+    )
+    return keyboard
+
+
+def get_analysis_options() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="1 hour", callback_data="analyze_1")],
+            [InlineKeyboardButton(text="6 hours", callback_data="analyze_6")],
+            [InlineKeyboardButton(text="12 hours", callback_data="analyze_12")],
+            [InlineKeyboardButton(text="24 hours", callback_data="analyze_24")],
         ]
     )
     return keyboard

@@ -32,7 +32,8 @@ logger = logging.getLogger(__name__)
 async def scheduled_analysis(container: AsyncContainer) -> None:
     try:
         service = await container.get(LogAnalysisService)
-        await service.analyze_and_notify()
+        settings = await container.get(AppSettings)
+        await service.analyze_and_notify(hours=int(settings.schedule_interval_hours)) # type: ignore
     except BaseCustomException as e:
         logger.error(f"Analysis failed: {e.__class__.__name__}: {e}")
     except Exception as e:
@@ -69,8 +70,8 @@ async def main() -> None:
         setup_dishka(container, dp)
         from src.bot.handlers import register_handlers, set_bot_commands  # TODO: fix!
 
-        await set_bot_commands(bot)
         register_handlers(dp)
+        await set_bot_commands(bot)
 
         tasks = []
 

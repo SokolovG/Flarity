@@ -29,11 +29,9 @@ class LogAnalysisService:
         self.app_settings = app_settings
         self.formatter = formatter
 
-    async def analyze_and_notify(self) -> None:
+    async def analyze_logs(self, hours: int) -> str:
         logger.info("Fetching recent error logs...")
-        logs = await self.log_source_service.get_recent_errors(
-            hours=int(self.app_settings.schedule_interval_hours)  # type: ignore
-        )
+        logs = await self.log_source_service.get_recent_errors(hours=hours)
 
         if logs.total_count == 0:
             msg = f"No error logs found in the {self.app_settings.schedule_interval_hours if self.app_settings.schedule_interval_hours else None} hour/s."
@@ -52,11 +50,17 @@ class LogAnalysisService:
             f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
         )
 
-        report_obj = self.prepare_report(analysis=analysis, grouped_logs=grouped)
+        report_obj = self.prepare_report(analysis=analysis, grouped_logs=grouped, hours=hours)
         report = self.formatter.to_html(data=report_obj)
-        message_send = await self.notification_service.send_message(message=report)
-        if not message_send:
-            logger.error(f"Telegram message is not send!")
+
+        return report
+
+    async def analyze_and_notify(self, hours: int) -> None:
+        msg = await self.analyze_logs(hours=hours)
+        if msg:
+            message_send = await self.notification_service.send_message(message=msg)
+            if not message_send:
+                logger.error(f"Telegram message is not send!")
 
     @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:
@@ -83,7 +87,7 @@ class LogAnalysisService:
         return True
 
     def prepare_report(
-        self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType
+        self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, hours: int
     ) -> ReportData:
         total_errors = sum(len(group.logs) for group in grouped_logs.logs_groups)
         groups = [
@@ -91,8 +95,8 @@ class LogAnalysisService:
             for group in grouped_logs.logs_groups
         ]
         report_obj = ReportData(
-            title=f"Error report for the last {self.app_settings.schedule_interval_hours} hour/s.",
-            time_range_hours=int(self.app_settings.schedule_interval_hours),  # type: ignore
+            title=f"Error report for the last {hours} hour/s.",
+            time_range_hours=hours,
             total_errors=total_errors,
             unique_types=len(grouped_logs.logs_groups),
             ai_analysis=analysis.analysis_text,
