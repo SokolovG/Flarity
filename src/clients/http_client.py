@@ -19,7 +19,7 @@ class HTTPClient:
     @retry(max_attempts=3, backoff=1.0)
     async def make_request(
         self,
-        headers: dict[str, str] = {},
+        headers: dict[str, str] | None = None,
         method: HTTPMethod = HTTPMethod.POST,
         url: str = "",
         data: dict | str | bytes | None = None,
@@ -45,6 +45,8 @@ class HTTPClient:
         Returns:
             Response | None: The response object or None in case of an error.
         """
+        if headers is None:
+            headers: dict = {}  # type: ignore
         start_time = time.time()
 
         try:
@@ -64,8 +66,8 @@ class HTTPClient:
             else:
                 if isinstance(data, dict):
                     content = msgspec.json.encode(data)
-                    if "Content-Type" not in headers:
-                        headers = {**headers, "Content-Type": "application/json"}
+                    if "Content-Type" not in headers:  # type: ignore
+                        headers = {**headers, "Content-Type": "application/json"}  # type: ignore
                 elif isinstance(data, str):
                     content = data.encode("utf-8")
                 elif isinstance(data, bytes):

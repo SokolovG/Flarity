@@ -4,7 +4,7 @@ from logging import getLogger
 from src.core.decorators import retry
 from src.core.settings.app_settings import AppSettings
 from src.entities.enums import ReportTemplate
-from src.entities.report import ErrorGroup, ReportData
+from src.entities.report import AnalysisResult, ErrorGroup, ReportData
 from src.exceptions import ServiceNotReadyError
 from src.responses.llm_base_responses import LLMAnalysisResult
 from src.responses.logs_base_responses import LogsByErrorType, LogsSourceQueryResult
@@ -30,17 +30,17 @@ class LogAnalysisService:
         self.app_settings = app_settings
         self.formatter = formatter
 
-        self._no_errors_count = 0
-
-    async def analyze_logs(self, hours: int, msg_without_errors: bool = False) -> str:
+    async def analyze_logs(self, hours: int, msg_without_errors: bool = False) -> AnalysisResult:
         logger.info("Fetching recent error logs for analysis...")
         logs = await self.log_source_service.get_recent_errors(hours=hours)
 
-        await self._check_count_of_logs_and_notify(
-            logs=logs, msg_without_errors=msg_without_errors, hours=hours
-        )
+        if logs.total_count == 0:
+            return AnalysisResult(
+                has_errors=False,
+                report_html="✅ No errors found in the last {hours} h.",
+                hours=hours,
+            )
 
-        self._no_errors_count = 0
         logger.info(f"Found {logs.total_count} error logs")
         grouped = await self.log_source_service._group_errors_by_type(logs)
 
@@ -55,9 +55,8 @@ class LogAnalysisService:
         report_obj = self.prepare_report_from_llm(
             analysis=analysis, grouped_logs=grouped, hours=hours
         )
-        report = self.formatter.to_html(data=report_obj)
-
-        return report
+        report_html = self.formatter.to_html(data=report_obj)
+        return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
     async def analyze_and_notify(self, hours: int) -> None:
         msg = await self.analyze_logs(hours=hours)
@@ -66,31 +65,22 @@ class LogAnalysisService:
             if not message_send:
                 logger.error(f"Telegram message is not send!")
 
-    async def get_recent_errors(self, hours: int) -> str:
-        logger.info("Fetching recent error logs...")
-        recent_errors = await self.log_source_service.get_recent_errors(hours=hours)
+    async def get_recent_errors(self, hours: int) -> AnalysisResult:
+        logs = await self.log_source_service.get_recent_errors(hours=hours)
 
-        await self._check_count_of_logs_and_notify(logs=recent_errors, hours=hours)
-        self._no_errors_count = 0
-
-        report_obj = self.prepare_report_recent_errors(recent_errors=recent_errors, hours=hours)
-        report = self.formatter.to_html(data=report_obj, template_name=ReportTemplate.RECENT_LOGS)
-
-        return report
-
-    async def _check_count_of_logs_and_notify(
-        self, logs: LogsSourceQueryResult, hours: int, msg_without_errors: bool = False
-    ) -> str:
         if logs.total_count == 0:
-            self._no_errors_count += 1
-            msg = f"No error logs found in the {self.app_settings.schedule_interval_hours if self.app_settings.schedule_interval_hours else None} hour/s."
-            logger.info(msg)
-            if self._no_errors_count < 1:
-                await self.notification_service.send_message(msg)
-            if msg_without_errors:
-                await self.notification_service.send_message(msg)
+            return AnalysisResult(
+                has_errors=False,
+                report_html=f"✅ No errors found in the last {hours} h.",
+                hours=hours,
+            )
 
-        return f"No errors found in last {hours} h."
+        report_obj = self.prepare_report_recent_errors(logs, hours)
+        report_html = self.formatter.to_html(
+            data=report_obj, template_name=ReportTemplate.RECENT_LOGS
+        )
+
+        return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
     @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:

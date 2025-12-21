@@ -62,18 +62,3 @@ async def cmd_help(message: Message) -> None:
         /help - This help message
         """
     await message.answer(help_text, parse_mode="HTML")
-
-
-def register_handlers(dp: Dispatcher) -> None:
-    dp.include_router(bot_router)
-
-
-async def set_bot_commands(bot: Bot) -> None:
-    commands = [
-        BotCommand(command="help", description="List of commands"),
-        BotCommand(command="start", description="Get started"),
-        BotCommand(command="analyze", description="AI Anylyze logs"),
-        BotCommand(command="recent", description="Recent N errors"),
-        BotCommand(command="stats", description="Statistics for the period"),
-    ]
-    await bot.set_my_commands(commands=commands)

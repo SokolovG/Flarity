@@ -32,6 +32,8 @@ class TelegramClient:
         return await self._send_single_message(text, parse_mode=parse_mode)
 
     async def _send_single_message(self, text: str, parse_mode: str) -> bool:
+        if parse_mode == "HTML":
+            text = html.escape(text)
         data = {
             "text": text,
             "chat_id": self.settings.telegram_chat_id,

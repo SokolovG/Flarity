@@ -1,6 +1,12 @@
 from msgspec import Struct
 
 
+class AnalysisResult(Struct):
+    has_errors: bool
+    report_html: str
+    hours: int
+
+
 class ErrorGroup(Struct):
     error_type: str
     count: int

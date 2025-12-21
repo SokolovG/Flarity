@@ -43,15 +43,3 @@ def get_back_to_menu_button() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="Back to menu", callback_data="back_to_menu")]]
     )
-
-
-def get_settings() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Enable schedule notification", callback_data="enable_schedule"
-                )
-            ],
-        ]
-    )

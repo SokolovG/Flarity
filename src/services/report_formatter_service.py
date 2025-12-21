@@ -6,7 +6,7 @@ from src.entities.report import ReportData
 
 class ReportFormatter:
     def __init__(self) -> None:
-        self.env = Environment(loader=FileSystemLoader("templates"))
+        self.env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 
     def to_html(
         self, data: ReportData, template_name: ReportTemplate = ReportTemplate.ANALYSIS_DETAILED

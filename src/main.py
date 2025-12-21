@@ -8,10 +8,12 @@ from apscheduler.triggers.interval import IntervalTrigger
 from dishka import AsyncContainer, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
+from src.bot import setup_bot
 from src.core import MyProvider
 from src.core.settings.app_settings import AppSettings
 from src.exceptions.base_exceptions import BaseCustomException
 from src.services import LogAnalysisService
+from src.services.notification_service import NotificationService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,7 +35,16 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
     try:
         service = await container.get(LogAnalysisService)
         settings = await container.get(AppSettings)
-        await service.analyze_and_notify(hours=int(settings.schedule_interval_hours)) # type: ignore
+        notification = await container.get(NotificationService)
+
+        result = await service.analyze_logs(hours=int(settings.schedule_interval_hours))  # type: ignore
+
+        if result.has_errors:
+            await notification.send_message(result.report_html)
+            logger.info(f"Scheduled report sent: {result.hours}h")
+        else:
+            logger.info(f"No errors found, skipping notification")
+
     except BaseCustomException as e:
         logger.error(f"Analysis failed: {e.__class__.__name__}: {e}")
     except Exception as e:
@@ -68,10 +79,8 @@ async def main() -> None:
         dp = await container.get(Dispatcher)
 
         setup_dishka(container, dp)
-        from src.bot.handlers import register_handlers, set_bot_commands  # TODO: fix!
 
-        register_handlers(dp)
-        await set_bot_commands(bot)
+        await setup_bot(bot, dp)
 
         tasks = []
 
