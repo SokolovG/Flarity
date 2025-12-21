@@ -82,14 +82,14 @@ async def back_to_menu(callback: CallbackQuery) -> None:
 
 
 @bot_router.callback_query(F.data == "settings")
-async def settings(callback: CallbackQuery, settings: FromDishka[AppSettings]) -> None:
+async def settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings]) -> None:
     await callback.answer()
 
     info = f"""
             Settings
 
             Current config:
-            • LLM provider: {settings.llm_provider.provider}
-            • LLM model: {settings.llm.model}
-            {(f"• Schedule: every {settings.schedule_enabled} h") if settings.schedule_enabled else ""}"
+            • LLM provider: {app_settings.llm_provider.provider}
+            • LLM model: {app_settings.llm.model}
+            {(f"• Schedule: every {app_settings.schedule_interval_hours} h") if app_settings.schedule_enabled else ""}
         """

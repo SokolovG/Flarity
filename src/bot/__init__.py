@@ -1,6 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 
+from src.bot import callbacks, handlers  # noqa: F401
 from src.bot.router import bot_router
 
 
