@@ -9,7 +9,7 @@ class ReportFormatter:
         self.env = Environment(loader=FileSystemLoader("templates"))
 
     def to_html(
-        self, data: ReportData, template_name: ReportTemplate = ReportTemplate.DETAILED
+        self, data: ReportData, template_name: ReportTemplate = ReportTemplate.ANALYSIS_DETAILED
     ) -> str:
         template = self.env.get_template(template_name.value)
         return template.render(
