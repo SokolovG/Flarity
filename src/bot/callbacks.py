@@ -2,7 +2,7 @@ from logging import getLogger
 
 from aiogram import F
 from aiogram.types import CallbackQuery
-from dishka.integrations.aiogram import FromDishka
+from dishka.integrations.aiogram import FromDishka, inject
 
 from src.bot.keyboards import (
     get_analysis_options,
@@ -18,6 +18,7 @@ logger = getLogger(__name__)
 
 
 @bot_router.callback_query(F.data.startswith("analyze_"))
+@inject
 async def on_analyze_period(
     callback: CallbackQuery, service: FromDishka[LogAnalysisService]
 ) -> None:
@@ -37,6 +38,7 @@ async def on_recent_errors(callback: CallbackQuery) -> None:
 
 
 @bot_router.callback_query(F.data.startswith("recent_"))
+@inject
 async def on_recent_period(
     callback: CallbackQuery, service: FromDishka[LogAnalysisService]
 ) -> None:
@@ -82,6 +84,7 @@ async def back_to_menu(callback: CallbackQuery) -> None:
 
 
 @bot_router.callback_query(F.data == "settings")
+@inject
 async def settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings]) -> None:
     await callback.answer()
 
@@ -93,3 +96,4 @@ async def settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings
             • LLM model: {app_settings.llm.model}
             {(f"• Schedule: every {app_settings.schedule_interval_hours} h") if app_settings.schedule_enabled else ""}
         """
+    await callback.message.answer(info, reply_markup=get_back_to_menu_button())

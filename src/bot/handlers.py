@@ -1,6 +1,5 @@
-from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
-from aiogram.types import BotCommand, Message
+from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.bot import callbacks  # noqa: F401

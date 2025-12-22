@@ -34,12 +34,11 @@ class LogAnalysisService:
         logger.info("Fetching recent error logs for analysis...")
         logs = await self.log_source_service.get_recent_errors(hours=hours)
 
-        if logs.total_count == 0:
-            return AnalysisResult(
-                has_errors=False,
-                report_html="✅ No errors found in the last {hours} h.",
-                hours=hours,
-            )
+        no_errors_result = await self._check_and_notify_no_errors(
+            hours=hours, logs_count=logs.total_count
+        )
+        if no_errors_result:
+            return no_errors_result
 
         logger.info(f"Found {logs.total_count} error logs")
         grouped = await self.log_source_service._group_errors_by_type(logs)
@@ -68,12 +67,11 @@ class LogAnalysisService:
     async def get_recent_errors(self, hours: int) -> AnalysisResult:
         logs = await self.log_source_service.get_recent_errors(hours=hours)
 
-        if logs.total_count == 0:
-            return AnalysisResult(
-                has_errors=False,
-                report_html=f"✅ No errors found in the last {hours} h.",
-                hours=hours,
-            )
+        no_errors_result = await self._check_and_notify_no_errors(
+            hours=hours, logs_count=logs.total_count
+        )
+        if no_errors_result:
+            return no_errors_result
 
         report_obj = self.prepare_report_recent_errors(logs, hours)
         report_html = self.formatter.to_html(
@@ -136,3 +134,16 @@ class LogAnalysisService:
             groups=groups,
         )
         return report_obj
+
+    async def _check_and_notify_no_errors(
+        self, hours: int, logs_count: int
+    ) -> AnalysisResult | None:
+        if logs_count == 0:
+            msg = f"✅ No errors found in the last {hours} h."
+            result = AnalysisResult(
+                has_errors=False,
+                report_html=msg,
+                hours=hours,
+            )
+            return result
+        return None
