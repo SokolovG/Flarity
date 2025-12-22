@@ -19,7 +19,9 @@ class TelegramClient:
     def _base_url(self) -> str:
         return f"https://api.telegram.org/bot{self.settings.telegram_bot_token}"
 
-    async def send_message(self, text: str, parse_mode: str, chat_id: str | None) -> bool:
+    async def send_message(
+        self, text: str, parse_mode: str = "HTML", chat_id: str | None = None
+    ) -> bool:
         if not text or len(text.strip()) == 0:
             raise ValueError("Message text is empty")
 
@@ -31,7 +33,9 @@ class TelegramClient:
 
         return await self._send_single_message(text, parse_mode=parse_mode, chat_id=chat_id)
 
-    async def _send_single_message(self, text: str, parse_mode: str, chat_id: str | None) -> bool:
+    async def _send_single_message(
+        self, text: str, parse_mode: str = "HTML", chat_id: str | None = None
+    ) -> bool:
         data = {
             "text": text,
             "chat_id": chat_id if chat_id else self.settings.telegram_chat_id,

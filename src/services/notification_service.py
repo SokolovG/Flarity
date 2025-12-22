@@ -17,4 +17,6 @@ class NotificationService(BaseNotificationService):
         parse_mode: Literal["HTML", "Markdown", "MarkdownV2"] = "HTML",
         chat_id: str | None = None,
     ) -> bool:
-        return await self.telegram_client.send_message(message, parse_mode, chat_id)
+        return await self.telegram_client.send_message(
+            message, parse_mode=parse_mode, chat_id=chat_id
+        )

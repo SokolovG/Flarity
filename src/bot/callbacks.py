@@ -29,7 +29,7 @@ async def on_analyze_period(
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, with_llm=True, service=service, notifier=notification_service)
+    await _handle_analysis(callback, True, service, notification_service)
 
 
 @bot_router.callback_query(F.data == "llm_analysis")
@@ -61,14 +61,14 @@ async def on_recent_period(
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, with_llm=False, service=service, notifier=notification_service)
+    await _handle_analysis(callback, False, service, notification_service)
 
 
 async def _handle_analysis(
     callback: CallbackQuery,
+    with_llm: bool,
     service: LogAnalysisService,
     notifier: NotificationService,
-    with_llm: bool,
 ) -> None:
     hours = int(callback.data.split("_")[1])
     action = "Analyzing" if with_llm else "Fetching"
@@ -82,9 +82,9 @@ async def _handle_analysis(
 
     try:
         if with_llm:
-            result = await service.analyze_logs(hours=hours)
+            result = await service.analyze_logs(hours)
         else:
-            result = await service.get_recent_errors(hours=hours)
+            result = await service.get_recent_errors(hours)
 
         if not result.has_errors:
             await loading_msg.edit_text(result.report_html, reply_markup=get_main_menu())
@@ -92,8 +92,8 @@ async def _handle_analysis(
 
         await loading_msg.delete()
         await notifier.send_message(
+            result.report_html,
             chat_id=callback.message.chat.id,
-            message=result.report_html,
         )
         await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
 

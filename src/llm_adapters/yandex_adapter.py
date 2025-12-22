@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 
 class YandexAdapter(BaseLLMAdapter):
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        logs_text = self.format_logs_for_llm(logs=logs)
+        logs_text = self.format_logs_for_llm(logs)
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {
@@ -51,7 +51,7 @@ class YandexAdapter(BaseLLMAdapter):
                 details={"status": response.status_code, "response": response.text},
             )
 
-        return self._parse_response(response_bytes=response.content)
+        return self._parse_response(response.content)
 
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
         try:

@@ -15,7 +15,7 @@ logger = getLogger(__name__)
 
 class OllamaAdapter(BaseLLMAdapter):
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        logs_text = self.format_logs_for_llm(logs=logs)
+        logs_text = self.format_logs_for_llm(logs)
         request_data = {
             "model": self.settings.llm.model,
             "messages": [

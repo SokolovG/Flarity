@@ -33,10 +33,8 @@ class LogAnalysisService:
 
     async def analyze_logs(self, hours: int) -> AnalysisResult:
         logger.info("Fetching recent error logs for analysis...")
-        logs = await self.log_source_service.get_recent_errors(hours=hours)
-        no_errors_result = await self._check_and_notify_no_errors(
-            hours=hours, logs_count=logs.total_count
-        )
+        logs = await self.log_source_service.get_recent_errors(hours)
+        no_errors_result = await self._check_and_notify_no_errors(hours, logs.total_count)
         if no_errors_result:
             return no_errors_result
 
@@ -52,35 +50,27 @@ class LogAnalysisService:
             f"Analysis completed. Tokens: {analysis.input_tokens_used}/{analysis.output_tokens_used}"
         )
 
-        report_obj = self.prepare_report_from_llm(
-            analysis=analysis, grouped_logs=grouped, hours=hours
-        )
-        report_html = self.formatter.to_html(data=report_obj)
+        report_obj = self.prepare_report_from_llm(analysis, grouped, hours)
+        report_html = self.formatter.to_html(report_obj)
         return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
     async def get_recent_errors(self, hours: int) -> AnalysisResult:
-        logs = await self.log_source_service.get_recent_errors(hours=hours)
+        logs = await self.log_source_service.get_recent_errors(hours)
 
-        no_errors_result = await self._check_and_notify_no_errors(
-            hours=hours, logs_count=logs.total_count
-        )
+        no_errors_result = await self._check_and_notify_no_errors(hours, logs.total_count)
         if no_errors_result:
             return no_errors_result
 
         report_obj = self.prepare_report_recent_errors(logs, hours)
-        report_html = self.formatter.to_html(
-            data=report_obj, template_name=ReportTemplate.RECENT_LOGS
-        )
+        report_html = self.formatter.to_html(report_obj, ReportTemplate.RECENT_LOGS)
 
         return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
     async def get_statistics(self, hours: int) -> AnalysisResult:
         logger.info(f"Fetching statistics for last {hours} h.")
-        logs = await self.log_source_service.get_recent_errors(hours=hours)
+        logs = await self.log_source_service.get_recent_errors(hours)
 
-        no_errors_result = await self._check_and_notify_no_errors(
-            hours=hours, logs_count=logs.total_count
-        )
+        no_errors_result = await self._check_and_notify_no_errors(hours, logs.total_count)
         if no_errors_result:
             return no_errors_result
 
@@ -88,8 +78,8 @@ class LogAnalysisService:
         report_obj = self.prepare_report_statistics(logs, grouped, hours)
 
         report_html = self.formatter.to_html(
-            data=report_obj,
-            template_name=ReportTemplate.STATISTICS,
+            report_obj,
+            ReportTemplate.STATISTICS,
         )
 
         return AnalysisResult(

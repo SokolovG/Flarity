@@ -37,7 +37,7 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
         settings = await container.get(AppSettings)
         notification = await container.get(NotificationService)
 
-        result = await service.analyze_logs(hours=int(settings.schedule_interval_hours))  # type: ignore
+        result = await service.analyze_logs(int(settings.schedule_interval_hours))
 
         if result.has_errors:
             await notification.send_message(result.report_html)
@@ -59,7 +59,7 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     SCHEDULE_INTERVAL_HOURS = settings.schedule_interval_hours
     scheduler.add_job(
         scheduled_analysis,
-        trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),  # type: ignore
+        trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),
         args=[container],
         id="log_analysis",
         max_instances=1,

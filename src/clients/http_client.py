@@ -19,13 +19,13 @@ class HTTPClient:
     @retry(max_attempts=3, backoff=1.0)
     async def make_request(
         self,
-        headers: dict[str, str] | None = None,
         method: HTTPMethod = HTTPMethod.POST,
         url: str = "",
+        headers: dict[str, str] | None = None,
         data: dict | str | bytes | None = None,
-        no_log_answer: bool = False,
         params: dict | None = None,
         timeout: int | None = 10,
+        no_log_answer: bool = False,
     ) -> Response:
         """Performs an HTTP request to the API.
 
