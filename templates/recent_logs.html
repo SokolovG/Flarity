@@ -1,0 +1,22 @@
+<b>{{ title }}</b>
+
+<b>Time range:</b> {{ time_range_hours }}h
+<b>Total errors:</b> {{ total_errors }}
+
+<b>Latest errors (newest first):</b>
+
+{% for log in logs[:10] %}
+{{ loop.index }}. <b>[{{ log.timestamp.strftime('%H:%M:%S') }}]</b>
+   {{ log.message[:150] }}
+{% if log.request_id %}
+   🔗 <code>{{ log.request_id }}</code>
+{% endif %}
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}
+
+{% if logs | length > 10 %}
+
+... and {{ logs | length - 10 }} more errors
+{% endif %}

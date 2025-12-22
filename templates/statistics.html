@@ -1,0 +1,17 @@
+<b>{{ title }}</b>
+
+<b>Time range:</b> {{ time_range_hours }}h
+<b>Total errors:</b> {{ total_errors }}
+<b>Unique types:</b> {{ unique_types }}
+
+{% if groups %}
+<b>Top {{ groups[:10] | length }} errors:</b>
+{% for group in groups[:10] %}
+{{ loop.index }}. <code>{{ group.error_type }}</code>
+   └─ {{ group.count }} occurrence{{ 's' if group.count > 1 else '' }}
+{% endfor %}
+{% endif %}
+
+{% if groups | length > 10 %}
+... and {{ groups | length - 10 }} more error types
+{% endif %}

@@ -45,3 +45,4 @@ class ReportTemplate(Enum):
     ANALYSIS_SHORT = "analysis_short.html"
     ANALYSIS_DETAILED = "analysis_detailed.html"
     RECENT_LOGS = "recent_logs.html"
+    STATISTICS = "statistics.html"

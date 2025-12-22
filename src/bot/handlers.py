@@ -20,7 +20,6 @@ async def cmd_start(message: Message) -> None:
 @inject
 async def cmd_analyze(message: Message, service: FromDishka[LogAnalysisService]) -> None:
     args = message.text.split()[1:] if message.text else []
-    print(args)
     if not args:
         await message.answer("Choose analysis period:", reply_markup=get_analysis_options())
         return
@@ -33,8 +32,25 @@ async def cmd_analyze(message: Message, service: FromDishka[LogAnalysisService])
 @bot_router.message(Command("stats"))
 async def cmd_stats(
     message: Message,
-    log_source: FromDishka[LogSourceService],
-) -> None: ...
+    service: FromDishka[LogAnalysisService],
+) -> None:
+    args = message.text.split()[1:] if message.text else []
+
+    if not args:
+        await message.answer("Choose analysis period:", reply_markup=get_analysis_options())
+        return
+
+    try:
+        hours = int(args[0])
+        if hours <= 0:
+            await message.answer("❌ Hours must be positive!")
+            return
+
+        result = await service.get_statistics(hours=hours)
+        await message.answer(result.report_html, parse_mode="HTML")
+
+    except ValueError:
+        await message.answer("❌ Invalid number! Use: <code>/stats 24</code>", parse_mode="HTML")
 
 
 @bot_router.message(Command("recent"))

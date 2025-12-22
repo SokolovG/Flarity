@@ -1,5 +1,7 @@
 from msgspec import Struct
 
+from src.entities.loki import LogEntry
+
 
 class AnalysisResult(Struct):
     has_errors: bool
@@ -16,6 +18,7 @@ class ReportData(Struct):
     title: str
     time_range_hours: int
     total_errors: int
+    logs: list[LogEntry] | None = None
     groups: list[ErrorGroup] | None = None
     unique_types: int | None = None
     ai_analysis: str | None = None

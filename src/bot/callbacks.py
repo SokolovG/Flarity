@@ -37,6 +37,11 @@ async def on_recent_errors(callback: CallbackQuery) -> None:
     await callback.message.answer("Choose analysis period:", reply_markup=get_recent_options())
 
 
+@bot_router.callback_query(F.data == "statistics")
+async def statistics(callback: CallbackQuery) -> None:
+    await callback.answer()
+
+
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(

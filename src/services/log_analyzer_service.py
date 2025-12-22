@@ -80,6 +80,30 @@ class LogAnalysisService:
 
         return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
+    async def get_statistics(self, hours: int) -> AnalysisResult:
+        logger.info(f"Fetching statistics for last {hours}h...")
+        logs = await self.log_source_service.get_recent_errors(hours=hours)
+
+        no_errors_result = await self._check_and_notify_no_errors(
+            hours=hours, logs_count=logs.total_count
+        )
+        if no_errors_result:
+            return no_errors_result
+
+        grouped = await self.log_source_service._group_errors_by_type(logs)
+        report_obj = self.prepare_report_statistics(logs, grouped, hours)
+
+        report_html = self.formatter.to_html(
+            data=report_obj,
+            template_name=ReportTemplate.STATISTICS,
+        )
+
+        return AnalysisResult(
+            has_errors=True,
+            report_html=report_html,
+            hours=hours,
+        )
+
     @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:
         coros = (self.log_source_service.check_readiness(),)
@@ -111,8 +135,29 @@ class LogAnalysisService:
             title=f"Recent logs for the last {hours} hour/s.",
             time_range_hours=hours,
             total_errors=recent_errors.total_count,
+            logs=recent_errors.logs,
         )
         return report_obj
+
+    def prepare_report_statistics(
+        self,
+        logs: LogsSourceQueryResult,
+        grouped: LogsByErrorType,
+        hours: int,
+    ) -> ReportData:
+        groups = [
+            ErrorGroup(error_type=group.error, count=len(group.logs))
+            for group in grouped.logs_groups
+        ]
+        groups.sort(key=lambda x: x.count, reverse=True)
+
+        return ReportData(
+            title=f"📊 Statistics for the last {hours} hour/s",
+            time_range_hours=hours,
+            total_errors=logs.total_count,
+            unique_types=len(grouped.logs_groups),
+            groups=groups,
+        )
 
     def prepare_report_from_llm(
         self, analysis: LLMAnalysisResult, grouped_logs: LogsByErrorType, hours: int

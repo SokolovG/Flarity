@@ -17,6 +17,7 @@ class ReportFormatter:
             time_range_hours=data.time_range_hours,
             total_errors=data.total_errors,
             unique_types=data.unique_types,
+            logs=data.logs,
             groups=data.groups,
             ai_analysis=data.ai_analysis,
             provider=data.provider,
