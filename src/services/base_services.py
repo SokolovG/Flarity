@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Literal
 
 from src.core.settings.log_source_settings import LogsSourceSettings
 from src.entities.report import ReportData
@@ -20,5 +21,8 @@ class LogSourceService(ABC):
 class BaseNotificationService(ABC):
     @abstractmethod
     async def send_message(
-        self, message: str, parse_mode: str = "HTML", chat_id: str | None = None
+        self,
+        message: str,
+        parse_mode: Literal["HTML", "Markdown", "MarkdownV2"] = "HTML",
+        chat_id: str | None = None,
     ) -> bool: ...

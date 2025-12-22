@@ -40,15 +40,16 @@ class LogAnalysisService:
         if no_errors_result:
             return no_errors_result
 
-        logger.info(f"Found {logs.total_count} error logs")
+        logger.info(f"Found {logs.total_count} error logs for last {hours}h")
         grouped = await self.log_source_service._group_errors_by_type(logs)
 
-        logger.info("Analyzing logs with LLM...")
+        logger.info(
+            f"Analyzing {logs.total_count} logs with {self.app_settings.llm_provider.provider}"
+        )
         analysis = await self.llm_service.analyze_logs(logs)
 
-        logger.info("Analysis completed successfully.")
         logger.info(
-            f"Tokens used: {analysis.input_tokens_used} input, {analysis.output_tokens_used} output"
+            f"Analysis completed. Tokens: {analysis.input_tokens_used}/{analysis.output_tokens_used}"
         )
 
         report_obj = self.prepare_report_from_llm(
@@ -56,13 +57,6 @@ class LogAnalysisService:
         )
         report_html = self.formatter.to_html(data=report_obj)
         return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
-
-    async def analyze_and_notify(self, hours: int) -> None:
-        msg = await self.analyze_logs(hours=hours)
-        if msg:
-            message_send = await self.notification_service.send_message(message=msg)
-            if not message_send:
-                logger.error(f"Telegram message is not send!")
 
     async def get_recent_errors(self, hours: int) -> AnalysisResult:
         logs = await self.log_source_service.get_recent_errors(hours=hours)

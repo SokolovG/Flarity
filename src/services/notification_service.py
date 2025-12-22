@@ -1,3 +1,5 @@
+from typing import Literal
+
 from src.clients import TelegramClient
 from src.core.settings.notification_settings import NotificationSettings
 from src.entities.report import ReportData
@@ -10,6 +12,9 @@ class NotificationService(BaseNotificationService):
         self.settings = settings
 
     async def send_message(
-        self, message: str, parse_mode: str = "HTML", chat_id: str | None = None
+        self,
+        message: str,
+        parse_mode: Literal["HTML", "Markdown", "MarkdownV2"] = "HTML",
+        chat_id: str | None = None,
     ) -> bool:
         return await self.telegram_client.send_message(message, parse_mode, chat_id)

@@ -43,7 +43,7 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
-    await callback.message.answer("Choose period:", reply_markup=get_recent_options())
+    await callback.message.edit_text("Choose period:", reply_markup=get_recent_options())
 
 
 @bot_router.callback_query(F.data == "statistics")
@@ -95,6 +95,7 @@ async def _handle_analysis(
             chat_id=callback.message.chat.id,
             message=result.report_html,
         )
+        await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
 
     except Exception as e:
         logger.exception(f"Analysis failed: {e}")
@@ -108,7 +109,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     if current_state == BotStates.period_selection:
         await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
     else:
-        await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
+        await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
 
     await state.set_state(BotStates.main_menu)
 
