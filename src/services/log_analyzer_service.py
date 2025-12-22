@@ -31,10 +31,9 @@ class LogAnalysisService:
         self.app_settings = app_settings
         self.formatter = formatter
 
-    async def analyze_logs(self, hours: int, msg_without_errors: bool = False) -> AnalysisResult:
+    async def analyze_logs(self, hours: int) -> AnalysisResult:
         logger.info("Fetching recent error logs for analysis...")
         logs = await self.log_source_service.get_recent_errors(hours=hours)
-
         no_errors_result = await self._check_and_notify_no_errors(
             hours=hours, logs_count=logs.total_count
         )

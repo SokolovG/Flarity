@@ -13,5 +13,6 @@ async def setup_bot(bot: Bot, dp: Dispatcher) -> None:
         BotCommand(command="analyze", description="AI Analyze logs"),
         BotCommand(command="recent", description="Recent N errors"),
         BotCommand(command="stats", description="Statistics for the period"),
+        BotCommand(command="settings", description="Settings of the app"),
     ]
     await bot.set_my_commands(commands=commands)

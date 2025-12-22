@@ -5,6 +5,8 @@ from dishka.integrations.aiogram import FromDishka, inject
 from src.bot import callbacks  # noqa: F401
 from src.bot.keyboards import get_analysis_options, get_main_menu
 from src.bot.router import bot_router
+from src.core.settings.app_settings import AppSettings
+from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
 from src.services import LogAnalysisService
 
 
@@ -25,8 +27,12 @@ async def cmd_analyze(message: Message, service: FromDishka[LogAnalysisService])
         return
 
     hours = int(args[0])
+
+    loading_msg = f"Analyzing logs for last {hours} {format_hours(hours)}\n{'This may take up to 30 seconds.'}"
+    await message.answer(loading_msg)
+
     text = await service.analyze_logs(hours=hours)
-    await message.answer(text, reply_markup=get_analysis_options())
+    await message.answer(text.report_html, reply_markup=get_analysis_options())
 
 
 @bot_router.message(Command("stats"))
@@ -79,20 +85,19 @@ async def cmd_recent(
         await message.answer("❌ Invalid number! Use: <code>/recent 12</code>", parse_mode="HTML")
 
 
+@bot_router.message(Command("settings"))
+@inject
+async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) -> None:
+    info = get_settings_for_bot(
+        provider=app_settings.llm_provider.provider,
+        model=app_settings.llm.model,
+        schedule_hourse=app_settings.schedule_interval_hours,
+        schedule_enabled=app_settings.schedule_enabled,
+    )
+    await message.answer(info, parse_mode="HTML")
+
+
 @bot_router.message(Command("help"))
 async def cmd_help(message: Message) -> None:
-    help_text = """
-        <b>Available commands:</b>
-
-        /analyze [hours] - AI analysis of logs
-        Example: <code>/analyze 6</code>
-
-        /recent [hours] - Latest errors (without AI)
-        Example: <code>/recent 1</code>
-
-        /stats [hours] - Statistics summary
-        Example: <code>/stats 24</code>
-
-        /help - This help message
-        """
+    help_text = get_help_text_for_bot()
     await message.answer(help_text, parse_mode="HTML")

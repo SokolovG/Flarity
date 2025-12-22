@@ -12,7 +12,7 @@ from src.bot.keyboards import (
 )
 from src.bot.router import bot_router
 from src.core.settings.app_settings import AppSettings
-from src.core.utils import format_hours
+from src.core.utils import format_hours, get_settings_for_bot
 from src.services import LogAnalysisService
 
 logger = getLogger(__name__)
@@ -93,13 +93,10 @@ async def back_to_menu(callback: CallbackQuery) -> None:
 @inject
 async def settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings]) -> None:
     await callback.answer()
-
-    info = f"""
-            Settings
-
-            Current config:
-            • LLM provider: {app_settings.llm_provider.provider}
-            • LLM model: {app_settings.llm.model}
-            {(f"• Schedule: every {app_settings.schedule_interval_hours} {format_hours(app_settings.schedule_interval_hours)}") if app_settings.schedule_enabled else ""}
-        """
+    info = get_settings_for_bot(
+        provider=app_settings.llm_provider.provider,
+        model=app_settings.llm.model,
+        schedule_hourse=app_settings.schedule_interval_hours,
+        schedule_enabled=app_settings.schedule_enabled,
+    )
     await callback.message.answer(info, reply_markup=get_back_to_menu_button())
