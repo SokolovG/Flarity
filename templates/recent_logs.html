@@ -8,12 +8,9 @@
 {% for log in logs[:10] %}
 {{ loop.index }}. <b>[{{ log.timestamp.strftime('%H:%M:%S') }}]</b>
    {{ log.message[:150] }}
-{% if log.request_id %}
-   🔗 <code>{{ log.request_id }}</code>
-{% endif %}
-{% if not loop.last %}
-
-{% endif %}
+{%- if log.request_id -%}
+   <b>REQUEST ID: <code>{{ log.request_id }}</code></b>
+{%- endif -%}
 {% endfor %}
 
 {% if logs | length > 10 %}

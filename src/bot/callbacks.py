@@ -12,6 +12,7 @@ from src.bot.keyboards import (
 )
 from src.bot.router import bot_router
 from src.core.settings.app_settings import AppSettings
+from src.core.utils import format_hours
 from src.services import LogAnalysisService
 
 logger = getLogger(__name__)
@@ -61,7 +62,7 @@ async def _handle_analysis(
     await callback.answer()
 
     loading_msg = await callback.message.edit_text(
-        f"{action} logs for last {hours}h...\n"
+        f"{action} logs for last {hours} {format_hours(hours)}\n"
         f"{'This may take up to 30 seconds.' if with_llm else ''}"
     )
 
@@ -99,6 +100,6 @@ async def settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings
             Current config:
             • LLM provider: {app_settings.llm_provider.provider}
             • LLM model: {app_settings.llm.model}
-            {(f"• Schedule: every {app_settings.schedule_interval_hours} h") if app_settings.schedule_enabled else ""}
+            {(f"• Schedule: every {app_settings.schedule_interval_hours} {format_hours(app_settings.schedule_interval_hours)}") if app_settings.schedule_enabled else ""}
         """
     await callback.message.answer(info, reply_markup=get_back_to_menu_button())

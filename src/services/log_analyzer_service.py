@@ -3,6 +3,7 @@ from logging import getLogger
 
 from src.core.decorators import retry
 from src.core.settings.app_settings import AppSettings
+from src.core.utils import format_hours
 from src.entities.enums import ReportTemplate
 from src.entities.report import AnalysisResult, ErrorGroup, ReportData
 from src.exceptions import ServiceNotReadyError
@@ -81,7 +82,7 @@ class LogAnalysisService:
         return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
     async def get_statistics(self, hours: int) -> AnalysisResult:
-        logger.info(f"Fetching statistics for last {hours}h...")
+        logger.info(f"Fetching statistics for last {hours} h.")
         logs = await self.log_source_service.get_recent_errors(hours=hours)
 
         no_errors_result = await self._check_and_notify_no_errors(
@@ -132,7 +133,7 @@ class LogAnalysisService:
         self, recent_errors: LogsSourceQueryResult, hours: int
     ) -> ReportData:
         report_obj = ReportData(
-            title=f"Recent logs for the last {hours} hour/s.",
+            title=f"Recent logs for the last {hours} {format_hours(hours)}",
             time_range_hours=hours,
             total_errors=recent_errors.total_count,
             logs=recent_errors.logs,
@@ -152,7 +153,7 @@ class LogAnalysisService:
         groups.sort(key=lambda x: x.count, reverse=True)
 
         return ReportData(
-            title=f"📊 Statistics for the last {hours} hour/s",
+            title=f"📊 Statistics for the last {hours} {format_hours(hours)}",
             time_range_hours=hours,
             total_errors=logs.total_count,
             unique_types=len(grouped.logs_groups),
@@ -168,7 +169,7 @@ class LogAnalysisService:
             for group in grouped_logs.logs_groups
         ]
         report_obj = ReportData(
-            title=f"Error report for the last {hours} hour/s.",
+            title=f"Error report for the last {hours} {format_hours(hours)}",
             time_range_hours=hours,
             total_errors=total_errors,
             unique_types=len(grouped_logs.logs_groups),
@@ -184,7 +185,7 @@ class LogAnalysisService:
         self, hours: int, logs_count: int
     ) -> AnalysisResult | None:
         if logs_count == 0:
-            msg = f"✅ No errors found in the last {hours} h."
+            msg = f"✅ No errors found in the last {hours} {format_hours(hours)}"
             result = AnalysisResult(
                 has_errors=False,
                 report_html=msg,

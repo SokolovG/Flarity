@@ -5,7 +5,7 @@ from dishka.integrations.aiogram import FromDishka, inject
 from src.bot import callbacks  # noqa: F401
 from src.bot.keyboards import get_analysis_options, get_main_menu
 from src.bot.router import bot_router
-from src.services import LogAnalysisService, LogSourceService
+from src.services import LogAnalysisService
 
 
 @bot_router.message(CommandStart())
@@ -30,6 +30,7 @@ async def cmd_analyze(message: Message, service: FromDishka[LogAnalysisService])
 
 
 @bot_router.message(Command("stats"))
+@inject
 async def cmd_stats(
     message: Message,
     service: FromDishka[LogAnalysisService],
@@ -54,10 +55,28 @@ async def cmd_stats(
 
 
 @bot_router.message(Command("recent"))
+@inject
 async def cmd_recent(
     message: Message,
-    log_source: FromDishka[LogSourceService],
-) -> None: ...
+    service: FromDishka[LogAnalysisService],
+) -> None:
+    args = message.text.split()[1:] if message.text else []
+
+    if not args:
+        await message.answer("Choose analysis period:", reply_markup=get_analysis_options())
+        return
+
+    try:
+        hours = int(args[0])
+        if hours <= 0:
+            await message.answer("❌ Hours must be positive!")
+            return
+
+        result = await service.get_recent_errors(hours=hours)
+        await message.answer(result.report_html, parse_mode="HTML")
+
+    except ValueError:
+        await message.answer("❌ Invalid number! Use: <code>/recent 12</code>", parse_mode="HTML")
 
 
 @bot_router.message(Command("help"))
