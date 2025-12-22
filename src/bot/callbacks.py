@@ -14,8 +14,7 @@ from src.bot.router import bot_router
 from src.bot.states import BotStates
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_settings_for_bot
-from src.services import LogAnalysisService
-from src.services.notification_service import NotificationService
+from src.services import LogAnalysisService, NotificationService
 
 logger = getLogger(__name__)
 

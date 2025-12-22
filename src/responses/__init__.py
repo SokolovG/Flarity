@@ -11,7 +11,6 @@ from src.responses.yandex_responses import YandexResponse
 __all__ = [
     "LogGroupByErrorType",
     "LogsByErrorType",
-    "LokiQueryResult",
     "LLMAnalysisResult",
     "YandexResponse",
     "OllamaErrorResponse",

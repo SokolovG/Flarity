@@ -6,7 +6,7 @@ import msgspec
 
 from src.entities.enums import LLMProvider
 from src.entities.loki import LogEntry
-from src.exceptions.llm_exceptions import LLMError
+from src.exceptions import LLMError
 from src.llm_adapters.base_adapter import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, OllamaErrorResponse, OllamaResponse
 

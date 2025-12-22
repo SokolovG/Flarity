@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from src.exceptions.llm_exceptions import LLMError
+from src.exceptions import LLMError
 from src.llm_adapters import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, LogsSourceQueryResult
 

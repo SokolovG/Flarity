@@ -7,8 +7,7 @@ from src.core.utils import format_hours
 from src.entities.enums import ReportTemplate
 from src.entities.report import AnalysisResult, ErrorGroup, ReportData
 from src.exceptions import ServiceNotReadyError
-from src.responses.llm_base_responses import LLMAnalysisResult
-from src.responses.logs_base_responses import LogsByErrorType, LogsSourceQueryResult
+from src.responses import LLMAnalysisResult, LogsByErrorType, LogsSourceQueryResult
 from src.services import LLMService, LogSourceService
 from src.services.notification_service import NotificationService
 from src.services.report_formatter_service import ReportFormatter

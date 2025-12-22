@@ -11,9 +11,8 @@ from dishka.integrations.aiogram import setup_dishka
 from src.bot import setup_bot
 from src.core import MyProvider
 from src.core.settings.app_settings import AppSettings
-from src.exceptions.base_exceptions import BaseCustomException
-from src.services import LogAnalysisService
-from src.services.notification_service import NotificationService
+from src.exceptions import BaseCustomException
+from src.services import LogAnalysisService, NotificationService
 
 logging.basicConfig(
     level=logging.INFO,

@@ -11,8 +11,7 @@ from src.bot.keyboards import (
 from src.bot.router import bot_router
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
-from src.services import LogAnalysisService
-from src.services.notification_service import NotificationService
+from src.services import LogAnalysisService, NotificationService
 
 
 @bot_router.message(CommandStart())

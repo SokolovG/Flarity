@@ -3,7 +3,7 @@ from typing import Literal
 from src.clients import TelegramClient
 from src.core.settings.notification_settings import NotificationSettings
 from src.entities.report import ReportData
-from src.services.base_services import BaseNotificationService
+from src.services import BaseNotificationService, LogSourceService
 
 
 class NotificationService(BaseNotificationService):

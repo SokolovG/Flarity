@@ -7,7 +7,7 @@ import msgspec
 from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
 
 from src.core.decorators import retry
-from src.exceptions.network_exeptions import NetworkError
+from src.exceptions import NetworkError
 
 logger = getLogger(__name__)
 

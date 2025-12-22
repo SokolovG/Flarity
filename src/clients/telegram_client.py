@@ -3,7 +3,7 @@ from http import HTTPMethod, HTTPStatus
 
 from src.clients import HTTPClient
 from src.core.settings.notification_settings import NotificationSettings
-from src.exceptions.telegram_exceptions import (
+from src.exceptions import (
     TelegramBadRequestError,
     TelegramError,
     TelegramRateLimitError,

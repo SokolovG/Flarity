@@ -5,7 +5,7 @@ import msgspec
 
 from src.entities.enums import LLMModel, LLMProvider
 from src.entities.loki import LogEntry
-from src.exceptions.llm_exceptions import LLMAuthError, LLMError, LLMRateLimitError
+from src.exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.llm_adapters.base_adapter import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, YandexResponse
 
