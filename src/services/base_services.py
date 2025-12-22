@@ -19,4 +19,6 @@ class LogSourceService(ABC):
 
 class BaseNotificationService(ABC):
     @abstractmethod
-    async def send_message(self, message: str) -> bool: ...
+    async def send_message(
+        self, message: str, parse_mode: str = "HTML", chat_id: str | None = None
+    ) -> bool: ...

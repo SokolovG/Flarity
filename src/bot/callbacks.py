@@ -36,7 +36,7 @@ async def on_analyze_period(
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
-    await callback.message.answer("Choose analysis period:", reply_markup=get_analysis_options())
+    await callback.message.edit_text("Choose analysis period:", reply_markup=get_analysis_options())
 
 
 @bot_router.callback_query(F.data == "recent")
@@ -71,8 +71,8 @@ async def _handle_analysis(
     with_llm: bool,
 ) -> None:
     hours = int(callback.data.split("_")[1])
-
     action = "Analyzing" if with_llm else "Fetching"
+
     await callback.answer()
 
     loading_msg = await callback.message.edit_text(
@@ -86,12 +86,15 @@ async def _handle_analysis(
         else:
             result = await service.get_recent_errors(hours=hours)
 
-        if result.has_errors:
-            await notifier.send_message(result.report_html)
-            await callback.answer(text="", reply_markup=get_main_menu())
-        else:
-            await callback.message.edit_text(result.report_html)
-            await callback.message.answer("", reply_markup=get_main_menu())
+        if not result.has_errors:
+            await loading_msg.edit_text(result.report_html, reply_markup=get_main_menu())
+            return
+
+        await loading_msg.delete()
+        await notifier.send_message(
+            chat_id=callback.message.chat.id,
+            message=result.report_html,
+        )
 
     except Exception as e:
         logger.exception(f"Analysis failed: {e}")
