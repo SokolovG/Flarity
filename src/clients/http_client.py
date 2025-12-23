@@ -50,6 +50,7 @@ class HTTPClient:
         start_time = time.time()
 
         try:
+            # TODO: Make logger.debug in production
             logger.info(
                 f"{method} REQUEST to {url} {(p := f', params: {params}') if params else ''}"
             )

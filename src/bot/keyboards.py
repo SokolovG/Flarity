@@ -26,7 +26,6 @@ def get_period_options(action: BotAction, periods: list[int] = PERIODS) -> Inlin
             )
         ]
         buttons.append(btn)
-
     buttons.append(
         [InlineKeyboardButton(text="Back to menu", callback_data=BotCallback.BACK_TO_MENU.value)]
     )
