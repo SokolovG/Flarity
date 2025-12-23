@@ -2,6 +2,7 @@ import html
 from http import HTTPMethod, HTTPStatus
 
 from src.clients import HTTPClient
+from src.core.constants import TELEGRAM_MESSAGE_LIMIT
 from src.core.settings.notification_settings import NotificationSettings
 from src.exceptions import (
     TelegramBadRequestError,
@@ -25,7 +26,7 @@ class TelegramClient:
         if not text or len(text.strip()) == 0:
             raise ValueError("Message text is empty")
 
-        if len(text) > 4096:
+        if len(text) > TELEGRAM_MESSAGE_LIMIT:
             chunks = self._split_message(text)
             for chunk in chunks:
                 await self._send_single_message(chunk, parse_mode=parse_mode, chat_id=chat_id)

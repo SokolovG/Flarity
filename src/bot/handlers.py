@@ -3,11 +3,8 @@ from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.bot import callbacks  # noqa: F401
-from src.bot.keyboards import (
-    get_analysis_options,
-    get_main_menu,
-    get_recent_options,
-)
+from src.bot.entities import BotAction
+from src.bot.keyboards import get_main_menu, get_period_options
 from src.bot.router import bot_router
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
@@ -31,7 +28,9 @@ async def cmd_analyze(
 ) -> None:
     args = message.text.split()[1:] if message.text else []
     if not args:
-        await message.answer("Choose analysis period:", reply_markup=get_analysis_options())
+        await message.answer(
+            "Choose analysis period:", reply_markup=get_period_options(BotAction.ANALYZE)
+        )
         return
 
     hours = int(args[0])
@@ -40,7 +39,7 @@ async def cmd_analyze(
     await message.answer(loading_msg)
     result = await service.analyze_logs(hours)
     await notifier.send_message(result.report_html, chat_id=str(message.chat.id))
-    await message.answer(reply_markup=get_main_menu())
+    await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
 
 @bot_router.message(Command("stats"))
@@ -53,7 +52,9 @@ async def cmd_stats(
     args = message.text.split()[1:] if message.text else []
 
     if not args:
-        await message.answer("Choose analysis period:", reply_markup=get_analysis_options())
+        await message.answer(
+            "Choose analysis period:", reply_markup=get_period_options(BotAction.STATS)
+        )
         return
 
     try:
@@ -64,7 +65,7 @@ async def cmd_stats(
 
         result = await service.get_statistics(hours)
         await notifier.send_message(result.report_html, chat_id=str(message.chat.id))
-        await message.answer(reply_markup=get_main_menu())
+        await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:
         await message.answer("❌ Invalid number! Use: <code>/stats 24</code>", parse_mode="HTML")
@@ -80,7 +81,7 @@ async def cmd_recent(
     args = message.text.split()[1:] if message.text else []
 
     if not args:
-        await message.answer("Choose period:", reply_markup=get_recent_options())
+        await message.answer("Choose period:", reply_markup=get_period_options(BotAction.RECENT))
         return
 
     try:
@@ -91,7 +92,7 @@ async def cmd_recent(
 
         result = await service.get_recent_errors(hours)
         await notifier.send_message(result.report_html, chat_id=str(message.chat.id))
-        await message.answer(reply_markup=get_main_menu())
+        await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:
         await message.answer("❌ Invalid number! Use: <code>/recent 12</code>", parse_mode="HTML")

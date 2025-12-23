@@ -14,6 +14,8 @@ from src.services.report_formatter_service import ReportFormatter
 
 logger = getLogger(__name__)
 
+# TODO: change HTML to markdown?
+
 
 class LogAnalysisService:
     def __init__(

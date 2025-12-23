@@ -6,7 +6,6 @@ from src.core.settings.app_settings import AppSettings
 from src.entities.enums import LLMProvider
 from src.llm_adapters import BaseLLMAdapter, OllamaAdapter, YandexAdapter
 from src.services import (
-    BaseNotificationService,
     LLMService,
     LogAnalysisService,
     LogSourceService,
@@ -38,10 +37,8 @@ class MyProvider(Provider):
         return LokiClient(http_client, settings.log_source)
 
     @provide(scope=Scope.APP)
-    def get_log_source_service(
-        self, loki_client: LokiClient, settings: AppSettings
-    ) -> LogSourceService:
-        return LokiService(loki_client, settings.log_source)
+    def get_log_source_service(self, loki_client: LokiClient) -> LogSourceService:
+        return LokiService(loki_client)
 
     @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: AppSettings) -> TelegramClient:

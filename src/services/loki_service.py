@@ -1,5 +1,4 @@
 import datetime
-import json
 from logging import getLogger
 
 from src.clients import LokiClient
@@ -7,14 +6,12 @@ from src.core.settings.log_source_settings import LogsSourceSettings
 from src.entities.enums import LogLevel
 from src.entities.loki import LogEntry
 from src.responses import LogGroupByErrorType, LogsByErrorType, LogsSourceQueryResult
-from src.services import LogSourceService
 
 logger = getLogger(__name__)
 
 
-class LokiService(LogSourceService):
-    def __init__(self, loki_client: LokiClient, settings: LogsSourceSettings) -> None:
-        super().__init__(settings)
+class LokiService:
+    def __init__(self, loki_client: LokiClient) -> None:
         self.loki_client = loki_client
 
     async def get_recent_errors(self, hours: int) -> LogsSourceQueryResult:

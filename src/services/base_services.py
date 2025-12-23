@@ -1,25 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, Protocol
 
 from src.core.settings.log_source_settings import LogsSourceSettings
 from src.entities.report import ReportData
 from src.responses import LogsByErrorType, LogsSourceQueryResult
 
 
-class LogSourceService(ABC):
-    def __init__(self, settings: LogsSourceSettings):
-        self.settings = settings
-
-    @abstractmethod
+class LogSourceService(Protocol):
     async def get_recent_errors(self, hours: int) -> LogsSourceQueryResult: ...
-    @abstractmethod
     async def _group_errors_by_type(self, logs: LogsSourceQueryResult) -> LogsByErrorType: ...
-    @abstractmethod
     async def check_readiness(self) -> bool: ...
 
 
-class BaseNotificationService(ABC):
-    @abstractmethod
+class BaseNotificationService(Protocol):
     async def send_message(
         self,
         message: str,

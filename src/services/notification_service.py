@@ -3,14 +3,14 @@ from typing import Literal
 from src.clients import TelegramClient
 from src.core.settings.notification_settings import NotificationSettings
 from src.entities.report import ReportData
-from src.services import BaseNotificationService, LogSourceService
 
 
-class NotificationService(BaseNotificationService):
+class NotificationService:
     def __init__(self, telegram_client: TelegramClient, settings: NotificationSettings):
         self.telegram_client = telegram_client
         self.settings = settings
 
+    # TODO: Добавить reply_markup параметр к send_message()?
     async def send_message(
         self,
         message: str,

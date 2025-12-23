@@ -5,13 +5,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.bot.keyboards import (
-    get_analysis_options,
-    get_main_menu,
-    get_recent_options,
-)
+from src.bot.entities import BotAction, BotCallback, BotStates
+from src.bot.keyboards import get_main_menu, get_period_options
 from src.bot.router import bot_router
-from src.bot.states import BotStates
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_settings_for_bot
 from src.services import LogAnalysisService, NotificationService
@@ -19,7 +15,7 @@ from src.services import LogAnalysisService, NotificationService
 logger = getLogger(__name__)
 
 
-@bot_router.callback_query(F.data.startswith("analyze_"))
+@bot_router.callback_query(F.data.startswith(f"{BotCallback.LLM_ANALYSIS.value}_"))
 @inject
 async def on_analyze_period(
     callback: CallbackQuery,
@@ -31,27 +27,25 @@ async def on_analyze_period(
     await _handle_analysis(callback, True, service, notification_service)
 
 
-@bot_router.callback_query(F.data == "llm_analysis")
+@bot_router.callback_query(F.data == BotCallback.LLM_ANALYSIS.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
-    await callback.message.edit_text("Choose analysis period:", reply_markup=get_analysis_options())
+    await callback.message.edit_text(
+        "Choose analysis period:", reply_markup=get_period_options(BotAction.ANALYZE)
+    )
 
 
-@bot_router.callback_query(F.data == "recent")
+@bot_router.callback_query(F.data == BotAction.RECENT.value)
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
-    await callback.message.edit_text("Choose period:", reply_markup=get_recent_options())
+    await callback.message.edit_text(
+        "Choose period:", reply_markup=get_period_options(BotAction.RECENT)
+    )
 
 
-@bot_router.callback_query(F.data == "statistics")
-async def statistics(callback: CallbackQuery) -> None:
-    # send via await notifier.send_message()
-    await callback.answer()
-
-
-@bot_router.callback_query(F.data.startswith("recent_"))
+@bot_router.callback_query(F.data.startswith(f"{BotAction.RECENT.value}_"))
 @inject
 async def on_recent_period(
     callback: CallbackQuery,
@@ -61,6 +55,18 @@ async def on_recent_period(
 ) -> None:
     await state.set_state(BotStates.viewing_report)
     await _handle_analysis(callback, False, service, notification_service)
+
+
+@bot_router.callback_query(F.data == BotCallback.STATISTICS.value)
+async def on_statistics_period(callback: CallbackQuery) -> None:
+    # send via await notifier.send_message()
+    await callback.answer()
+
+
+@bot_router.callback_query(F.data == BotCallback.STATISTICS.value)
+async def on_statistics_errors(callback: CallbackQuery) -> None:
+    # send via await notifier.send_message()
+    await callback.answer()
 
 
 async def _handle_analysis(
@@ -101,7 +107,7 @@ async def _handle_analysis(
         await loading_msg.edit_text(f"❌ {action} failed: {e}", reply_markup=get_main_menu())
 
 
-@bot_router.callback_query(F.data == "back_to_menu")
+@bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     current_state = await state.get_state()
@@ -113,7 +119,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(BotStates.main_menu)
 
 
-@bot_router.callback_query(F.data == "settings")
+@bot_router.callback_query(F.data == BotCallback.SETTINGS.value)
 @inject
 async def settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings]) -> None:
     await callback.answer()
