@@ -1,18 +1,20 @@
 from aiogram import Bot, Dispatcher
 from dishka import Provider, Scope, provide
 
-from src.clients import HTTPClient, LokiClient, TelegramClient
+from src.application.ports.llm_analyzer import LLMAnalyzer
+from src.application.ports.notifier import Notifier
+from src.application.use_cases.analyze_and_notify_use_case import LogAnalysisService
 from src.core.settings.app_settings import AppSettings
-from src.entities.enums import LLMProvider
-from src.llm_adapters import BaseLLMAdapter, OllamaAdapter, YandexAdapter
-from src.services import (
-    LLMService,
-    LogAnalysisService,
-    LogSourceService,
-    LokiService,
-    NotificationService,
-    ReportFormatter,
-)
+from src.domain.services.base_services import LogSourceService
+from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.clients.loki_client import LokiClient
+from src.infrastructure.clients.telegram_client import TelegramClient
+from src.infrastructure.llm.ollama_analyzer import OllamaAnalyzer
+from src.infrastructure.llm.providers import LLMProvider
+from src.infrastructure.llm.yandex_analyzer import YandexAnalyzer
+from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
+from src.infrastructure.repositories.loki_repository import LokiService
+from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 
 class MyProvider(Provider):
@@ -45,10 +47,10 @@ class MyProvider(Provider):
         return TelegramClient(http_client, settings.notification)
 
     @provide(scope=Scope.APP)
-    def get_notification_service(
+    def get_telegram_notifier(
         self, telegram_client: TelegramClient, settings: AppSettings
-    ) -> NotificationService:
-        return NotificationService(telegram_client, settings.notification)
+    ) -> TelegramNotifier:
+        return TelegramNotifier(telegram_client, settings.notification)
 
     @provide(scope=Scope.APP)
     def get_formatter(self) -> ReportFormatter:
@@ -58,28 +60,22 @@ class MyProvider(Provider):
     def get_log_analyzer_service(
         self,
         log_source_service: LogSourceService,
-        llm_service: LLMService,
-        notification_service: NotificationService,
+        notification_service: Notifier,
         app_settings: AppSettings,
         fornatter: ReportFormatter,
     ) -> LogAnalysisService:
         return LogAnalysisService(
             log_source_service,
-            llm_service,
             notification_service,
             app_settings,
             fornatter,
         )
 
     @provide(scope=Scope.APP)
-    def get_llm_service(self, llm_adapter: BaseLLMAdapter) -> LLMService:
-        return LLMService(llm_adapter)
-
-    @provide(scope=Scope.APP)
-    def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> BaseLLMAdapter:
+    def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> LLMAnalyzer:
         provider = LLMProvider(settings.llm_provider.provider)
         match provider:
             case LLMProvider.YANDEX:
-                return YandexAdapter(http_client, settings)
+                return YandexAnalyzer(http_client, settings)
             case LLMProvider.OLLAMA:
-                return OllamaAdapter(http_client, settings)
+                return OllamaAnalyzer(http_client, settings)

@@ -1,16 +1,18 @@
 import asyncio
 from logging import getLogger
 
+from src.application.dto.analysis_result import AnalysisResult
+from src.application.ports.notifier import Notifier
 from src.core.decorators import retry
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours
-from src.entities.enums import ReportTemplate
-from src.entities.report import AnalysisResult, ErrorGroup, ReportData
+from src.domain.entities.enums import ReportTemplate
+from src.domain.entities.report import ErrorGroup, ReportData
+from src.domain.services.base_services import LogSourceService
 from src.exceptions import ServiceNotReadyError
+from src.infrastructure.repositories.loki_repository import LokiService
+from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.responses import LLMAnalysisResult, LogsByErrorType, LogsSourceQueryResult
-from src.services import LLMService, LogSourceService
-from src.services.notification_service import NotificationService
-from src.services.report_formatter_service import ReportFormatter
 
 logger = getLogger(__name__)
 
@@ -21,8 +23,8 @@ class LogAnalysisService:
     def __init__(
         self,
         log_source_service: LogSourceService,
-        llm_service: LLMService,
-        notification_service: NotificationService,
+        llm_service: LokiService,
+        notification_service: Notifier,
         app_settings: AppSettings,
         formatter: ReportFormatter,
     ) -> None:

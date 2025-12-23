@@ -1,7 +1,7 @@
-from application.ports.log_repository import LogRepository
-from infrastructure.clients.loki_client import LokiClient
+from src.application.ports.log_repository import LogRepository
 from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.clients.loki_client import LokiClient
 from src.responses.logs_base_responses import LogsSourceQueryResult
 
 

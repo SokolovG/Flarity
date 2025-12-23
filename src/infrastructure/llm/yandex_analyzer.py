@@ -6,16 +6,22 @@ import msgspec
 from httpx import Response
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
+from src.core.settings.app_settings import AppSettings
 from src.domain.entities.enums import LLMModel, LLMProvider
 from src.domain.entities.log_entry import LogEntry
 from src.exceptions import LLMAuthError, LLMError, LLMRateLimitError
+from src.infrastructure.clients.http_client import HTTPClient
 from src.responses import LLMAnalysisResult, YandexResponse
 
 logger = getLogger(__name__)
 
 
 class YandexAnalyzer(LLMAnalyzer):
-    async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
+    def __init__(self, http_client: HTTPClient, settings: AppSettings):
+        self.http = http_client
+        self.settings = settings
+
+    async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         request_data = self._build_request(logs)
 
         response = await self.http.make_request(
@@ -32,7 +38,7 @@ class YandexAnalyzer(LLMAnalyzer):
         return self._parse_response(response.content)
 
     def _build_request(self, logs: list[LogEntry]) -> dict[str, Any]:
-        logs_text = self.format_logs_for_llm(logs)
+        logs_text = self._format_logs_for_llm(logs)
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {
@@ -98,3 +104,11 @@ class YandexAnalyzer(LLMAnalyzer):
             case LLMModel.YANDEX_GPT_PRO_5_1:
                 modelUri += "rc"
         return modelUri
+
+    def _format_logs_for_llm(self, logs: list[LogEntry]) -> str:
+        logs_text = ""
+        for log in logs:
+            clean_message = log.message.encode().decode("unicode_escape")
+            logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level.value} {log.app} {clean_message}\n"
+
+        return logs_text

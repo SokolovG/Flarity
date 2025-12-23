@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Any
+
+from httpx import Response
 
 from src.core.settings.app_settings import AppSettings
 from src.domain.entities.log_entry import LogEntry
@@ -7,18 +10,13 @@ from src.responses.llm_base_responses import LLMAnalysisResult
 
 
 class LLMAnalyzer(ABC):
-    def __init__(self, http_client: HTTPClient, settings: AppSettings):
-        self.http = http_client
-        self.settings = settings
-
     @abstractmethod
     async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult: ...
-
-    @staticmethod
-    def format_logs_for_llm(logs: list[LogEntry]) -> str:
-        logs_text = ""
-        for log in logs:
-            clean_message = log.message.encode().decode("unicode_escape")
-            logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level.value} {log.app} {clean_message}\n"
-
-        return logs_text
+    @abstractmethod
+    def _build_request(self, logs: list[LogEntry]) -> dict[str, Any]: ...
+    @abstractmethod
+    def _handle_response(self, response: Response) -> None: ...
+    @abstractmethod
+    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult: ...
+    @abstractmethod
+    def _format_logs_for_llm(self, logs: list[LogEntry]) -> str: ...

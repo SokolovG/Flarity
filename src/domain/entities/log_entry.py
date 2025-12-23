@@ -16,10 +16,13 @@ class LogEntry(Struct):
     uri: str | None = None
 
     def get_error_category(self) -> str:
-        match self.message.lower():
-            case "database":
-                return "DB"
-            case "api":
-                return "API"
-            case _:
-                return "GENERIC"
+        msg = self.message.lower()
+
+        if "database" in msg or "postgres" in msg:
+            return "DB"
+        if "api" in msg or "http" in msg:
+            return "API"
+        if "auth" in msg or "jwt" in msg:
+            return "AUTH"
+
+        return "GENERIC"

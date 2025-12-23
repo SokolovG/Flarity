@@ -14,7 +14,6 @@ class LokiService:
         self.loki_client = loki_client
 
     async def get_recent_errors(self, hours: int) -> LogsSourceQueryResult:
-        """Получает только ERROR логи за N часов"""
         logs = await self.get_logs_by_level(LogLevel.ERROR, hours)
         return logs
 
@@ -30,15 +29,6 @@ class LokiService:
         return logs
 
     async def _group_errors_by_type(self, logs: LogsSourceQueryResult) -> LogsByErrorType:
-        """
-        Группирует ошибки по типу.
-
-        ex:
-        {
-            "Database connection timeout": [log1, log2, log3],
-            "API rate limit": [log4, log5],
-        }
-        """
         groups_dict: dict[str, list[LogEntry]] = {}
         for log in logs.logs:
             error_type = self._extract_error_type(log)

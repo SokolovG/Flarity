@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from domain.entities.log_entry import LogEntry
-from domain.value_objects.time_range import TimeRange
+from src.domain.entities.log_entry import LogEntry
+from src.domain.value_objects.time_range import TimeRange
 
 
 class LogRepository(ABC):

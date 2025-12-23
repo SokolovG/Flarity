@@ -1,4 +1,5 @@
 from src.application.dto.analysis_result import AnalysisResult
+from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.domain.services.base_services import LogSourceService
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
@@ -8,7 +9,7 @@ class AnalyzeLogsUseCase:
     def __init__(
         self,
         log_source: LogSourceService,
-        llm_analyzer: LLMAnalyzer,  # type: ignore
+        llm_analyzer: LLMAnalyzer,
         error_grouper: ErrorGrouper,
     ):
         self.log_source = log_source
