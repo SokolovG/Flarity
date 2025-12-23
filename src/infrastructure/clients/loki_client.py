@@ -5,11 +5,11 @@ from logging import getLogger
 
 import msgspec
 
-from src.clients import HTTPClient
 from src.core.settings.log_source_settings import LogsSourceSettings
-from src.entities.enums import Directions, LogLevel
-from src.entities.loki import LogEntry
+from src.domain.entities.enums import Directions, LogLevel
+from src.domain.entities.log_entry import LogEntry
 from src.exceptions import LokiError, LokiUnavailableError
+from src.infrastructure.clients.http_client import HTTPClient
 from src.responses import (
     LogsSourceQueryResult,
     LokiQueryRangeResponse,

@@ -1,19 +1,37 @@
 from http import HTTPMethod, HTTPStatus
 from logging import getLogger
+from typing import Any
 
 import msgspec
+from httpx import Response
 
-from src.entities.enums import LLMModel, LLMProvider
-from src.entities.loki import LogEntry
+from src.application.ports.llm_analyzer import LLMAnalyzer
+from src.domain.entities.enums import LLMModel, LLMProvider
+from src.domain.entities.log_entry import LogEntry
 from src.exceptions import LLMAuthError, LLMError, LLMRateLimitError
-from src.llm_adapters.base_adapter import BaseLLMAdapter
 from src.responses import LLMAnalysisResult, YandexResponse
 
 logger = getLogger(__name__)
 
 
-class YandexAdapter(BaseLLMAdapter):
+class YandexAnalyzer(LLMAnalyzer):
     async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
+        request_data = self._build_request(logs)
+
+        response = await self.http.make_request(
+            method=HTTPMethod.POST,
+            url=self.settings.llm_provider.yandex.base_url,
+            headers={
+                "Authorization": f"Api-Key {self.settings.llm_provider.yandex.api_key}",
+                "Content-Type": "application/json",
+            },
+            data=request_data,
+        )
+        self._handle_response(response)
+
+        return self._parse_response(response.content)
+
+    def _build_request(self, logs: list[LogEntry]) -> dict[str, Any]:
         logs_text = self.format_logs_for_llm(logs)
         request_data = {
             "modelUri": self._get_model_uri(),
@@ -27,15 +45,9 @@ class YandexAdapter(BaseLLMAdapter):
                 {"role": "user", "text": logs_text},
             ],
         }
-        response = await self.http.make_request(
-            method=HTTPMethod.POST,
-            url=self.settings.llm_provider.yandex.base_url,
-            headers={
-                "Authorization": f"Api-Key {self.settings.llm_provider.yandex.api_key}",
-                "Content-Type": "application/json",
-            },
-            data=request_data,
-        )
+        return request_data
+
+    def _handle_response(self, response: Response) -> None:
         if response.status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
             raise LLMAuthError("Authorization failed!", details={"status": response.status_code})
         elif response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
@@ -50,8 +62,6 @@ class YandexAdapter(BaseLLMAdapter):
                 f"Yandex API error: {response.status_code}",
                 details={"status": response.status_code, "response": response.text},
             )
-
-        return self._parse_response(response.content)
 
     def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
         try:

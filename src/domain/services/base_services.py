@@ -1,8 +1,5 @@
-from abc import ABC, abstractmethod
 from typing import Literal, Protocol
 
-from src.core.settings.log_source_settings import LogsSourceSettings
-from src.entities.report import ReportData
 from src.responses import LogsByErrorType, LogsSourceQueryResult
 
 

@@ -1,10 +1,9 @@
 import datetime
 from logging import getLogger
 
-from src.clients import LokiClient
-from src.core.settings.log_source_settings import LogsSourceSettings
-from src.entities.enums import LogLevel
-from src.entities.loki import LogEntry
+from src.domain.entities.enums import LogLevel
+from src.domain.entities.log_entry import LogEntry
+from src.infrastructure.clients.loki_client import LokiClient
 from src.responses import LogGroupByErrorType, LogsByErrorType, LogsSourceQueryResult
 
 logger = getLogger(__name__)

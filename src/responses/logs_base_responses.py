@@ -1,6 +1,6 @@
 from msgspec import Struct
 
-from src.entities.loki import LogEntry
+from src.domain.entities.log_entry import LogEntry
 
 
 class LogsSourceQueryResult(Struct):
