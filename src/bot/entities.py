@@ -10,8 +10,8 @@ class BotAction(Enum):
 
 
 class BotCallback(str, Enum):
-    LLM_ANALYSIS = "analyze_"
-    STATISTICS = "statistics"
+    ANALYZE = "analyze"
+    STATS = "stats"
     RECENT = "recent"
     SETTINGS = "settings"
     BACK_TO_MENU = "back_to_menu"

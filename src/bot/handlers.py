@@ -114,3 +114,9 @@ async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) 
 async def cmd_help(message: Message) -> None:
     help_text = get_help_text_for_bot()
     await message.answer(help_text, parse_mode="HTML", reply_markup=get_main_menu())
+
+
+@bot_router.message()
+async def easter_egg(message: Message) -> None:
+    if message.text == "ogonek":
+        await message.answer("https://ogonek.app")

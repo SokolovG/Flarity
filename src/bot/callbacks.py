@@ -15,7 +15,7 @@ from src.services import LogAnalysisService, NotificationService
 logger = getLogger(__name__)
 
 
-@bot_router.callback_query(F.data.startswith(f"{BotCallback.LLM_ANALYSIS.value}_"))
+@bot_router.callback_query(F.data.startswith("analyze_"))
 @inject
 async def on_analyze_period(
     callback: CallbackQuery,
@@ -27,7 +27,7 @@ async def on_analyze_period(
     await _handle_analysis(callback, True, service, notification_service)
 
 
-@bot_router.callback_query(F.data == BotCallback.LLM_ANALYSIS.value)
+@bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
@@ -45,7 +45,7 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     )
 
 
-@bot_router.callback_query(F.data.startswith(f"{BotAction.RECENT.value}_"))
+@bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(
     callback: CallbackQuery,
@@ -57,13 +57,13 @@ async def on_recent_period(
     await _handle_analysis(callback, False, service, notification_service)
 
 
-@bot_router.callback_query(F.data == BotCallback.STATISTICS.value)
+@bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_period(callback: CallbackQuery) -> None:
     # send via await notifier.send_message()
     await callback.answer()
 
 
-@bot_router.callback_query(F.data == BotCallback.STATISTICS.value)
+@bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery) -> None:
     # send via await notifier.send_message()
     await callback.answer()

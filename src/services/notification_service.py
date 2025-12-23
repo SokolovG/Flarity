@@ -10,7 +10,7 @@ class NotificationService:
         self.telegram_client = telegram_client
         self.settings = settings
 
-    # TODO: Добавить reply_markup параметр к send_message()?
+    # TODO: Добавить reply_markup параметр к send_message()? иначе не получается добавить клаву к длинному сообщению
     async def send_message(
         self,
         message: str,

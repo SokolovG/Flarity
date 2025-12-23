@@ -8,12 +8,8 @@ from src.core.utils import format_hours
 def get_main_menu() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="LLM analysis", callback_data=BotCallback.LLM_ANALYSIS.value
-                )
-            ],
-            [InlineKeyboardButton(text="Statistics", callback_data=BotCallback.STATISTICS.value)],
+            [InlineKeyboardButton(text="LLM analysis", callback_data=BotCallback.ANALYZE.value)],
+            [InlineKeyboardButton(text="Statistics", callback_data=BotCallback.STATS.value)],
             [InlineKeyboardButton(text="Recent errors", callback_data=BotCallback.RECENT.value)],
             [InlineKeyboardButton(text="Settings", callback_data=BotCallback.SETTINGS.value)],
         ]
