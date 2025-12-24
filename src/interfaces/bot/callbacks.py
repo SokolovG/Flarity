@@ -6,11 +6,11 @@ from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentLogsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.core.settings.app_settings import AppSettings
-from src.core.utils import format_hours, get_settings_for_bot
+from src.core.utils import format_time_range, get_settings_for_bot
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
@@ -52,7 +52,7 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
     info = get_settings_for_bot(
         provider=app_settings.llm_provider.provider,
         model=app_settings.llm.model,
-        schedule_hourse=app_settings.schedule_interval_hours,
+        schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
         schedule_enabled=app_settings.schedule_enabled,
     )
     await callback.message.answer(info, reply_markup=get_main_menu(), parse_mode="HTML")
@@ -135,7 +135,7 @@ async def _handle_analysis(
     await callback.answer()
 
     loading_msg = await callback.message.edit_text(
-        f"{action} logs for last {hours} {format_hours(time_range)}\n"
+        f"{action} logs for last {hours} {format_time_range(time_range)}\n"
         f"{'This may take up to 30 seconds.' if action != BotAction.RECENT else ''}"
     )
 

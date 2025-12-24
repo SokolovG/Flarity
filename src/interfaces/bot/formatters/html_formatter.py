@@ -1,7 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 
+from src.domain.entities.analysis_report import ReportData
 from src.domain.entities.enums import ReportTemplate
-from src.domain.entities.report import ReportData
 
 
 class ReportFormatter:

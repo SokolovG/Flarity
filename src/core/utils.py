@@ -2,13 +2,13 @@ from src.domain.entities.enums import LLMModel
 from src.domain.value_objects.time_range import TimeRange
 
 
-def format_hours(time_range: TimeRange) -> str:
+def format_time_range(time_range: TimeRange) -> str:
     unit = "hour" if time_range.hours == 1 else "hours"
     return unit
 
 
 def get_settings_for_bot(
-    provider: str, model: LLMModel, schedule_hourse: int | str, schedule_enabled: bool
+    provider: str, model: LLMModel, schedule_hourse: TimeRange, schedule_enabled: bool
 ) -> str:
     info = f"""
 <b>Settings</b>
@@ -16,7 +16,7 @@ def get_settings_for_bot(
 Current config:
 • LLM provider: {provider}
 • LLM model: {model}
-{(f"• Schedule: every {schedule_hourse} {format_hours(schedule_hourse)}") if schedule_enabled else ""}
+{(f"• Schedule: every {schedule_hourse} {format_time_range(schedule_hourse)}") if schedule_enabled else ""}
         """
     return info
 

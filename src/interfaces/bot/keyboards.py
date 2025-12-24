@@ -1,7 +1,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.core.constants import PERIODS
-from src.core.utils import format_hours
+from src.core.utils import format_time_range
+from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.entities import BotAction, BotCallback
 
 
@@ -22,7 +23,8 @@ def get_period_options(action: BotAction, periods: list[int] = PERIODS) -> Inlin
     for period in periods:
         btn = [
             InlineKeyboardButton(
-                text=f"{period} {format_hours(period)}", callback_data=f"{action.value}_{period}"
+                text=f"{period} {format_time_range(TimeRange(period))}",
+                callback_data=f"{action.value}_{period}",
             )
         ]
         buttons.append(btn)

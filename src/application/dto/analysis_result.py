@@ -2,7 +2,7 @@ from typing import Self
 
 from msgspec import Struct
 
-from src.core.utils import format_hours
+from src.core.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 
 
@@ -12,5 +12,9 @@ class AnalysisResult(Struct):
     hours: TimeRange
 
     @staticmethod
-    def no_errors(self, time_range: TimeRange) -> None:
-        return None
+    def no_errors(time_range: TimeRange) -> "AnalysisResult":
+        return AnalysisResult(
+            has_errors=False,
+            report_html=f"✅ No errors in last {time_range.hours} {format_time_range(time_range)}",
+            hours=time_range,
+        )

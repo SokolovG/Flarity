@@ -3,12 +3,13 @@ from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.core.settings.app_settings import AppSettings
-from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
+from src.core.utils import format_time_range, get_help_text_for_bot, get_settings_for_bot
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction
+from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.router import bot_router
 
@@ -25,8 +26,9 @@ async def cmd_start(message: Message) -> None:
 @inject
 async def cmd_analyze(
     message: Message,
-    service: FromDishka[AnalyzeLogsUseCase],
+    use_case: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
+    formatter: FromDishka[ReportFormatter],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
     if not args:
@@ -36,14 +38,20 @@ async def cmd_analyze(
         return
 
     hours = int(args[0])
-
     time_range = TimeRange(hours)
-    loading_msg = f"Analyzing logs for last {time_range.hours} {format_hours(time_range)}\n{'This may take up to 30 seconds.'}"
+
+    loading_msg = f"Analyzing logs for last {time_range.hours} {format_time_range(time_range)}\n{'This may take up to 30 seconds.'}"
     await message.answer(loading_msg)
 
     time_range = TimeRange(hours)
-    result = await service.execute(time_range)
-    await notifier.send(result.report_html, chat_id=str(message.chat.id))
+    report = await use_case.execute(time_range)
+
+    if not report.has_errors:
+        await message.answer("✅ No errors")
+        return
+
+    html = formatter.to_html(report)
+    await notifier.send(html, chat_id=str(message.chat.id))
     await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
 
@@ -51,8 +59,9 @@ async def cmd_analyze(
 @inject
 async def cmd_stats(
     message: Message,
-    service: FromDishka[AnalyzeLogsUseCase],
+    use_case: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
+    formatter: FromDishka[ReportFormatter],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
 
@@ -69,8 +78,9 @@ async def cmd_stats(
             return
 
         time_range = TimeRange(hours)
-        result = await service.execute(time_range)
-        await notifier.send(result.report_html, chat_id=str(message.chat.id))
+        report = await use_case.execute(time_range)
+        html = formatter.to_html(report)
+        await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:
@@ -81,8 +91,9 @@ async def cmd_stats(
 @inject
 async def cmd_recent(
     message: Message,
-    service: FromDishka[AnalyzeLogsUseCase],
+    use_case: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
+    formatter: FromDishka[ReportFormatter],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
 
@@ -96,8 +107,10 @@ async def cmd_recent(
             await message.answer("❌ Hours must be positive!")
             return
         time_range = TimeRange(hours)
-        result = await service.execute(time_range)
-        await notifier.send(result.report_html, chat_id=str(message.chat.id))
+
+        report = await use_case.execute(time_range)
+        html = formatter.to_html(report)
+        await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:
@@ -110,7 +123,7 @@ async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) 
     info = get_settings_for_bot(
         provider=app_settings.llm_provider.provider,
         model=app_settings.llm.model,
-        schedule_hourse=app_settings.schedule_interval_hours,
+        schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
         schedule_enabled=app_settings.schedule_enabled,
     )
     await message.answer(info, parse_mode="HTML")

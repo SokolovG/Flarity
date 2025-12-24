@@ -1,6 +1,6 @@
-from src.application.dto.analysis_result import AnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
+from src.domain.entities.analysis_report import AnalysisReport
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
 
@@ -16,18 +16,19 @@ class AnalyzeLogsUseCase:
         self.llm = llm_analyzer
         self.grouper = error_grouper
 
-    async def execute(self, time_range: TimeRange) -> AnalysisResult:
+    async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)
         if not logs:
-            return AnalysisResult.no_errors(time_range)
+            return AnalysisReport(has_errors=False, time_range=time_range)
 
         groups = self.grouper.group_by_category(logs)
 
         analysis = await self.llm.analyze(logs)
 
-        return AnalysisResult(
+        return AnalysisReport(
             has_errors=True,
             time_range=time_range,
+            logs=logs,
             groups=groups,
-            analysis=analysis,
+            llm_analysis=analysis,
         )

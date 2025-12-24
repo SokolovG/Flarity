@@ -3,8 +3,9 @@ from dishka import Provider, Scope, provide
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
-from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.get_recent_errors_use_case import RecentLogsUseCase
+from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.domain.services.error_grouper import ErrorGrouper
 from src.infrastructure.clients.http_client import HTTPClient
@@ -55,27 +56,41 @@ class MyProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(
+        self, log_source: LogSource, llm_analyzer: LLMAnalyzer, error_grouper: ErrorGrouper
+    ) -> AnalyzeLogsUseCase:
+        return AnalyzeLogsUseCase(
+            log_source,
+            llm_analyzer,
+            error_grouper,
+        )
+
+    @provide(scope=Scope.APP)
+    def get_stats_logs_use_case(
         self,
         log_source: LogSource,
         llm_analyzer: LLMAnalyzer,
         error_grouper: ErrorGrouper,
-        formatter: ReportFormatter,
-        app_settings: AppSettings,
-        notifier: Notifier,
-    ) -> AnalyzeLogsUseCase:
-        return AnalyzeLogsUseCase(
-            log_source=log_source,
-            notifier=notifier,
-            app_settings=app_settings,
-            llm=llm_analyzer,
-            formatter=formatter,
-            error_grouper=error_grouper,
+    ) -> StatisticsLogsUseCase:
+        return StatisticsLogsUseCase(
+            log_source,
+            llm_analyzer,
+            error_grouper,
         )
 
     @provide(scope=Scope.APP)
-    def get_error_grouper(serf) -> ErrorGrouper:
+    def get_recent_logs_use_case(
+        self,
+        log_source: LogSource,
+        llm_analyzer: LLMAnalyzer,
+        error_grouper: ErrorGrouper,
+    ) -> RecentLogsUseCase:
+        return RecentLogsUseCase(log_source, llm_analyzer)
+
+    @provide(scope=Scope.APP)
+    def get_error_grouper(self) -> ErrorGrouper:
         return ErrorGrouper()
 
+    @provide(scope=Scope.APP)
     def get_log_source(self, loki_client: LokiClient) -> LogSource:
         return LokiLogRepository(loki_client)
 

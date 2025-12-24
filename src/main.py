@@ -9,10 +9,11 @@ from dishka import AsyncContainer, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.core import MyProvider
 from src.core.exceptions import BaseCustomException
 from src.core.settings.app_settings import AppSettings
+from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot import setup_bot
 
 logging.basicConfig(
@@ -33,11 +34,11 @@ logger = logging.getLogger(__name__)
 
 async def scheduled_analysis(container: AsyncContainer) -> None:
     try:
-        service = await container.get(AnalyzeLogsUseCase)
+        use_case = await container.get(AnalyzeLogsUseCase)
         settings = await container.get(AppSettings)
         notification = await container.get(Notifier)
 
-        result = await service.analyze_logs(int(settings.schedule_interval_hours))
+        result = await use_case.execute(TimeRange(int(settings.schedule_interval_hours)))
 
         if result.has_errors:
             await notification.send_message(result.report_html)

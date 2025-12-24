@@ -2,12 +2,15 @@ from msgspec import Struct
 
 from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
+from src.responses.llm_base_responses import LLMAnalysisResult
 
 
-class AnalysisResult(Struct):
+class AnalysisReport(Struct):
     has_errors: bool
-    report_html: str
-    hours: TimeRange
+    time_range: TimeRange
+    logs: list[LogEntry] | None = None
+    groups: dict[str, list[LogEntry]] | None = None
+    llm_analysis: LLMAnalysisResult | None = None
 
 
 class ErrorGroup(Struct):
