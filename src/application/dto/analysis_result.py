@@ -9,7 +9,8 @@ from src.domain.value_objects.time_range import TimeRange
 class AnalysisResult(Struct):
     has_errors: bool
     report_html: str
-    hours: int
+    hours: TimeRange
 
+    @staticmethod
     def no_errors(self, time_range: TimeRange) -> None:
         return None

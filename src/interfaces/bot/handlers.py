@@ -6,7 +6,8 @@ from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
-from src.interfaces.bot import callbacks
+from src.domain.value_objects.time_range import TimeRange
+from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.router import bot_router
@@ -36,9 +37,12 @@ async def cmd_analyze(
 
     hours = int(args[0])
 
-    loading_msg = f"Analyzing logs for last {hours} {format_hours(hours)}\n{'This may take up to 30 seconds.'}"
+    time_range = TimeRange(hours)
+    loading_msg = f"Analyzing logs for last {time_range.hours} {format_hours(time_range)}\n{'This may take up to 30 seconds.'}"
     await message.answer(loading_msg)
-    result = await service.analyze_logs(hours)
+
+    time_range = TimeRange(hours)
+    result = await service.execute(time_range)
     await notifier.send(result.report_html, chat_id=str(message.chat.id))
     await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
@@ -64,7 +68,8 @@ async def cmd_stats(
             await message.answer("❌ Hours must be positive!")
             return
 
-        result = await service.get_statistics(hours)
+        time_range = TimeRange(hours)
+        result = await service.execute(time_range)
         await notifier.send(result.report_html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
@@ -90,8 +95,8 @@ async def cmd_recent(
         if hours <= 0:
             await message.answer("❌ Hours must be positive!")
             return
-
-        result = await service.get_recent_errors(hours)
+        time_range = TimeRange(hours)
+        result = await service.execute(time_range)
         await notifier.send(result.report_html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 

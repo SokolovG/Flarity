@@ -1,8 +1,9 @@
 from src.domain.entities.enums import LLMModel
+from src.domain.value_objects.time_range import TimeRange
 
 
-def format_hours(hours: int | str) -> str:
-    unit = "hour" if int(hours) == 1 else "hours"
+def format_hours(time_range: TimeRange) -> str:
+    unit = "hour" if time_range.hours == 1 else "hours"
     return unit
 
 

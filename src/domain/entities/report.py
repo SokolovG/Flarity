@@ -1,12 +1,13 @@
 from msgspec import Struct
 
 from src.domain.entities.log_entry import LogEntry
+from src.domain.value_objects.time_range import TimeRange
 
 
 class AnalysisResult(Struct):
     has_errors: bool
     report_html: str
-    hours: int
+    hours: TimeRange
 
 
 class ErrorGroup(Struct):
@@ -16,7 +17,7 @@ class ErrorGroup(Struct):
 
 class ReportData(Struct):
     title: str
-    time_range_hours: int
+    time_range_hours: TimeRange
     total_errors: int
     logs: list[LogEntry] | None = None
     groups: list[ErrorGroup] | None = None

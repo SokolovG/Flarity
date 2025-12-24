@@ -6,6 +6,7 @@ from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
 from src.core.settings.app_settings import AppSettings
+from src.domain.services.error_grouper import ErrorGrouper
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.clients.loki_client import LokiClient
 from src.infrastructure.clients.telegram_client import TelegramClient
@@ -13,6 +14,7 @@ from src.infrastructure.llm.ollama_analyzer import OllamaAnalyzer
 from src.infrastructure.llm.providers import LLMProvider
 from src.infrastructure.llm.yandex_analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
+from src.infrastructure.repositories.loki_repository import LokiLogRepository
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 
@@ -52,19 +54,30 @@ class MyProvider(Provider):
         return ReportFormatter()
 
     @provide(scope=Scope.APP)
-    def get_log_analyzer_service(
+    def get_analyze_logs_use_case(
         self,
-        log_source_service: LogSource,
-        notifier: Notifier,
+        log_source: LogSource,
+        llm_analyzer: LLMAnalyzer,
+        error_grouper: ErrorGrouper,
+        formatter: ReportFormatter,
         app_settings: AppSettings,
-        fornatter: ReportFormatter,
+        notifier: Notifier,
     ) -> AnalyzeLogsUseCase:
         return AnalyzeLogsUseCase(
-            log_source_service,
-            notifier,
-            app_settings,
-            fornatter,
+            log_source=log_source,
+            notifier=notifier,
+            app_settings=app_settings,
+            llm=llm_analyzer,
+            formatter=formatter,
+            error_grouper=error_grouper,
         )
+
+    @provide(scope=Scope.APP)
+    def get_error_grouper(serf) -> ErrorGrouper:
+        return ErrorGrouper()
+
+    def get_log_source(self, loki_client: LokiClient) -> LogSource:
+        return LokiLogRepository(loki_client)
 
     @provide(scope=Scope.APP)
     def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> LLMAnalyzer:

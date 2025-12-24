@@ -15,7 +15,7 @@ class LokiLogRepository(LogSource):
 
         response = await self.client.query_range(query, start, end)
 
-        return self._parse_logs(response)
+        return response.logs
 
-    def _parse_logs(self, response: LogsSourceQueryResult) -> list[LogEntry]:
-        """Loki response → LogEntry"""
+    async def check_readiness(self) -> bool:
+        return await self.client.is_loki_is_ready()

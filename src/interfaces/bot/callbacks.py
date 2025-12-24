@@ -7,8 +7,11 @@ from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.get_recent_errors_use_case import RecentLogsUseCase
+from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_settings_for_bot
+from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.router import bot_router
@@ -59,61 +62,91 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
 @inject
 async def on_analyze_period(
     callback: CallbackQuery,
-    service: FromDishka[AnalyzeLogsUseCase],
+    analyze_use_case: AnalyzeLogsUseCase,
+    errors_use_case: RecentLogsUseCase,
+    statistics_use_case: StatisticsLogsUseCase,
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, service, notifier, action=BotAction.ANALYZE)
+    await _handle_analysis(
+        callback=callback,
+        analyze_use_case=analyze_use_case,
+        errors_use_case=errors_use_case,
+        statistics_use_case=statistics_use_case,
+        notifier=notifier,
+        action=BotAction.ANALYZE,
+    )
 
 
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(
     callback: CallbackQuery,
-    service: FromDishka[AnalyzeLogsUseCase],
+    analyze_use_case: AnalyzeLogsUseCase,
+    errors_use_case: RecentLogsUseCase,
+    statistics_use_case: StatisticsLogsUseCase,
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, service, notifier, action=BotAction.RECENT)
+    await _handle_analysis(
+        callback=callback,
+        analyze_use_case=analyze_use_case,
+        errors_use_case=errors_use_case,
+        statistics_use_case=statistics_use_case,
+        notifier=notifier,
+        action=BotAction.RECENT,
+    )
 
 
 @bot_router.callback_query(F.data.startswith("stats_"))
 @inject
 async def on_statistics_period(
     callback: CallbackQuery,
-    service: FromDishka[AnalyzeLogsUseCase],
+    analyze_use_case: AnalyzeLogsUseCase,
+    errors_use_case: RecentLogsUseCase,
+    statistics_use_case: StatisticsLogsUseCase,
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, service, notifier, action=BotAction.STATS)
+    await _handle_analysis(
+        callback=callback,
+        analyze_use_case=analyze_use_case,
+        errors_use_case=errors_use_case,
+        statistics_use_case=statistics_use_case,
+        notifier=notifier,
+        action=BotAction.STATS,
+    )
 
 
 async def _handle_analysis(
     callback: CallbackQuery,
-    service: AnalyzeLogsUseCase,
+    analyze_use_case: AnalyzeLogsUseCase,
+    errors_use_case: RecentLogsUseCase,
+    statistics_use_case: StatisticsLogsUseCase,
     notifier: Notifier,
     action: BotAction,
 ) -> None:
     hours = int(callback.data.split("_")[1])
+    time_range = TimeRange(hours)
 
     await callback.answer()
 
     loading_msg = await callback.message.edit_text(
-        f"{action} logs for last {hours} {format_hours(hours)}\n"
+        f"{action} logs for last {hours} {format_hours(time_range)}\n"
         f"{'This may take up to 30 seconds.' if action != BotAction.RECENT else ''}"
     )
 
     try:
         match action:
             case BotAction.RECENT:
-                result = await service.get_recent_errors(hours)
+                result = await errors_use_case.execute(time_range)
             case BotAction.ANALYZE:
-                result = await service.analyze_logs(hours)
+                result = await analyze_use_case.execute(time_range)
             case BotAction.STATS:
-                result = await service.get_statistics(hours)
+                result = await statistics_use_case.execute(time_range)
 
         if not result.has_errors:
             await loading_msg.edit_text(result.report_html, reply_markup=get_main_menu())

@@ -1,11 +1,6 @@
 from enum import Enum
 
 
-class LLMProvider(Enum):
-    OLLAMA = "ollama"
-    YANDEX = "yandex"
-
-
 class LLMModel(Enum):
     YANDEX_GPT_LITE = "yandexgpt-lite"
     YANDEX_GPT_PRO_5_1 = "yandexgpt"

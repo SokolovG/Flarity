@@ -3,7 +3,7 @@ from typing import Self
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.entities.enums import LLMModel
+from src.domain.entities.enums import LLMModel
 
 
 class LLMSettings(BaseSettings):

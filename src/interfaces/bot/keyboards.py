@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.bot.entities import BotAction, BotCallback
 from src.core.constants import PERIODS
 from src.core.utils import format_hours
+from src.interfaces.bot.entities import BotAction, BotCallback
 
 
 def get_main_menu() -> InlineKeyboardMarkup:
