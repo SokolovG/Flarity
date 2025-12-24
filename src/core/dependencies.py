@@ -4,7 +4,7 @@ from dishka import Provider, Scope, provide
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import LogAnalysisService
+from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.clients.loki_client import LokiClient
@@ -13,7 +13,6 @@ from src.infrastructure.llm.ollama_analyzer import OllamaAnalyzer
 from src.infrastructure.llm.providers import LLMProvider
 from src.infrastructure.llm.yandex_analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
-from src.infrastructure.repositories.loki_repository import LokiService
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 
@@ -39,10 +38,6 @@ class MyProvider(Provider):
         return LokiClient(http_client, settings.log_source)
 
     @provide(scope=Scope.APP)
-    def get_log_source_service(self, loki_client: LokiClient) -> LogSource:
-        return LokiService(loki_client)
-
-    @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: AppSettings) -> TelegramClient:
         return TelegramClient(http_client, settings.notification)
 
@@ -63,8 +58,8 @@ class MyProvider(Provider):
         notifier: Notifier,
         app_settings: AppSettings,
         fornatter: ReportFormatter,
-    ) -> LogAnalysisService:
-        return LogAnalysisService(
+    ) -> AnalyzeLogsUseCase:
+        return AnalyzeLogsUseCase(
             log_source_service,
             notifier,
             app_settings,

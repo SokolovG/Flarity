@@ -3,7 +3,7 @@ from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import LogAnalysisService
+from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
 from src.interfaces.bot import callbacks
@@ -24,7 +24,7 @@ async def cmd_start(message: Message) -> None:
 @inject
 async def cmd_analyze(
     message: Message,
-    service: FromDishka[LogAnalysisService],
+    service: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
@@ -47,7 +47,7 @@ async def cmd_analyze(
 @inject
 async def cmd_stats(
     message: Message,
-    service: FromDishka[LogAnalysisService],
+    service: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
@@ -76,7 +76,7 @@ async def cmd_stats(
 @inject
 async def cmd_recent(
     message: Message,
-    service: FromDishka[LogAnalysisService],
+    service: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
 ) -> None:
     args = message.text.split()[1:] if message.text else []

@@ -8,11 +8,12 @@ from apscheduler.triggers.interval import IntervalTrigger
 from dishka import AsyncContainer, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
-from src.bot import setup_bot
+from src.application.ports.notifier import Notifier
+from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
 from src.core import MyProvider
+from src.core.exceptions import BaseCustomException
 from src.core.settings.app_settings import AppSettings
-from src.exceptions import BaseCustomException
-from src.services import LogAnalysisService, NotificationService
+from src.interfaces.bot import setup_bot
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,9 +33,9 @@ logger = logging.getLogger(__name__)
 
 async def scheduled_analysis(container: AsyncContainer) -> None:
     try:
-        service = await container.get(LogAnalysisService)
+        service = await container.get(AnalyzeLogsUseCase)
         settings = await container.get(AppSettings)
-        notification = await container.get(NotificationService)
+        notification = await container.get(Notifier)
 
         result = await service.analyze_logs(int(settings.schedule_interval_hours))
 

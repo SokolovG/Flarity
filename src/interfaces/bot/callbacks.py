@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_and_notify_use_case import LogAnalysisService
+from src.application.use_cases.analyze_and_notify_use_case import AnalyzeLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_settings_for_bot
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
@@ -59,7 +59,7 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
 @inject
 async def on_analyze_period(
     callback: CallbackQuery,
-    service: FromDishka[LogAnalysisService],
+    service: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -71,7 +71,7 @@ async def on_analyze_period(
 @inject
 async def on_recent_period(
     callback: CallbackQuery,
-    service: FromDishka[LogAnalysisService],
+    service: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -83,7 +83,7 @@ async def on_recent_period(
 @inject
 async def on_statistics_period(
     callback: CallbackQuery,
-    service: FromDishka[LogAnalysisService],
+    service: FromDishka[AnalyzeLogsUseCase],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -93,7 +93,7 @@ async def on_statistics_period(
 
 async def _handle_analysis(
     callback: CallbackQuery,
-    service: LogAnalysisService,
+    service: AnalyzeLogsUseCase,
     notifier: Notifier,
     action: BotAction,
 ) -> None:

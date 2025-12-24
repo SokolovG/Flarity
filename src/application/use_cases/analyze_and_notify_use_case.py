@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 # TODO: change HTML to markdown?
 
 
-class LogAnalysisService:
+class AnalyzeLogsUseCase:
     def __init__(
         self,
         log_source: LogSource,

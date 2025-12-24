@@ -1,40 +1,21 @@
 import re
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 from logging import getLogger
 from typing import Any
 
 import msgspec
 from httpx import Response
 
-from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.core.exceptions import LLMError
-from src.core.settings.app_settings import AppSettings
 from src.domain.entities.log_entry import LogEntry
-from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.llm.base_http_llm_analyzer import BaseHTTPLLMAnalyzer
 from src.infrastructure.llm.providers import LLMProvider
 from src.responses import LLMAnalysisResult, OllamaErrorResponse, OllamaResponse
 
 logger = getLogger(__name__)
 
 
-class OllamaAnalyzer(LLMAnalyzer):
-    def __init__(self, http_client: HTTPClient, settings: AppSettings):
-        self.http = http_client
-        self.settings = settings
-
-    async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        request_data = self._build_request(logs)
-
-        response = await self.http.make_request(
-            url=f"{self.settings.llm_provider.ollama.base_url}/api/chat",
-            method=HTTPMethod.POST,
-            data=request_data,
-            timeout=self.settings.llm_provider.ollama.timeout,
-            no_log_answer=True,
-        )
-
-        return self._parse_response(response_bytes=response.content)
-
+class OllamaAnalyzer(BaseHTTPLLMAnalyzer):
     def _handle_response(self, response: Response) -> None:
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise LLMError(
@@ -54,8 +35,7 @@ class OllamaAnalyzer(LLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _build_request(self, logs: list[LogEntry]) -> dict[str, Any]:
-        logs_text = self._format_logs_for_llm(logs)
+    def _build_request(self, logs_text: str) -> dict[str, Any]:
         request_data = {
             "model": self.settings.llm.model,
             "messages": [
@@ -92,6 +72,13 @@ class OllamaAnalyzer(LLMAnalyzer):
             input_tokens_used=response_model.prompt_eval_count,
             output_tokens_used=response_model.eval_count,
         )
+
+    def _get_headers(self) -> dict[str, Any]:
+        return {}
+
+    def _get_api_url(self) -> str:
+        url = f"{self.settings.llm_provider.ollama.base_url}/api/chat"
+        return url
 
     @staticmethod
     def _clean_llm_answer(text: str) -> str:

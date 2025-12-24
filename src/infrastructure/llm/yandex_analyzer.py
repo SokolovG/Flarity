@@ -1,44 +1,32 @@
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 from logging import getLogger
 from typing import Any
 
 import msgspec
 from httpx import Response
 
-from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.core.exceptions import LLMAuthError, LLMError, LLMRateLimitError
-from src.core.settings.app_settings import AppSettings
 from src.domain.entities.enums import LLMModel, LLMProvider
 from src.domain.entities.log_entry import LogEntry
-from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.llm.base_http_llm_analyzer import BaseHTTPLLMAnalyzer
 from src.responses import LLMAnalysisResult, YandexResponse
 
 logger = getLogger(__name__)
 
 
-class YandexAnalyzer(LLMAnalyzer):
-    def __init__(self, http_client: HTTPClient, settings: AppSettings):
-        self.http = http_client
-        self.settings = settings
+class YandexAnalyzer(BaseHTTPLLMAnalyzer):
+    def _get_api_url(self) -> str:
+        url = self.settings.llm_provider.yandex.base_url
+        return url
 
-    async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        request_data = self._build_request(logs)
+    def _get_headers(self) -> dict[str, Any]:
+        headers = {
+            "Authorization": f"Api-Key {self.settings.llm_provider.yandex.api_key}",
+            "Content-Type": "application/json",
+        }
+        return headers
 
-        response = await self.http.make_request(
-            method=HTTPMethod.POST,
-            url=self.settings.llm_provider.yandex.base_url,
-            headers={
-                "Authorization": f"Api-Key {self.settings.llm_provider.yandex.api_key}",
-                "Content-Type": "application/json",
-            },
-            data=request_data,
-        )
-        self._handle_response(response)
-
-        return self._parse_response(response.content)
-
-    def _build_request(self, logs: list[LogEntry]) -> dict[str, Any]:
-        logs_text = self._format_logs_for_llm(logs)
+    def _build_request(self, logs_text: str) -> dict[str, Any]:
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {
