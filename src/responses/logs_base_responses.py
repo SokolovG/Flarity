@@ -11,8 +11,3 @@ class LogsSourceQueryResult(Struct):
 class LogGroupByErrorType(Struct):
     error: str
     logs: list[LogEntry]
-
-
-class LogsByErrorType(Struct):
-    logs_groups: list[LogGroupByErrorType]
-    total_count: int

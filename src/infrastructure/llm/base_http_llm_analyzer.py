@@ -4,7 +4,7 @@ from typing import Any
 
 from httpx import Response
 
-from src.application.dto.analysis_result import AnalysisResult, LLMAnalysisResult
+from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.core.settings.app_settings import AppSettings
 from src.domain.entities.log_entry import LogEntry
@@ -16,7 +16,7 @@ class BaseHTTPLLMAnalyzer(LLMAnalyzer, ABC):
         self.http = http_client
         self.settings = settings
 
-    async def analyze(self, logs: list[LogEntry]) -> AnalysisResult:
+    async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         formatted_logs = self._format_logs_for_llm(logs)
         request_data = self._build_request(formatted_logs)
         response = await self._make_http_request(request_data)

@@ -12,8 +12,10 @@ from src.application.ports.notifier import Notifier
 from src.core import MyProvider
 from src.core.exceptions import BaseCustomException
 from src.core.settings.app_settings import AppSettings
+from src.core.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot import setup_bot
+from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,15 +39,19 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
 
         use_case = await container.get(AnalyzeLogsUseCase)
         settings = await container.get(AppSettings)
-        notification = await container.get(Notifier)
+        notifier = await container.get(Notifier)
+        formatter = await container.get(ReportFormatter)
 
-        result = await use_case.execute(TimeRange(int(settings.schedule_interval_hours)))
+        report = await use_case.execute(TimeRange(int(settings.schedule_interval_hours)))
 
-        if result.has_errors:
-            await notification.send_message(result.report_html)
-            logger.info(f"Scheduled report sent: {result.hours}h")
+        if report.has_errors:
+            html = formatter.to_html(report)
+            await notifier.send(html)
+            logger.info(
+                f"Scheduled report sent: {report.time_range.hours} {format_time_range(report.time_range)}"
+            )
         else:
-            logger.info(f"No errors found, skipping notification")
+            logger.info(f"✅ No errors found, skipping notification")
 
     except BaseCustomException as e:
         logger.error(f"Analysis failed: {e.__class__.__name__}: {e}")

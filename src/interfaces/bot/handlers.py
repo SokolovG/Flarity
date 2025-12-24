@@ -4,8 +4,11 @@ from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
+from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_time_range, get_help_text_for_bot, get_settings_for_bot
+from src.domain.entities.enums import ReportTemplate
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction
@@ -47,7 +50,9 @@ async def cmd_analyze(
     report = await use_case.execute(time_range)
 
     if not report.has_errors:
-        await message.answer("✅ No errors")
+        await message.answer(
+            f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
+        )
         return
 
     html = formatter.to_html(report)
@@ -59,7 +64,7 @@ async def cmd_analyze(
 @inject
 async def cmd_stats(
     message: Message,
-    use_case: FromDishka[AnalyzeLogsUseCase],
+    use_case: FromDishka[StatisticsLogsUseCase],
     notifier: FromDishka[Notifier],
     formatter: FromDishka[ReportFormatter],
 ) -> None:
@@ -79,7 +84,14 @@ async def cmd_stats(
 
         time_range = TimeRange(hours)
         report = await use_case.execute(time_range)
-        html = formatter.to_html(report)
+
+        if not report.has_errors:
+            await message.answer(
+                f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
+            )
+            return
+
+        html = formatter.to_html(report, template_name=ReportTemplate.STATISTICS)
         await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
@@ -91,7 +103,7 @@ async def cmd_stats(
 @inject
 async def cmd_recent(
     message: Message,
-    use_case: FromDishka[AnalyzeLogsUseCase],
+    use_case: FromDishka[RecentErrorsUseCase],
     notifier: FromDishka[Notifier],
     formatter: FromDishka[ReportFormatter],
 ) -> None:
@@ -106,10 +118,17 @@ async def cmd_recent(
         if hours <= 0:
             await message.answer("❌ Hours must be positive!")
             return
-        time_range = TimeRange(hours)
 
+        time_range = TimeRange(hours)
         report = await use_case.execute(time_range)
-        html = formatter.to_html(report)
+
+        if not report.has_errors:
+            await message.answer(
+                f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
+            )
+            return
+
+        html = formatter.to_html(report, template_name=ReportTemplate.RECENT_ERRORS)
         await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 

@@ -5,7 +5,7 @@ from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
-from src.application.use_cases.get_recent_errors_use_case import RecentLogsUseCase
+from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.domain.services.error_grouper import ErrorGrouper
@@ -83,8 +83,8 @@ class MyProvider(Provider):
         self,
         log_source: LogSource,
         llm_analyzer: LLMAnalyzer,
-    ) -> RecentLogsUseCase:
-        return RecentLogsUseCase(log_source, llm_analyzer)
+    ) -> RecentErrorsUseCase:
+        return RecentErrorsUseCase(log_source, llm_analyzer)
 
     @provide(scope=Scope.APP)
     def get_error_grouper(self) -> ErrorGrouper:

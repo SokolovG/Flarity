@@ -16,7 +16,7 @@ def get_settings_for_bot(
 Current config:
 • LLM provider: {provider}
 • LLM model: {model}
-{(f"• Schedule: every {schedule_hourse} {format_time_range(schedule_hourse)}") if schedule_enabled else ""}
+{(f"• Schedule: every {schedule_hourse.hours} {format_time_range(schedule_hourse)}") if schedule_enabled else ""}
         """
     return info
 

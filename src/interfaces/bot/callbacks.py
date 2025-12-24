@@ -7,12 +7,14 @@ from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
-from src.application.use_cases.get_recent_errors_use_case import RecentLogsUseCase
+from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_time_range, get_settings_for_bot
+from src.domain.entities.enums import ReportTemplate
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
+from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.router import bot_router
 
@@ -63,8 +65,9 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
 async def on_analyze_period(
     callback: CallbackQuery,
     analyze_use_case: FromDishka[AnalyzeLogsUseCase],
-    errors_use_case: FromDishka[RecentLogsUseCase],
+    errors_use_case: FromDishka[RecentErrorsUseCase],
     statistics_use_case: FromDishka[StatisticsLogsUseCase],
+    formatter: FromDishka[ReportFormatter],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -75,6 +78,7 @@ async def on_analyze_period(
         errors_use_case=errors_use_case,
         statistics_use_case=statistics_use_case,
         notifier=notifier,
+        formatter=formatter,
         action=BotAction.ANALYZE,
     )
 
@@ -84,8 +88,9 @@ async def on_analyze_period(
 async def on_recent_period(
     callback: CallbackQuery,
     analyze_use_case: FromDishka[AnalyzeLogsUseCase],
-    errors_use_case: FromDishka[RecentLogsUseCase],
+    errors_use_case: FromDishka[RecentErrorsUseCase],
     statistics_use_case: FromDishka[StatisticsLogsUseCase],
+    formatter: FromDishka[ReportFormatter],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -96,6 +101,7 @@ async def on_recent_period(
         errors_use_case=errors_use_case,
         statistics_use_case=statistics_use_case,
         notifier=notifier,
+        formatter=formatter,
         action=BotAction.RECENT,
     )
 
@@ -105,8 +111,9 @@ async def on_recent_period(
 async def on_statistics_period(
     callback: CallbackQuery,
     analyze_use_case: FromDishka[AnalyzeLogsUseCase],
-    errors_use_case: FromDishka[RecentLogsUseCase],
+    errors_use_case: FromDishka[RecentErrorsUseCase],
     statistics_use_case: FromDishka[StatisticsLogsUseCase],
+    formatter: FromDishka[ReportFormatter],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -117,6 +124,7 @@ async def on_statistics_period(
         errors_use_case=errors_use_case,
         statistics_use_case=statistics_use_case,
         notifier=notifier,
+        formatter=formatter,
         action=BotAction.STATS,
     )
 
@@ -124,8 +132,9 @@ async def on_statistics_period(
 async def _handle_analysis(
     callback: CallbackQuery,
     analyze_use_case: AnalyzeLogsUseCase,
-    errors_use_case: RecentLogsUseCase,
+    errors_use_case: RecentErrorsUseCase,
     statistics_use_case: StatisticsLogsUseCase,
+    formatter: ReportFormatter,
     notifier: Notifier,
     action: BotAction,
 ) -> None:
@@ -142,19 +151,26 @@ async def _handle_analysis(
     try:
         match action:
             case BotAction.RECENT:
-                result = await errors_use_case.execute(time_range)
+                report = await errors_use_case.execute(time_range)
+                template = ReportTemplate.RECENT_ERRORS
             case BotAction.ANALYZE:
-                result = await analyze_use_case.execute(time_range)
+                report = await analyze_use_case.execute(time_range)
+                template = ReportTemplate.ANALYSIS_DETAILED
             case BotAction.STATS:
-                result = await statistics_use_case.execute(time_range)
+                report = await statistics_use_case.execute(time_range)
+                template = ReportTemplate.STATISTICS
 
-        if not result.has_errors:
-            await loading_msg.edit_text("No errors", reply_markup=get_main_menu())
+        if not report.has_errors:
+            await loading_msg.edit_text(
+                f"✅No errors found in {time_range.hours} {format_time_range(time_range)}",
+                reply_markup=get_main_menu(),
+            )
             return
 
+        html = formatter.to_html(report, template_name=template)
         # await loading_msg.delete()
         await notifier.send(
-            result.llm_analysis.report_html,
+            html,
             chat_id=callback.message.chat.id,
         )
         await callback.message.answer("Choose an action:", reply_markup=get_main_menu())

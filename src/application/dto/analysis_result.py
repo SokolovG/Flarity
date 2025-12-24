@@ -12,17 +12,3 @@ class LLMAnalysisResult(Struct):
     provider: LLMProvider
     input_tokens_used: int | None = None
     output_tokens_used: int | None = None
-
-
-class AnalysisResult(Struct):
-    has_errors: bool
-    report_html: str
-    hours: TimeRange
-
-    @staticmethod
-    def no_errors(time_range: TimeRange) -> "AnalysisResult":
-        return AnalysisResult(
-            has_errors=False,
-            report_html=f"✅ No errors in last {time_range.hours} {format_time_range(time_range)}",
-            hours=time_range,
-        )

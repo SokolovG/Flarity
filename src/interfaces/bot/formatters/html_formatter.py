@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 
-from src.domain.entities.analysis_report import ReportData
+from src.domain.entities.analysis_report import AnalysisReport, ErrorGroup
 from src.domain.entities.enums import ReportTemplate
 
 
@@ -9,18 +9,42 @@ class ReportFormatter:
         self.env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 
     def to_html(
-        self, data: ReportData, template_name: ReportTemplate = ReportTemplate.ANALYSIS_DETAILED
+        self,
+        report: AnalysisReport,
+        template_name: ReportTemplate = ReportTemplate.ANALYSIS_DETAILED,
     ) -> str:
         template = self.env.get_template(template_name.value)
+
+        title = f"Error report for the last {report.time_range.hours}h"
+        total_errors = len(report.logs) if report.logs else 0
+        unique_types = len(report.groups) if report.groups else 0
+
+        ai_analysis = None
+        provider = None
+        tokens_in = None
+        tokens_out = None
+
+        if report.llm_analysis:
+            ai_analysis = report.llm_analysis.analysis_text
+            provider = report.llm_analysis.provider.value
+            tokens_in = report.llm_analysis.input_tokens_used
+            tokens_out = report.llm_analysis.output_tokens_used
+
+        groups_list = None
+        if report.groups:
+            groups_list = [
+                ErrorGroup(error_type=key, count=len(logs)) for key, logs in report.groups.items()
+            ]
+
         return template.render(
-            title=data.title,
-            time_range_hours=data.time_range_hours,
-            total_errors=data.total_errors,
-            unique_types=data.unique_types,
-            logs=data.logs,
-            groups=data.groups,
-            ai_analysis=data.ai_analysis,
-            provider=data.provider,
-            tokens_in=data.tokens_in,
-            tokens_out=data.tokens_out,
+            title=title,
+            time_range_hours=report.time_range.hours,
+            total_errors=total_errors,
+            unique_types=unique_types,
+            logs=report.logs,
+            groups=groups_list,
+            ai_analysis=ai_analysis,
+            provider=provider,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
         )
