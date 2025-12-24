@@ -62,9 +62,9 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
 @inject
 async def on_analyze_period(
     callback: CallbackQuery,
-    analyze_use_case: AnalyzeLogsUseCase,
-    errors_use_case: RecentLogsUseCase,
-    statistics_use_case: StatisticsLogsUseCase,
+    analyze_use_case: FromDishka[AnalyzeLogsUseCase],
+    errors_use_case: FromDishka[RecentLogsUseCase],
+    statistics_use_case: FromDishka[StatisticsLogsUseCase],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -83,9 +83,9 @@ async def on_analyze_period(
 @inject
 async def on_recent_period(
     callback: CallbackQuery,
-    analyze_use_case: AnalyzeLogsUseCase,
-    errors_use_case: RecentLogsUseCase,
-    statistics_use_case: StatisticsLogsUseCase,
+    analyze_use_case: FromDishka[AnalyzeLogsUseCase],
+    errors_use_case: FromDishka[RecentLogsUseCase],
+    statistics_use_case: FromDishka[StatisticsLogsUseCase],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -104,9 +104,9 @@ async def on_recent_period(
 @inject
 async def on_statistics_period(
     callback: CallbackQuery,
-    analyze_use_case: AnalyzeLogsUseCase,
-    errors_use_case: RecentLogsUseCase,
-    statistics_use_case: StatisticsLogsUseCase,
+    analyze_use_case: FromDishka[AnalyzeLogsUseCase],
+    errors_use_case: FromDishka[RecentLogsUseCase],
+    statistics_use_case: FromDishka[StatisticsLogsUseCase],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
@@ -149,12 +149,12 @@ async def _handle_analysis(
                 result = await statistics_use_case.execute(time_range)
 
         if not result.has_errors:
-            await loading_msg.edit_text(result.report_html, reply_markup=get_main_menu())
+            await loading_msg.edit_text("No errors", reply_markup=get_main_menu())
             return
 
-        await loading_msg.delete()
+        # await loading_msg.delete()
         await notifier.send(
-            result.report_html,
+            result.llm_analysis.report_html,
             chat_id=callback.message.chat.id,
         )
         await callback.message.answer("Choose an action:", reply_markup=get_main_menu())

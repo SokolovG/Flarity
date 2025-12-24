@@ -5,12 +5,13 @@ from typing import Any
 import msgspec
 from httpx import Response
 
+from src.application.dto.analysis_result import AnalysisResult, LLMAnalysisResult
 from src.core.exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.domain.entities.enums import LLMModel
 from src.domain.entities.log_entry import LogEntry
 from src.infrastructure.llm.base_http_llm_analyzer import BaseHTTPLLMAnalyzer
 from src.infrastructure.llm.providers import LLMProvider
-from src.responses import LLMAnalysisResult, YandexResponse
+from src.responses import YandexResponse
 
 logger = getLogger(__name__)
 
@@ -58,7 +59,7 @@ class YandexAnalyzer(BaseHTTPLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
+    def _parse_response(self, response_bytes: bytes) -> AnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
         except msgspec.DecodeError as e:

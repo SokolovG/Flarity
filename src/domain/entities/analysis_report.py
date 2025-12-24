@@ -1,8 +1,8 @@
 from msgspec import Struct
 
+from src.application.dto.analysis_result import AnalysisResult
 from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
-from src.responses.llm_base_responses import LLMAnalysisResult
 
 
 class AnalysisReport(Struct):
@@ -10,7 +10,7 @@ class AnalysisReport(Struct):
     time_range: TimeRange
     logs: list[LogEntry] | None = None
     groups: dict[str, list[LogEntry]] | None = None
-    llm_analysis: LLMAnalysisResult | None = None
+    llm_analysis: AnalysisResult | None = None
 
 
 class ErrorGroup(Struct):

@@ -1,4 +1,3 @@
-from src.responses.llm_base_responses import LLMAnalysisResult
 from src.responses.logs_base_responses import (
     LogGroupByErrorType,
     LogsByErrorType,
@@ -11,7 +10,6 @@ from src.responses.yandex_responses import YandexResponse
 __all__ = [
     "LogGroupByErrorType",
     "LogsByErrorType",
-    "LLMAnalysisResult",
     "YandexResponse",
     "OllamaErrorResponse",
     "OllamaResponse",

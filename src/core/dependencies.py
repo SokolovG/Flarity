@@ -3,6 +3,7 @@ from dishka import Provider, Scope, provide
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
+from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentLogsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
@@ -47,7 +48,7 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_telegram_notifier(
         self, telegram_client: TelegramClient, settings: AppSettings
-    ) -> TelegramNotifier:
+    ) -> Notifier:
         return TelegramNotifier(telegram_client, settings.notification)
 
     @provide(scope=Scope.APP)
@@ -82,7 +83,6 @@ class MyProvider(Provider):
         self,
         log_source: LogSource,
         llm_analyzer: LLMAnalyzer,
-        error_grouper: ErrorGrouper,
     ) -> RecentLogsUseCase:
         return RecentLogsUseCase(log_source, llm_analyzer)
 

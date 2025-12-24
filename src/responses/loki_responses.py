@@ -1,6 +1,6 @@
 from msgspec import Struct
 
-from src.entities.enums import Status
+from src.domain.entities.enums import Status
 
 
 class _LokiStream(Struct):

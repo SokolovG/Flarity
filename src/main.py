@@ -9,7 +9,6 @@ from dishka import AsyncContainer, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.core import MyProvider
 from src.core.exceptions import BaseCustomException
 from src.core.settings.app_settings import AppSettings
@@ -34,6 +33,8 @@ logger = logging.getLogger(__name__)
 
 async def scheduled_analysis(container: AsyncContainer) -> None:
     try:
+        from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+
         use_case = await container.get(AnalyzeLogsUseCase)
         settings = await container.get(AppSettings)
         notification = await container.get(Notifier)
