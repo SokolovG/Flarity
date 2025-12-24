@@ -1,4 +1,4 @@
-from src.entities.enums import LLMModel
+from src.domain.entities.enums import LLMModel
 
 
 def format_hours(hours: int | str) -> str:

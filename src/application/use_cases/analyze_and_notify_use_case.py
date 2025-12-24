@@ -2,15 +2,15 @@ import asyncio
 from logging import getLogger
 
 from src.application.dto.analysis_result import AnalysisResult
+from src.application.ports.llm_analyzer import LLMAnalyzer
+from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
 from src.core.decorators import retry
+from src.core.exceptions import ServiceNotReadyError
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours
 from src.domain.entities.enums import ReportTemplate
 from src.domain.entities.report import ErrorGroup, ReportData
-from src.domain.services.base_services import LogSourceService
-from src.exceptions import ServiceNotReadyError
-from src.infrastructure.repositories.loki_repository import LokiService
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.responses import LLMAnalysisResult, LogsByErrorType, LogsSourceQueryResult
 
@@ -22,32 +22,30 @@ logger = getLogger(__name__)
 class LogAnalysisService:
     def __init__(
         self,
-        log_source_service: LogSourceService,
-        llm_service: LokiService,
-        notification_service: Notifier,
+        log_source: LogSource,
+        notifier: Notifier,
         app_settings: AppSettings,
+        llm_analyzer: LLMAnalyzer,
         formatter: ReportFormatter,
     ) -> None:
-        self.log_source_service = log_source_service
-        self.llm_service = llm_service
-        self.notification_service = notification_service
+        self.log_source = log_source
+        self.notifier = notifier
         self.app_settings = app_settings
         self.formatter = formatter
+        self.llm_analyzer = llm_analyzer
 
     async def analyze_logs(self, hours: int) -> AnalysisResult:
         logger.info("Fetching recent error logs for analysis...")
-        logs = await self.log_source_service.get_recent_errors(hours)
-        no_errors_result = await self._check_and_notify_no_errors(hours, logs.total_count)
+        logs = await self.log_source.get_errors(hours)
+        no_errors_result = await self._check_and_notify_no_errors(hours, len(logs))
         if no_errors_result:
             return no_errors_result
 
-        logger.info(f"Found {logs.total_count} error logs for last {hours}h")
-        grouped = await self.log_source_service._group_errors_by_type(logs)
+        logger.info(f"Found {len(logs)} error logs for last {hours}h")
+        grouped = await self.log_source._group_errors_by_type(logs)
 
-        logger.info(
-            f"Analyzing {logs.total_count} logs with {self.app_settings.llm_provider.provider}"
-        )
-        analysis = await self.llm_service.analyze_logs(logs)
+        logger.info(f"Analyzing {len(logs)} logs with {self.app_settings.llm_provider.provider}")
+        analysis = await self.llm_analyzer.analyze(logs)
 
         logger.info(
             f"Analysis completed. Tokens: {analysis.input_tokens_used}/{analysis.output_tokens_used}"
@@ -58,9 +56,9 @@ class LogAnalysisService:
         return AnalysisResult(has_errors=True, report_html=report_html, hours=hours)
 
     async def get_recent_errors(self, hours: int) -> AnalysisResult:
-        logs = await self.log_source_service.get_recent_errors(hours)
+        logs = await self.log_source.get_recent_errors(hours)
 
-        no_errors_result = await self._check_and_notify_no_errors(hours, logs.total_count)
+        no_errors_result = await self._check_and_notify_no_errors(hours, len(logs))
         if no_errors_result:
             return no_errors_result
 
@@ -71,13 +69,13 @@ class LogAnalysisService:
 
     async def get_statistics(self, hours: int) -> AnalysisResult:
         logger.info(f"Fetching statistics for last {hours} h.")
-        logs = await self.log_source_service.get_recent_errors(hours)
+        logs = await self.log_source.get_errors(hours)
 
-        no_errors_result = await self._check_and_notify_no_errors(hours, logs.total_count)
+        no_errors_result = await self._check_and_notify_no_errors(hours, len(logs))
         if no_errors_result:
             return no_errors_result
 
-        grouped = await self.log_source_service._group_errors_by_type(logs)
+        grouped = await self.log_source._group_errors_by_type(logs)
         report_obj = self.prepare_report_statistics(logs, grouped, hours)
 
         report_html = self.formatter.to_html(
@@ -93,7 +91,7 @@ class LogAnalysisService:
 
     @retry(max_attempts=5, backoff=10.0)
     async def check_readiness(self) -> bool:
-        coros = (self.log_source_service.check_readiness(),)
+        coros = (self.log_source.check_readiness(),)
 
         loki_ready = await asyncio.gather(*coros, return_exceptions=True)
         services = {
@@ -141,7 +139,7 @@ class LogAnalysisService:
         return ReportData(
             title=f"📊 Statistics for the last {hours} {format_hours(hours)}",
             time_range_hours=hours,
-            total_errors=logs.total_count,
+            total_errors=len(logs),
             unique_types=len(grouped.logs_groups),
             groups=groups,
         )

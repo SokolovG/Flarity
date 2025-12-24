@@ -6,10 +6,10 @@ import msgspec
 from httpx import Response
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
+from src.core.exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.core.settings.app_settings import AppSettings
 from src.domain.entities.enums import LLMModel, LLMProvider
 from src.domain.entities.log_entry import LogEntry
-from src.exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.infrastructure.clients.http_client import HTTPClient
 from src.responses import LLMAnalysisResult, YandexResponse
 

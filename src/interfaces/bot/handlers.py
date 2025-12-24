@@ -2,13 +2,14 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.bot import callbacks  # noqa: F401
-from src.bot.entities import BotAction
-from src.bot.keyboards import get_main_menu, get_period_options
-from src.bot.router import bot_router
+from src.application.ports.notifier import Notifier
+from src.application.use_cases.analyze_and_notify_use_case import LogAnalysisService
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_help_text_for_bot, get_settings_for_bot
-from src.services import LogAnalysisService, NotificationService
+from src.interfaces.bot import callbacks
+from src.interfaces.bot.entities import BotAction
+from src.interfaces.bot.keyboards import get_main_menu, get_period_options
+from src.interfaces.bot.router import bot_router
 
 
 @bot_router.message(CommandStart())
@@ -24,7 +25,7 @@ async def cmd_start(message: Message) -> None:
 async def cmd_analyze(
     message: Message,
     service: FromDishka[LogAnalysisService],
-    notifier: FromDishka[NotificationService],
+    notifier: FromDishka[Notifier],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
     if not args:
@@ -38,7 +39,7 @@ async def cmd_analyze(
     loading_msg = f"Analyzing logs for last {hours} {format_hours(hours)}\n{'This may take up to 30 seconds.'}"
     await message.answer(loading_msg)
     result = await service.analyze_logs(hours)
-    await notifier.send_message(result.report_html, chat_id=str(message.chat.id))
+    await notifier.send(result.report_html, chat_id=str(message.chat.id))
     await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
 
@@ -47,7 +48,7 @@ async def cmd_analyze(
 async def cmd_stats(
     message: Message,
     service: FromDishka[LogAnalysisService],
-    notifier: FromDishka[NotificationService],
+    notifier: FromDishka[Notifier],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
 
@@ -64,7 +65,7 @@ async def cmd_stats(
             return
 
         result = await service.get_statistics(hours)
-        await notifier.send_message(result.report_html, chat_id=str(message.chat.id))
+        await notifier.send(result.report_html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:
@@ -76,7 +77,7 @@ async def cmd_stats(
 async def cmd_recent(
     message: Message,
     service: FromDishka[LogAnalysisService],
-    notifier: FromDishka[NotificationService],
+    notifier: FromDishka[Notifier],
 ) -> None:
     args = message.text.split()[1:] if message.text else []
 
@@ -91,7 +92,7 @@ async def cmd_recent(
             return
 
         result = await service.get_recent_errors(hours)
-        await notifier.send_message(result.report_html, chat_id=str(message.chat.id))
+        await notifier.send(result.report_html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:

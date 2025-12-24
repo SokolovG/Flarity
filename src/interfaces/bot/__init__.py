@@ -1,8 +1,8 @@
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 
-from src.bot import callbacks, handlers  # noqa: F401
-from src.bot.router import bot_router
+from src.interfaces.bot import callbacks, handlers  # noqa: F401
+from src.interfaces.bot.router import bot_router
 
 
 async def setup_bot(bot: Bot, dp: Dispatcher) -> None:

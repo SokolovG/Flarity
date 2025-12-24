@@ -5,12 +5,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.bot.entities import BotAction, BotCallback, BotStates
-from src.bot.keyboards import get_main_menu, get_period_options
-from src.bot.router import bot_router
+from src.application.ports.notifier import Notifier
+from src.application.use_cases.analyze_and_notify_use_case import LogAnalysisService
 from src.core.settings.app_settings import AppSettings
 from src.core.utils import format_hours, get_settings_for_bot
-from src.services import LogAnalysisService, NotificationService
+from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
+from src.interfaces.bot.keyboards import get_main_menu, get_period_options
+from src.interfaces.bot.router import bot_router
 
 logger = getLogger(__name__)
 
@@ -59,11 +60,11 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
 async def on_analyze_period(
     callback: CallbackQuery,
     service: FromDishka[LogAnalysisService],
-    notification_service: FromDishka[NotificationService],
+    notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, service, notification_service, action=BotAction.ANALYZE)
+    await _handle_analysis(callback, service, notifier, action=BotAction.ANALYZE)
 
 
 @bot_router.callback_query(F.data.startswith("recent_"))
@@ -71,11 +72,11 @@ async def on_analyze_period(
 async def on_recent_period(
     callback: CallbackQuery,
     service: FromDishka[LogAnalysisService],
-    notification_service: FromDishka[NotificationService],
+    notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, service, notification_service, action=BotAction.RECENT)
+    await _handle_analysis(callback, service, notifier, action=BotAction.RECENT)
 
 
 @bot_router.callback_query(F.data.startswith("stats_"))
@@ -83,17 +84,17 @@ async def on_recent_period(
 async def on_statistics_period(
     callback: CallbackQuery,
     service: FromDishka[LogAnalysisService],
-    notification_service: FromDishka[NotificationService],
+    notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(callback, service, notification_service, action=BotAction.STATS)
+    await _handle_analysis(callback, service, notifier, action=BotAction.STATS)
 
 
 async def _handle_analysis(
     callback: CallbackQuery,
     service: LogAnalysisService,
-    notifier: NotificationService,
+    notifier: Notifier,
     action: BotAction,
 ) -> None:
     hours = int(callback.data.split("_")[1])
@@ -119,7 +120,7 @@ async def _handle_analysis(
             return
 
         await loading_msg.delete()
-        await notifier.send_message(
+        await notifier.send(
             result.report_html,
             chat_id=callback.message.chat.id,
         )
