@@ -17,7 +17,7 @@ class TelegramClient:
 
     @property
     def _base_url(self) -> str:
-        return f"https://api.telegram.org/bot{self.settings.telegram_bot_token}"
+        return f"https://api.telegram.org/bot{self.settings.get_config.bot_id}"
 
     async def send_message(
         self, text: str, parse_mode: str = "HTML", chat_id: str | None = None
@@ -38,12 +38,12 @@ class TelegramClient:
     ) -> bool:
         data = {
             "text": text,
-            "chat_id": chat_id if chat_id else self.settings.telegram_chat_id,
+            "chat_id": chat_id if chat_id else self.settings.get_config.chat_id,
             "parse_mode": parse_mode,
         }
         response = await self._http.make_request(
             method=HTTPMethod.POST,
-            url=f"https://api.telegram.org/bot{self.settings.telegram_bot_token}/sendMessage",
+            url=f"https://api.telegram.org/bot{self.settings.get_config.bot_id}/sendMessage",
             data=data,
             no_log_answer=True,
         )

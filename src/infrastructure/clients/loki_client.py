@@ -37,7 +37,7 @@ class LokiClient:
 
         response = await self._http.make_request(
             method=HTTPMethod.GET,
-            url=f"{self.settings.loki_url}/loki/api/v1/query_range",
+            url=f"{self.settings.get_config.url}/loki/api/v1/query_range",
             params=params,
             no_log_answer=True,
         )
@@ -55,7 +55,7 @@ class LokiClient:
     async def is_loki_is_ready(self) -> bool:
         try:
             response = await self._http.make_request(
-                url=f"{self.settings.loki_url}/ready",
+                url=f"{self.settings.get_config.url}/ready",
                 method=HTTPMethod.GET,
                 timeout=5,
                 no_log_answer=True,

@@ -33,9 +33,12 @@ class AppSettings(BaseSettings):
     @model_validator(mode="after")
     def validate_llm_provider_config(self) -> Self:
         if self.llm_provider.provider == "yandex":
-            if not self.llm_provider.yandex_api_key or not self.llm_provider.yandex_catalog_id:
+            if (
+                not self.llm_provider.get_config.api_key
+                or not self.llm_provider.get_config.catalog_id
+            ):
                 raise ValueError("Yandex API key and catalog ID are required")
         elif self.llm_provider.provider == "ollama":
-            if not self.llm_provider.ollama_base_url:
+            if not self.llm_provider.get_config.base_url:
                 raise ValueError("Ollama base URL is required")
         return self

@@ -203,8 +203,8 @@ class LLMModel(Enum):
 # 3. Register in DI container
 def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> BaseLLMAdapter:
   provider = LLMProvider(settings.llm_provider.provider)
-  case LLMProvider.OLLAMA:
-      return OllamaAdapter(http_client, settings)
+  case LLMProvider.NEW_PROVIDER:
+      return NewProvider(http_client, settings)
     # ...
 
 # 3. Add settings
@@ -215,6 +215,14 @@ class NewProviderSettings(BaseModel):
 # 4. Change .env
 LLM_PROVIDER_PROVIDER=new_provider
 LLM_MODEL=your_model
+# ...other custom settings(API key, etc.)
+
+#5. Add new provider to validation func
+validate_llm_provider_config
+@model_validator(mode="after")
+    def validate_llm_provider_config(self) -> Self:
+        if self.llm_provider.provider == "new_provider":
+          ...
 ```
 
 ## Local LLM
