@@ -16,6 +16,7 @@ from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
+from src.interfaces.bot.helpers import handle_report_callback
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.router import bot_router
 
@@ -66,21 +67,33 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
 async def on_analyze_period(
     callback: CallbackQuery,
     analyze_use_case: FromDishka[AnalyzeLogsUseCase],
-    errors_use_case: FromDishka[RecentErrorsUseCase],
-    statistics_use_case: FromDishka[StatisticsLogsUseCase],
     formatter: FromDishka[ReportFormatter],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(
-        callback=callback,
-        analyze_use_case=analyze_use_case,
-        errors_use_case=errors_use_case,
-        statistics_use_case=statistics_use_case,
-        notifier=notifier,
+
+    hours = int(callback.data.split("_")[1])
+    time_range = TimeRange(hours)
+
+    loading_msg = await callback.message.edit_text(
+        f"Analyze logs for last {hours} {format_time_range(time_range)}\n"
+        "This may take up to 30 seconds."
+    )
+
+    try:
+        report = await analyze_use_case.execute(time_range)
+    except Exception as e:
+        await loading_msg.edit_text(f"❌ Analyze failed: {e}", reply_markup=get_main_menu())
+
+    await handle_report_callback(
+        callback,
+        time_range=time_range,
+        report=report,
+        template=ReportTemplate.ANALYSIS_DETAILED,
         formatter=formatter,
-        action=BotAction.ANALYZE,
+        notifier=notifier,
+        loading_msg=loading_msg,
     )
 
 
@@ -88,22 +101,29 @@ async def on_analyze_period(
 @inject
 async def on_recent_period(
     callback: CallbackQuery,
-    analyze_use_case: FromDishka[AnalyzeLogsUseCase],
     errors_use_case: FromDishka[RecentErrorsUseCase],
-    statistics_use_case: FromDishka[StatisticsLogsUseCase],
     formatter: FromDishka[ReportFormatter],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(
-        callback=callback,
-        analyze_use_case=analyze_use_case,
-        errors_use_case=errors_use_case,
-        statistics_use_case=statistics_use_case,
-        notifier=notifier,
+    hours = int(callback.data.split("_")[1])
+    time_range = TimeRange(hours)
+
+    try:
+        report = await errors_use_case.execute(time_range)
+    except Exception as e:
+        await callback.message.edit_text(
+            f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
+        )
+
+    await handle_report_callback(
+        callback,
+        time_range=time_range,
+        report=report,
+        template=ReportTemplate.RECENT_ERRORS,
         formatter=formatter,
-        action=BotAction.RECENT,
+        notifier=notifier,
     )
 
 
@@ -111,74 +131,31 @@ async def on_recent_period(
 @inject
 async def on_statistics_period(
     callback: CallbackQuery,
-    analyze_use_case: FromDishka[AnalyzeLogsUseCase],
-    errors_use_case: FromDishka[RecentErrorsUseCase],
     statistics_use_case: FromDishka[StatisticsLogsUseCase],
     formatter: FromDishka[ReportFormatter],
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await _handle_analysis(
-        callback=callback,
-        analyze_use_case=analyze_use_case,
-        errors_use_case=errors_use_case,
-        statistics_use_case=statistics_use_case,
-        notifier=notifier,
-        formatter=formatter,
-        action=BotAction.STATS,
-    )
-
-
-async def _handle_analysis(
-    callback: CallbackQuery,
-    analyze_use_case: AnalyzeLogsUseCase,
-    errors_use_case: RecentErrorsUseCase,
-    statistics_use_case: StatisticsLogsUseCase,
-    formatter: ReportFormatter,
-    notifier: Notifier,
-    action: BotAction,
-) -> None:
+    await state.set_state(BotStates.viewing_report)
     hours = int(callback.data.split("_")[1])
     time_range = TimeRange(hours)
 
-    await callback.answer()
-
-    loading_msg = await callback.message.edit_text(
-        f"{action} logs for last {hours} {format_time_range(time_range)}\n"
-        f"{'This may take up to 30 seconds.' if action != BotAction.RECENT else ''}"
-    )
-
     try:
-        match action:
-            case BotAction.RECENT:
-                report = await errors_use_case.execute(time_range)
-                template = ReportTemplate.RECENT_ERRORS
-            case BotAction.ANALYZE:
-                report = await analyze_use_case.execute(time_range)
-                template = ReportTemplate.ANALYSIS_DETAILED
-            case BotAction.STATS:
-                report = await statistics_use_case.execute(time_range)
-                template = ReportTemplate.STATISTICS
-
-        if not report.has_errors:
-            await loading_msg.edit_text(
-                f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}",
-                reply_markup=get_main_menu(),
-            )
-            return
-
-        html = formatter.to_html(report, template_name=template)
-        # await loading_msg.delete()
-        await notifier.send(
-            html,
-            chat_id=callback.message.chat.id,
-        )
-        await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
-
+        report = await statistics_use_case.execute(time_range)
     except Exception as e:
-        logger.exception(f"Analysis failed: {e}")
-        await loading_msg.edit_text(f"❌ {action} failed: {e}", reply_markup=get_main_menu())
+        await callback.message.edit_text(
+            f"❌ Fetching statistics failed: {e}", reply_markup=get_main_menu()
+        )
+
+    await handle_report_callback(
+        callback,
+        time_range=time_range,
+        report=report,
+        template=ReportTemplate.STATISTICS,
+        formatter=formatter,
+        notifier=notifier,
+    )
 
 
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)

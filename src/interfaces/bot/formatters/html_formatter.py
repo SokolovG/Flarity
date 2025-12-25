@@ -2,6 +2,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from src.domain.entities.analysis_report import AnalysisReport, ErrorGroup
 from src.domain.entities.enums import ReportTemplate
+from src.domain.utils import format_time_range
 
 
 class ReportFormatter:
@@ -15,7 +16,7 @@ class ReportFormatter:
     ) -> str:
         template = self.env.get_template(template_name.value)
 
-        title = f"Error report for the last {report.time_range.hours}h"
+        title = f"Error report for the last {report.time_range.hours} {format_time_range(report.time_range)}"
         total_errors = len(report.logs) if report.logs else 0
         unique_types = len(report.groups) if report.groups else 0
 
