@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 
-from src.domain.entities.analysis_report import AnalysisReport, ErrorGroup
+from src.application.dto.analysis_report import AnalysisReport, ErrorGroup
 from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.infrastructure.settings.app_settings import AppSettings

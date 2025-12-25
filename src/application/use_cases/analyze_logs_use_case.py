@@ -1,6 +1,6 @@
+from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
-from src.domain.entities.analysis_report import AnalysisReport
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
 
@@ -16,6 +16,7 @@ class AnalyzeLogsUseCase:
         self.llm = llm_analyzer
         self.grouper = error_grouper
 
+    # TODO: add rate limit!
     async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)
         if not logs:

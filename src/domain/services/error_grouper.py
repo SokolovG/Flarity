@@ -10,12 +10,12 @@ class ErrorGroupingStrategy(ABC):
 
 class DefaultErrorGrouperStrategy(ErrorGroupingStrategy):
     def extract_error_type(self, log: LogEntry) -> str:
-        if log.method and log.uri:
-            uri_without_params = log.uri.split("?")[0]
-            return f"HTTP {log.method} {uri_without_params}"
+        if log.metadata.get("method") and log.metadata.get("uri"):
+            uri_without_params = log.metadata.get("uri").split("?")[0]  # type: ignore
+            return f"HTTP {log.metadata.get('uri')} {uri_without_params}"
 
-        if log.target:
-            target_short = log.target.split("::")[-1]
+        if log.metadata.get("target"):
+            target_short = log.metadata.get("target").split("::")[-1]  # type: ignore
             message_prefix = log.message.split(":", 1)[0].strip()
             return f"{target_short}: {message_prefix}"
 

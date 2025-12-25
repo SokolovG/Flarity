@@ -5,6 +5,7 @@ from src.infrastructure.exceptions.loki_exceptions import (
     LokiError,
     LokiUnavailableError,
 )
+from src.infrastructure.exceptions.network_exeptions import NetworkError
 from src.infrastructure.exceptions.telegram_exceptions import (
     TelegramBadRequestError,
     TelegramError,
@@ -12,8 +13,7 @@ from src.infrastructure.exceptions.telegram_exceptions import (
 )
 
 __all__ = [
-    "InfrastructureExceptionNetworkError",
-    "LokiUnavailableError",
+    "InfrastructureException",
     "LogParsingError",
     "LLMRateLimitError",
     "LLMAuthError",
@@ -22,4 +22,6 @@ __all__ = [
     "TelegramBadRequestError",
     "TelegramError",
     "TelegramRateLimitError",
+    "LokiUnavailableError",
+    "NetworkError"
 ]

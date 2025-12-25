@@ -1,6 +1,6 @@
+from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
-from src.domain.entities.analysis_report import AnalysisReport
 from src.domain.value_objects.time_range import TimeRange
 
 

@@ -76,7 +76,11 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     scheduler.start()
     logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")
     logger.info("Running initial analysis...")
-    await scheduled_analysis(container)
+
+    try:
+        await scheduled_analysis(container)
+    except Exception as e:
+        logger.error(f"Initial analysis failed (non-critical): {e}")
 
 
 async def main() -> None:

@@ -4,9 +4,10 @@ from http import HTTPMethod
 from logging import getLogger
 
 import msgspec
-from httpx import AsyncClient, ConnectError, ConnectTimeout, NetworkError, ReadTimeout, Response
+from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
 
 from src.infrastructure.decorators import retry
+from src.infrastructure.exceptions.network_exeptions import NetworkError
 
 logger = getLogger(__name__)
 

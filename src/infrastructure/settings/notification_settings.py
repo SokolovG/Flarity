@@ -10,15 +10,18 @@ class BaseNotificationConfig(BaseModel):
 
 class TelegramConfig(BaseNotificationConfig):
     bot_token: str
-    chat_id: str | None = None
+    chat_id: int | str | None = None
 
 
 class NotificationSettings(BaseSettings):
     provider: str
     config: dict[str, Any] = {}
 
-    model_config = SettingsConfigDict(env_prefix="NOTIFICATION", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_prefix="NOTIFICATION_", case_sensitive=False, env_nested_delimiter="__"
+    )
 
+    @property
     def get_config(self) -> BaseNotificationConfig:
         match self.provider:
             case "telegram":

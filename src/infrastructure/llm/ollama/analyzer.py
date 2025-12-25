@@ -7,16 +7,15 @@ import msgspec
 from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
-from src.domain.entities.log_entry import LogEntry
 from src.infrastructure.exceptions import LLMError
-from src.infrastructure.llm.base_http_llm_analyzer import BaseHTTPLLMAnalyzer
+from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
 from src.infrastructure.llm.providers import LLMProvider
 
 logger = getLogger(__name__)
 
 
-class OllamaAnalyzer(BaseHTTPLLMAnalyzer):
+class OllamaAnalyzer(BaseLLMAnalyzer):
     def _handle_response(self, response: Response) -> None:
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise LLMError(
@@ -86,11 +85,3 @@ class OllamaAnalyzer(BaseHTTPLLMAnalyzer):
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
         text = text.replace("<think>", "").replace("</think>", "")
         return text.strip()
-
-    def _format_logs_for_llm(self, logs: list[LogEntry]) -> str:
-        logs_text = ""
-        for log in logs:
-            clean_message = log.message.encode().decode("unicode_escape")
-            logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level.value} {log.app} {clean_message}\n"
-
-        return logs_text

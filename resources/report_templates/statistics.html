@@ -4,7 +4,7 @@
 <b>Total errors:</b> {{ total_errors }}
 <b>Unique types:</b> {{ unique_types }}
 
-{% if groups %}
+{% if groups and groups | length > 0 %}
 <b>Top {{ groups[:10] | length }} errors:</b>
 {% for group in groups[:10] %}
 {{ loop.index }}. <code>{{ group.error_type }}</code>

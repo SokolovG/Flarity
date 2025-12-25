@@ -29,16 +29,3 @@ class AppSettings(BaseSettings):
             except ValueError as e:
                 raise ValueError(f"Invalid schedule_interval_hours: {e}")
         return self
-
-    @model_validator(mode="after")
-    def validate_llm_provider_config(self) -> Self:
-        if self.llm_provider.provider == "yandex":
-            if (
-                not self.llm_provider.get_config.api_key
-                or not self.llm_provider.get_config.catalog_id
-            ):
-                raise ValueError("Yandex API key and catalog ID are required")
-        elif self.llm_provider.provider == "ollama":
-            if not self.llm_provider.get_config.base_url:
-                raise ValueError("Ollama base URL is required")
-        return self

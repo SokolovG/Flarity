@@ -41,6 +41,8 @@ class LokiClient:
             params=params,
             no_log_answer=True,
         )
+        print("RESPONSE")
+        print(response)
 
         if response.status_code == HTTPStatus.SERVICE_UNAVAILABLE:
             raise LokiUnavailableError("Loki is temporarily unavailable")

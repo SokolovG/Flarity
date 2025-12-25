@@ -1,8 +1,7 @@
+from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
-from src.domain.entities.analysis_report import AnalysisReport
 from src.domain.services.error_grouper import ErrorGrouper
-from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 
 

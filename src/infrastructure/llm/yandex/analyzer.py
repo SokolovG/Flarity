@@ -7,16 +7,15 @@ from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import LLMModel
-from src.domain.entities.log_entry import LogEntry
 from src.infrastructure.exceptions import LLMAuthError, LLMError, LLMRateLimitError
-from src.infrastructure.llm.base_http_llm_analyzer import BaseHTTPLLMAnalyzer
+from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.providers import LLMProvider
 from src.infrastructure.llm.yandex.responses import YandexResponse
 
 logger = getLogger(__name__)
 
 
-class YandexAnalyzer(BaseHTTPLLMAnalyzer):
+class YandexAnalyzer(BaseLLMAnalyzer):
     def _get_api_url(self) -> str:
         url: str = self.settings.llm_provider.get_config.base_url
         return url
@@ -92,11 +91,3 @@ class YandexAnalyzer(BaseHTTPLLMAnalyzer):
             case LLMModel.YANDEX_GPT_PRO_5_1:
                 modelUri += "rc"
         return modelUri
-
-    def _format_logs_for_llm(self, logs: list[LogEntry]) -> str:
-        logs_text = ""
-        for log in logs:
-            clean_message = log.message.encode().decode("unicode_escape")
-            logs_text += f"[{log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {log.level.value} {log.app} {clean_message}\n"
-
-        return logs_text

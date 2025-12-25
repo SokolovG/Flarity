@@ -23,7 +23,7 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_bot(self, settings: AppSettings) -> Bot:
-        return Bot(token=settings.notification.telegram_bot_token)
+        return Bot(token=settings.notification.get_config.bot_token)
 
     @provide(scope=Scope.APP)
     def get_dispatcher(self) -> Dispatcher:

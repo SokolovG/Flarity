@@ -17,8 +17,11 @@ class LogsSourceSettings(BaseSettings):
     provider: str
 
     config: dict[str, Any] = {}
-    model_config = SettingsConfigDict(env_prefix="LOG_SOURCE", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_prefix="LOG_SOURCE_", case_sensitive=False, env_nested_delimiter="__"
+    )
 
+    @property
     def get_config(self) -> BaseLogsSourceConfig:
         match self.provider:
             case "loki":

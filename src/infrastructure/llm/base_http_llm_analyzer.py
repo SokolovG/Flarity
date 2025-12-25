@@ -11,7 +11,7 @@ from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.settings.app_settings import AppSettings
 
 
-class BaseHTTPLLMAnalyzer(LLMAnalyzer, ABC):
+class BaseLLMAnalyzer(LLMAnalyzer, ABC):
     def __init__(self, http_client: HTTPClient, settings: AppSettings):
         self.http = http_client
         self.settings = settings

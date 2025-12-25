@@ -1,7 +1,7 @@
 from aiogram.types import CallbackQuery, Message
 
+from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.notifier import Notifier
-from src.domain.entities.analysis_report import AnalysisReport
 from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
