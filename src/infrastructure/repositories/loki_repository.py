@@ -1,7 +1,15 @@
+import json
+from datetime import datetime
+from logging import getLogger
+
 from src.application.ports.log_source import LogSource
+from src.domain.entities.enums import LogLevel
 from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.clients.loki_client import LokiClient
+from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
+
+logger = getLogger(__name__)
 
 
 class LokiLogRepository(LogSource):
@@ -12,9 +20,36 @@ class LokiLogRepository(LogSource):
         query = f'{{level="error"}}'
         start, end = time_range.to_timestamps()
 
-        response = await self.client.query_range(query, start, end)
+        raw_response = await self.client.query_range(query, start, end)
 
-        return response.logs
+        return self._map_to_domain(raw_response)
+
+    def _map_to_domain(self, response: LokiQueryRangeResponse) -> list[LogEntry]:
+        logs = []
+        for stream in response.data.result:
+            for timestamp_ns, message in stream.values:
+                parsed = self._parse_log_message(message)
+                logs.append(
+                    LogEntry(
+                        timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
+                        message=parsed.get("message", message),
+                        level=LogLevel.ERROR,
+                        app=stream.stream.get("app", "unknown"),
+                        target=parsed.get("target"),
+                        request_id=parsed.get("span", {}).get("request_id"),
+                        method=parsed.get("span", {}).get("method"),
+                        uri=parsed.get("span", {}).get("uri"),
+                    )
+                )
+        return logs
+
+    def _parse_log_message(self, message: str) -> dict:
+        try:
+            _dict: dict = json.loads(message)
+            return _dict
+        except json.JSONDecodeError:
+            logger.warning(f"Failed to parse log as JSON: {message[:100]}")
+            return {}
 
     async def check_readiness(self) -> bool:
         return await self.client.is_loki_is_ready()

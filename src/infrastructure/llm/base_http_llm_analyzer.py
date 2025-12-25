@@ -6,9 +6,9 @@ from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
-from src.core.settings.app_settings import AppSettings
 from src.domain.entities.log_entry import LogEntry
 from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.settings.app_settings import AppSettings
 
 
 class BaseHTTPLLMAnalyzer(LLMAnalyzer, ABC):
@@ -47,4 +47,5 @@ class BaseHTTPLLMAnalyzer(LLMAnalyzer, ABC):
             url=self._get_api_url(),
             data=data,
             headers=self._get_headers(),
+            no_log_answer=True,
         )

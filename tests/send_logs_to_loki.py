@@ -12,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# from src.core.settings.app_settings import AppSettings
+# from src.infrastructure.settings.app_settings import AppSettings
 
 
 async def send_fake_logs_to_loki() -> None:

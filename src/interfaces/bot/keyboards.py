@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.core.constants import PERIODS
-from src.core.utils import format_time_range
+from src.domain.constants import PERIODS
+from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.entities import BotAction, BotCallback
 

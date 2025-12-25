@@ -1,13 +1,13 @@
 from http import HTTPMethod, HTTPStatus
 
-from src.core.constants import TELEGRAM_MESSAGE_LIMIT
-from src.core.exceptions import (
+from src.domain.constants import TELEGRAM_MESSAGE_LIMIT
+from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.exceptions import (
     TelegramBadRequestError,
     TelegramError,
     TelegramRateLimitError,
 )
-from src.core.settings.notification_settings import NotificationSettings
-from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.settings.notification_settings import NotificationSettings
 
 
 class TelegramClient:

@@ -9,10 +9,10 @@ from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.core.settings.app_settings import AppSettings
-from src.core.utils import format_time_range, get_settings_for_bot
 from src.domain.entities.enums import ReportTemplate
+from src.domain.utils import format_time_range, get_settings_for_bot
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options

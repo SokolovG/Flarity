@@ -1,4 +1,4 @@
-from src.core.exceptions.base_exceptions import BaseCustomException
+from src.infrastructure.exceptions.base_exceptions import BaseCustomException
 
 
 class TelegramError(BaseCustomException):

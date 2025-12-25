@@ -3,10 +3,10 @@ from typing import Self
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
-from src.core.settings.llm_provider_settings import LLMProviderSettings
-from src.core.settings.llm_settings import LLMSettings
-from src.core.settings.log_source_settings import LogsSourceSettings
-from src.core.settings.notification_settings import NotificationSettings
+from src.infrastructure.settings.llm_provider_settings import LLMProviderSettings
+from src.infrastructure.settings.llm_settings import LLMSettings
+from src.infrastructure.settings.log_source_settings import LogsSourceSettings
+from src.infrastructure.settings.notification_settings import NotificationSettings
 
 
 class AppSettings(BaseSettings):

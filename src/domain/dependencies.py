@@ -7,16 +7,16 @@ from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.core.settings.app_settings import AppSettings
 from src.domain.services.error_grouper import ErrorGrouper
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.clients.loki_client import LokiClient
 from src.infrastructure.clients.telegram_client import TelegramClient
-from src.infrastructure.llm.ollama_analyzer import OllamaAnalyzer
+from src.infrastructure.llm.ollama.analyzer import OllamaAnalyzer
 from src.infrastructure.llm.providers import LLMProvider
-from src.infrastructure.llm.yandex_analyzer import YandexAnalyzer
+from src.infrastructure.llm.yandex.analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.infrastructure.repositories.loki_repository import LokiLogRepository
+from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 

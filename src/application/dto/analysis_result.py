@@ -2,7 +2,7 @@ from typing import Self
 
 from msgspec import Struct
 
-from src.core.utils import format_time_range
+from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.llm.providers import LLMProvider
 

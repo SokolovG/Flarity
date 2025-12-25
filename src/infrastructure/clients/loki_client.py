@@ -5,15 +5,11 @@ from logging import getLogger
 
 import msgspec
 
-from src.core.exceptions import LokiError, LokiUnavailableError
-from src.core.settings.log_source_settings import LogsSourceSettings
-from src.domain.entities.enums import Directions, LogLevel
-from src.domain.entities.log_entry import LogEntry
+from src.domain.entities.enums import Directions
 from src.infrastructure.clients.http_client import HTTPClient
-from src.responses import (
-    LogsSourceQueryResult,
-    LokiQueryRangeResponse,
-)
+from src.infrastructure.exceptions import LokiError, LokiUnavailableError
+from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
+from src.infrastructure.settings.log_source_settings import LogsSourceSettings
 
 logger = getLogger(__name__)
 
@@ -30,7 +26,7 @@ class LokiClient:
         end_time: datetime,
         limit: int = 1000,
         direction: Directions = Directions.BACKWARD,
-    ) -> LogsSourceQueryResult:
+    ) -> LokiQueryRangeResponse:
         params = {
             "query": query,
             "start": str(int(start_time.timestamp() * 1_000_000_000)),
@@ -53,34 +49,8 @@ class LokiClient:
         elif response.status_code >= HTTPStatus.BAD_REQUEST:
             raise LokiError(f"Bad request: {response.status_code}")
 
-        loki_resp = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
-        logs = []
-        for stream in loki_resp.data.result:
-            for timestamp_ns, message in stream.values:
-                parsed = self._parse_log_message(message)
-
-                logs.append(
-                    LogEntry(
-                        timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
-                        message=parsed.get("message", message),
-                        level=LogLevel.ERROR,
-                        app=stream.stream.get("app", "unknown"),
-                        target=parsed.get("target"),
-                        request_id=parsed.get("span", {}).get("request_id"),
-                        method=parsed.get("span", {}).get("method"),
-                        uri=parsed.get("span", {}).get("uri"),
-                    )
-                )
-        result = LogsSourceQueryResult(logs=logs, total_count=len(logs))
-        return result
-
-    def _parse_log_message(self, message: str) -> dict:
-        try:
-            _dict: dict = json.loads(message)
-            return _dict
-        except json.JSONDecodeError:
-            logger.warning(f"Failed to parse log as JSON: {message[:100]}")
-            return {}
+        response = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
+        return response  # type: ignore
 
     async def is_loki_is_ready(self) -> bool:
         try:

@@ -7,11 +7,11 @@ import msgspec
 from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
-from src.core.exceptions import LLMError
 from src.domain.entities.log_entry import LogEntry
+from src.infrastructure.exceptions import LLMError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseHTTPLLMAnalyzer
+from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
 from src.infrastructure.llm.providers import LLMProvider
-from src.responses import OllamaErrorResponse, OllamaResponse
 
 logger = getLogger(__name__)
 

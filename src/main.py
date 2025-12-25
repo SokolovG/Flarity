@@ -9,11 +9,11 @@ from dishka import AsyncContainer, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
 from src.application.ports.notifier import Notifier
-from src.core import MyProvider
-from src.core.exceptions import BaseCustomException
-from src.core.settings.app_settings import AppSettings
-from src.core.utils import format_time_range
+from src.domain.dependencies import MyProvider
+from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.exceptions.base_exceptions import BaseCustomException
+from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import setup_bot
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
