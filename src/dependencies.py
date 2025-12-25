@@ -52,8 +52,8 @@ class MyProvider(Provider):
         return TelegramNotifier(telegram_client, settings.notification)
 
     @provide(scope=Scope.APP)
-    def get_formatter(self) -> ReportFormatter:
-        return ReportFormatter()
+    def get_formatter(self, app_settings: AppSettings) -> ReportFormatter:
+        return ReportFormatter(app_settings)
 
     @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(

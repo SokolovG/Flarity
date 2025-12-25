@@ -83,18 +83,19 @@ async def on_analyze_period(
 
     try:
         report = await analyze_use_case.execute(time_range)
+
+        await handle_report_callback(
+            callback,
+            time_range=time_range,
+            report=report,
+            report_type=ReportType.ANALYZE,
+            formatter=formatter,
+            notifier=notifier,
+            loading_msg=loading_msg,
+        )
+
     except Exception as e:
         await loading_msg.edit_text(f"❌ Analyze failed: {e}", reply_markup=get_main_menu())
-
-    await handle_report_callback(
-        callback,
-        time_range=time_range,
-        report=report,
-        report_type=ReportType.ANALYZE,
-        formatter=formatter,
-        notifier=notifier,
-        loading_msg=loading_msg,
-    )
 
 
 @bot_router.callback_query(F.data.startswith("recent_"))
@@ -112,19 +113,20 @@ async def on_recent_period(
 
     try:
         report = await errors_use_case.execute(time_range)
+
+        await handle_report_callback(
+            callback,
+            time_range=time_range,
+            report=report,
+            report_type=ReportType.RECENT,
+            formatter=formatter,
+            notifier=notifier,
+        )
+
     except Exception as e:
         await callback.message.edit_text(
             f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
         )
-
-    await handle_report_callback(
-        callback,
-        time_range=time_range,
-        report=report,
-        report_type=ReportType.RECENT,
-        formatter=formatter,
-        notifier=notifier,
-    )
 
 
 @bot_router.callback_query(F.data.startswith("stats_"))
@@ -137,25 +139,25 @@ async def on_statistics_period(
     state: FSMContext,
 ) -> None:
     await state.set_state(BotStates.viewing_report)
-    await state.set_state(BotStates.viewing_report)
     hours = int(callback.data.split("_")[1])
     time_range = TimeRange(hours)
 
     try:
         report = await statistics_use_case.execute(time_range)
+
+        await handle_report_callback(
+            callback,
+            time_range=time_range,
+            report=report,
+            report_type=ReportType.STATS,
+            formatter=formatter,
+            notifier=notifier,
+        )
+
     except Exception as e:
         await callback.message.edit_text(
             f"❌ Fetching statistics failed: {e}", reply_markup=get_main_menu()
         )
-
-    await handle_report_callback(
-        callback,
-        time_range=time_range,
-        report=report,
-        report_type=ReportType.STATS,
-        formatter=formatter,
-        notifier=notifier,
-    )
 
 
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)

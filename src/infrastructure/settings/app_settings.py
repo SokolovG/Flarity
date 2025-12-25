@@ -7,6 +7,7 @@ from src.infrastructure.settings.llm_provider_settings import LLMProviderSetting
 from src.infrastructure.settings.llm_settings import LLMSettings
 from src.infrastructure.settings.log_source_settings import LogsSourceSettings
 from src.infrastructure.settings.notification_settings import NotificationSettings
+from src.infrastructure.settings.report_settings import ReportSettings
 
 
 class AppSettings(BaseSettings):
@@ -14,6 +15,7 @@ class AppSettings(BaseSettings):
     llm: LLMSettings = Field(default_factory=LLMSettings)
     llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
     notification: NotificationSettings = Field(default_factory=NotificationSettings)
+    report: ReportSettings = Field(default_factory=ReportSettings)
     schedule_interval_hours: str = "6"
     schedule_enabled: bool
 

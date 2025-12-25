@@ -153,7 +153,37 @@ flarity/
 └── Dockerfile
 ```
 
-### Adding a New LLM Provider
+## Customization
+
+### Templates
+You can override default templates via environment variables:
+```bash
+# .env
+REPORT_ANALYZE_TEMPLATE=my_custom_analysis.html
+REPORT_RECENT_TEMPLATE=my_custom_recent.html
+```
+
+Place your custom templates in `resources/report_templates/`.
+
+### Adding a new group strategy (new logs formar psrsing)
+```python
+# 1. Create custom strategy
+class MyCustomStrategy(ErrorGroupingStrategy):
+    def extract_error_type(self, log: LogEntry) -> str:
+        if "database" in log.message.lower():
+            return "DATABASE_ERROR"
+        elif "timeout" in log.message.lower():
+            return "TIMEOUT_ERROR"
+        return "UNKNOWN"
+
+# 2. register in dependecncies
+@provide(scope=Scope.APP)
+    def get_error_grouper(self) -> ErrorGrouper:
+        grouper = ErrorGrouper(strategy=MyCustomStrategy())
+        return grouper
+```
+
+### Adding a new LLM Provider
 ```python
 # 1. Create adapter in llm_adapters/
 class NewProviderAdapter(LLMService):
