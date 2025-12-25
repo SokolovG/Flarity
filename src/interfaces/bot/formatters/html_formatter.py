@@ -1,20 +1,20 @@
 from jinja2 import Environment, FileSystemLoader
 
 from src.domain.entities.analysis_report import AnalysisReport, ErrorGroup
-from src.domain.entities.enums import ReportTemplate
+from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 
 
 class ReportFormatter:
     def __init__(self) -> None:
-        self.env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
+        self.env = Environment(
+            loader=FileSystemLoader("recources/report_templates"), autoescape=True
+        )
 
-    def to_html(
-        self,
-        report: AnalysisReport,
-        template_name: ReportTemplate = ReportTemplate.ANALYSIS_DETAILED,
-    ) -> str:
-        template = self.env.get_template(template_name.value)
+    def to_html(self, report: AnalysisReport, report_type: ReportType) -> str:
+        template_file = report_type.value
+        # TODO get template file via report_type
+        template = self.env.get_template(report_type.value)
 
         title = f"Error report for the last {report.time_range.hours} {format_time_range(report.time_range)}"
         total_errors = len(report.logs) if report.logs else 0

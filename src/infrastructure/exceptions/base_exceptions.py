@@ -1,7 +1,7 @@
 from typing import Any
 
 
-class BaseCustomException(Exception):
+class InfrastructureException(Exception):
     default_retryable: bool = False
 
     def __init__(
@@ -14,11 +14,3 @@ class BaseCustomException(Exception):
         self.is_retryable = is_retryable if is_retryable is not None else self.default_retryable
         self.details = details if details else {}
         super().__init__(message)
-
-
-class SettingsFieldIsEmpty(BaseCustomException):
-    default_retryable = False
-
-
-class ServiceNotReadyError(BaseCustomException):
-    default_retryable = True

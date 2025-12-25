@@ -1,7 +1,7 @@
-from src.infrastructure.exceptions.base_exceptions import BaseCustomException
+from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 
 
-class LokiError(BaseCustomException):
+class LokiError(InfrastructureException):
     default_retryable = True
 
 

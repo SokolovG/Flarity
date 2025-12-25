@@ -1,10 +1,5 @@
 from httpx import NetworkError
 
-from src.infrastructure.exceptions.base_exceptions import (
-    BaseCustomException,
-    ServiceNotReadyError,
-    SettingsFieldIsEmpty,
-)
 from src.infrastructure.exceptions.llm_exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.infrastructure.exceptions.loki_exceptions import (
     LogParsingError,
@@ -27,7 +22,6 @@ __all__ = [
     "LLMError",
     "LokiError",
     "SettingsFieldIsEmpty",
-    "ServiceNotReadyError",
     "TelegramBadRequestError",
     "TelegramError",
     "TelegramRateLimitError",

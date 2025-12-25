@@ -9,7 +9,7 @@ from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import ReportTemplate
+from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.settings.app_settings import AppSettings
@@ -90,7 +90,7 @@ async def on_analyze_period(
         callback,
         time_range=time_range,
         report=report,
-        template=ReportTemplate.ANALYSIS_DETAILED,
+        report_type=ReportType.ANALYZE,
         formatter=formatter,
         notifier=notifier,
         loading_msg=loading_msg,
@@ -121,7 +121,7 @@ async def on_recent_period(
         callback,
         time_range=time_range,
         report=report,
-        template=ReportTemplate.RECENT_ERRORS,
+        report_type=ReportType.RECENT,
         formatter=formatter,
         notifier=notifier,
     )
@@ -152,7 +152,7 @@ async def on_statistics_period(
         callback,
         time_range=time_range,
         report=report,
-        template=ReportTemplate.STATISTICS,
+        report_type=ReportType.STATS,
         formatter=formatter,
         notifier=notifier,
     )

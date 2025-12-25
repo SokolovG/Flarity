@@ -1,5 +1,5 @@
-from src.infrastructure.exceptions.base_exceptions import BaseCustomException
+from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 
 
-class NetworkError(BaseCustomException):
+class NetworkError(InfrastructureException):
     default_retryable = True

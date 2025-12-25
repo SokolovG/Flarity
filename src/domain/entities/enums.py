@@ -36,6 +36,12 @@ class Status(Enum):
     SUCCESS = "success"
 
 
+class ReportType(Enum):
+    ANALYZE = "analysis"
+    RECENT = "recent"
+    STATS = "stats"
+
+
 class ReportTemplate(Enum):
     ANALYSIS_SHORT = "analysis_short.html"
     ANALYSIS_DETAILED = "analysis_detailed.html"

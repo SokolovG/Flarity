@@ -6,7 +6,7 @@ from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import ReportTemplate
+from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.settings.app_settings import AppSettings
@@ -56,7 +56,7 @@ async def cmd_analyze(
         )
         return
 
-    html = formatter.to_html(report)
+    html = formatter.to_html(report, report_type=ReportType.ANALYZE)
     await notifier.send(html, chat_id=str(message.chat.id))
     await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
@@ -92,7 +92,7 @@ async def cmd_stats(
             )
             return
 
-        html = formatter.to_html(report, template_name=ReportTemplate.STATISTICS)
+        html = formatter.to_html(report, report_type=ReportType.STATS)
         await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
@@ -129,7 +129,7 @@ async def cmd_recent(
             )
             return
 
-        html = formatter.to_html(report, template_name=ReportTemplate.RECENT_ERRORS)
+        html = formatter.to_html(report, report_type=ReportType.RECENT)
         await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 

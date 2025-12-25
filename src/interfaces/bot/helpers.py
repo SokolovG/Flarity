@@ -2,7 +2,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.application.ports.notifier import Notifier
 from src.domain.entities.analysis_report import AnalysisReport
-from src.domain.entities.enums import ReportTemplate
+from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
@@ -13,7 +13,7 @@ async def handle_report_callback(
     callback: CallbackQuery,
     time_range: TimeRange,
     report: AnalysisReport,
-    template: ReportTemplate,
+    report_type: ReportType,
     formatter: ReportFormatter,
     notifier: Notifier,
     loading_msg: Message | None = None,
@@ -30,6 +30,6 @@ async def handle_report_callback(
         )
         return
 
-    html = formatter.to_html(report, template)
+    html = formatter.to_html(report, report_type)
     await notifier.send(html, chat_id=callback.message.chat.id)
     await callback.message.answer("Choose an action:", reply_markup=get_main_menu())

@@ -17,7 +17,7 @@ class LLMSettings(BaseSettings):
 
     @model_validator(mode="after")
     def load_system_prompt(self) -> Self:
-        with open("prompts/base_prompt.txt", "r") as f:
+        with open("resources/prompts/base_prompt.txt", "r") as f:
             self._system_prompt = f.read()
         return self
 
