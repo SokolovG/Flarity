@@ -1,6 +1,6 @@
 from src.application.ports.notifier import Notifier
-from src.core.settings.notification_settings import NotificationSettings
 from src.infrastructure.clients.telegram_client import TelegramClient
+from src.infrastructure.settings.notification_settings import NotificationSettings
 
 
 class TelegramNotifier(Notifier):

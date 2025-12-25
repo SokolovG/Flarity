@@ -7,12 +7,13 @@ from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportTemplate
-from src.domain.utils import format_time_range, get_help_text_for_bot, get_settings_for_bot
+from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
+from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.router import bot_router
 
@@ -139,7 +140,7 @@ async def cmd_recent(
 @bot_router.message(Command("settings"))
 @inject
 async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) -> None:
-    info = get_settings_for_bot(
+    info = BotTextFormatter.format_settings(
         provider=app_settings.llm_provider.provider,
         model=app_settings.llm.model,
         schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
@@ -150,7 +151,7 @@ async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) 
 
 @bot_router.message(Command("help"))
 async def cmd_help(message: Message) -> None:
-    help_text = get_help_text_for_bot()
+    help_text = BotTextFormatter.format_help()
     await message.answer(help_text, parse_mode="HTML", reply_markup=get_main_menu())
 
 

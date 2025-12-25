@@ -1,7 +1,7 @@
 from http import HTTPMethod, HTTPStatus
 
-from src.domain.constants import TELEGRAM_MESSAGE_LIMIT
 from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.constants import TELEGRAM_MESSAGE_LIMIT
 from src.infrastructure.exceptions import (
     TelegramBadRequestError,
     TelegramError,
