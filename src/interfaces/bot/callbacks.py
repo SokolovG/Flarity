@@ -91,6 +91,7 @@ async def on_analyze_period(
     )
 
     try:
+        # TODO: fix it after tests!
         # report = await analyze_use_case.execute(time_range)
         report = AnalysisReport(
             has_errors=True,
@@ -109,6 +110,7 @@ async def on_analyze_period(
             keyboard=get_no_menu(),
             msg="Do you want ask something from LLM about report?\nIf you want, write your question!",
         )
+        await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
         logger.exception(e)
@@ -193,12 +195,7 @@ async def on_statistics_period(
 @bot_router.callback_query(F.data == BotCallback.NO.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-    current_state = await state.get_state()
-    if current_state == BotStates.period_selection:
-        # TODO: wtf?
-        await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
-    else:
-        await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
+    await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
 
     await state.set_state(BotStates.main_menu)
 
@@ -215,15 +212,8 @@ async def get_more_recent_errors(
     data = await state.get_data()
 
     hours = data.get("hours")
-    msg: Message | None = data.get("msg")
     time_range = TimeRange(hours)
 
-    if msg:
-        msg = msg
-    else:
-        msg = callback.message
-
-    msg.delete()
     # TODO: delete last 2 messages
     try:
         report = await errors_use_case.execute(time_range)
@@ -238,34 +228,18 @@ async def get_more_recent_errors(
             keyboard=get_main_menu(),
             show_all_errors=True,
         )
+        await callback.bot.edit_message_text(
+            text="Choose an action:",
+            reply_markup=get_main_menu(),
+            chat_id=data.get("chat_id"),
+            message_id=data.get("message_id"),
+        )
 
     except Exception as e:
         logger.exception(e)
-        await msg.edit_text(f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu())
-    await msg.edit_text("Choose an action:", reply_markup=get_main_menu())
-
-
-# @bot_router.callback_query()
-# @inject
-# async def ask_llm(
-#     callback: CallbackQuery,
-#     analyze_use_case: FromDishka[AskLLMUseCase],
-#     formatter: FromDishka[ReportFormatter],
-#     notifier: FromDishka[Notifier],
-# ) -> None:
-#     callback.message.delete()  # TODO: delete last 2 messages
-#     text = callback.message.text
-#     print(text)
-
-#     try:
-#         report = await analyze_use_case.execute(text)
-
-#         html = formatter.to_html(report, ReportType.ANSWER)
-#         await notifier.send(html, chat_id=callback.message.chat.id)
-
-#     except Exception as e:
-#         logger.exception(e)
-#         await callback.message.edit_text(
-#             f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
-#         )
-#     await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
+        await callback.bot.edit_message_text(
+            text=f"❌ Fetching recent errors failed: {e}",
+            reply_markup=get_main_menu(),
+            chat_id=data.get("chat_id"),
+            message_id=data.get("message_id"),
+        )

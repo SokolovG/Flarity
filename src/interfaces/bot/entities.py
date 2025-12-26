@@ -24,3 +24,4 @@ class BotStates(StatesGroup):
     main_menu = State()
     period_selection = State()
     viewing_report = State()
+    waiting_for_question = State()

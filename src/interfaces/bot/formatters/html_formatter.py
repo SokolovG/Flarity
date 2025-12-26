@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 
 from src.application.dto.analysis_report import AnalysisReport, ErrorGroup
+from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.infrastructure.constants import (
@@ -13,9 +14,7 @@ from src.infrastructure.settings.report_settings import ReportSettings
 
 class ReportFormatter:
     def __init__(self, report_settings: ReportSettings) -> None:
-        self.env = Environment(
-            loader=FileSystemLoader("resources/report_templates"), autoescape=True
-        )
+        self.env = Environment(loader=FileSystemLoader("resources/templates"), autoescape=True)
         self.report_settings = report_settings
 
     def to_html(
@@ -60,4 +59,15 @@ class ReportFormatter:
             max_errors=MAX_ERRORS_IN_ONE_REPORT,
             max_symbols=MAX_SYMBOLS_LOG_MSG,
             max_groups=MAX_GROUPS_IN_REPORT,
+        )
+
+    def format_llm_answer(self, answer: LLMAnalysisResult, report_type: ReportType) -> str:
+        template_name = self.report_settings.get_template(report_type)
+        template = self.env.get_template(template_name)
+
+        return template.render(
+            answer=answer.analysis_text,
+            provider=answer.provider.value,
+            tokens_in=answer.input_tokens_used,
+            tokens_out=answer.output_tokens_used,
         )

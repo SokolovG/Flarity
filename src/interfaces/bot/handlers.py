@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -5,6 +7,7 @@ from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
@@ -13,11 +16,13 @@ from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: ignore
-from src.interfaces.bot.entities import BotAction
+from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options, get_yes_or_no_menu
 from src.interfaces.bot.router import bot_router
+
+logger = getLogger(__name__)
 
 
 @bot_router.message(CommandStart())
@@ -131,7 +136,6 @@ async def cmd_recent(
 
         show_all_errors = None
         if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore
-            set_data = {"hours": hours}
             html = formatter.to_html(
                 report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
             )
@@ -140,7 +144,8 @@ async def cmd_recent(
                 "Do you want see all errors?",
                 reply_markup=get_yes_or_no_menu(action=BotAction.RECENT),
             )
-            set_data["msg"] = msg
+
+            set_data = {"hours": hours, "message_id": msg.message_id, "chat_id": msg.chat.id}
             await state.set_data(set_data)
             return
 
@@ -172,6 +177,32 @@ async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) 
 async def cmd_help(message: Message) -> None:
     help_text = BotTextFormatter.format_help()
     await message.answer(help_text, parse_mode="HTML", reply_markup=get_main_menu())
+
+
+@bot_router.message(BotStates.waiting_for_question)
+@inject
+async def handle_llm_question(
+    message: Message,
+    ask_use_case: FromDishka[AskLLMUseCase],
+    formatter: FromDishka[ReportFormatter],
+    notifier: FromDishka[Notifier],
+    state: FSMContext,
+) -> None:
+    question = message.text
+
+    loading_msg = await message.answer("Asking LLM...")
+
+    try:
+        answer = await ask_use_case.execute(question)
+        html = formatter.format_llm_answer(answer, ReportType.ANSWER)
+        await notifier.send(html, chat_id=str(message.chat.id))
+        await loading_msg.delete()
+        await message.answer("Choose an action:", reply_markup=get_main_menu())
+        await state.set_state(BotStates.main_menu)
+
+    except Exception as e:
+        logger.exception(e)
+        await loading_msg.edit_text(f"❌ Error: {e}")
 
 
 @bot_router.message()

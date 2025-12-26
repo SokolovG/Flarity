@@ -99,7 +99,7 @@ async def main() -> None:
 
         tasks = []
 
-        # TODO: !
+        # TODO: turn on after tests!
         # if settings.schedule_enabled:
         #     tasks.append(start_scheduler(container, settings))
 
