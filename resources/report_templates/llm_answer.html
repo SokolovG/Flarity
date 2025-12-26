@@ -1,0 +1,11 @@
+LLM Answer:
+
+{{ answer }}
+
+---
+Technical information:
+
+Provider: {{ provider }}
+{% if tokens_in %}
+Tokens: {{ tokens_in }} in / {{ tokens_out }} out
+{% endif %}

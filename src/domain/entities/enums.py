@@ -40,6 +40,7 @@ class ReportType(Enum):
     ANALYZE = "analysis"
     RECENT = "recent"
     STATS = "stats"
+    ANSWER = "answer"
 
 
 class ReportTemplate(Enum):
@@ -47,3 +48,4 @@ class ReportTemplate(Enum):
     ANALYSIS_DETAILED = "analysis_detailed.html"
     RECENT_ERRORS = "recent_errors.html"
     STATISTICS = "statistics.html"
+    ANSWER = "llm_answer.html"

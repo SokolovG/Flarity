@@ -15,7 +15,7 @@ from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
-from src.interfaces.bot.keyboards import get_main_menu, get_period_options
+from src.interfaces.bot.keyboards import get_main_menu, get_period_options, get_yes_or_no_menu
 from src.interfaces.bot.router import bot_router
 
 
@@ -58,8 +58,11 @@ async def cmd_analyze(
         return
 
     html = formatter.to_html(report, report_type=ReportType.ANALYZE)
-    await notifier.send(html, chat_id=str(message.chat.id))
-    await message.answer(text="Choose an action:", reply_markup=get_main_menu())
+    await notifier.send(
+        html,
+        chat_id=str(message.chat.id),
+        reply_markup=get_yes_or_no_menu(action=BotAction.ANALYZE),
+    )
 
 
 @bot_router.message(Command("stats"))
@@ -126,12 +129,18 @@ async def cmd_recent(
 
         if not report.has_errors:
             await message.answer(
-                f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
+                f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}"
             )
             return
+
         show_all_errors = None
-        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT: # type: ignore
-            show_all_errors = True
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore
+            await message.answer(
+                "Do you want see all errors?",
+                reply_markup=get_yes_or_no_menu(action=BotAction.RECENT),
+            )
+            return
+
         html = formatter.to_html(
             report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
         )

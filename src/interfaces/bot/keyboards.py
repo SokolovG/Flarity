@@ -48,10 +48,18 @@ def get_back_to_menu_button() -> InlineKeyboardMarkup:
     )
 
 
-def get_more_errors_button() -> InlineKeyboardMarkup:
+def get_yes_or_no_menu(action: BotAction) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Yes", callback_data=BotCallback.YES.value)],
+            [InlineKeyboardButton(text="Yes", callback_data=f"{BotCallback.YES.value}_{action}")],
+            [InlineKeyboardButton(text="No", callback_data=f"{BotCallback.NO.value}_{action}")],
+        ]
+    )
+
+
+def get_no_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
             [InlineKeyboardButton(text="No", callback_data=BotCallback.NO.value)],
         ]
     )

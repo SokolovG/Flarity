@@ -18,3 +18,7 @@ class ReportSettings(BaseSettings):
                 return self.recent_template
             case ReportType.STATS:
                 return self.stats_template
+            case ReportType.ANSWER:
+                return ReportTemplate.ANSWER.value
+            case _:
+                raise ValueError("Unknown template")

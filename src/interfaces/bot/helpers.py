@@ -6,7 +6,7 @@ from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.keyboards import get_main_menu
+from src.interfaces.bot.keyboards import get_main_menu, get_yes_or_no_menu
 
 
 async def handle_report_callback(
@@ -36,5 +36,5 @@ async def handle_report_callback(
     html = formatter.to_html(report, report_type, show_all_errors)
     await notifier.send(html, chat_id=callback.message.chat.id)
     if not msg:
-        msg = "Choose an action:"
+        msg = "Do you want ask something from LLM about report?\nIf you want, write your question!"
     await callback.message.answer(msg, reply_markup=keyboard)

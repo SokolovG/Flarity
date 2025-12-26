@@ -23,6 +23,12 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
         self._handle_response(response)
         return self._parse_response(response.content)
 
+    async def ask(self, question: str) -> LLMAnalysisResult:
+        request_data = self._build_request(question)
+        response = await self._make_http_request(request_data)
+        self._handle_response(response)
+        return self._parse_response(response.content)
+
     @abstractmethod
     def _build_request(self, logs_text: str) -> dict[str, Any]: ...
     @abstractmethod

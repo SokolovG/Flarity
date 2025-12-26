@@ -5,6 +5,7 @@ from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.services.error_grouper import ErrorGrouper
@@ -32,6 +33,10 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_app_settings(self) -> AppSettings:
         return AppSettings()
+
+    @provide(scope=Scope.APP)
+    def get_ask_llm_use_case(self, llm_analyzer: LLMAnalyzer) -> AskLLMUseCase:
+        return AskLLMUseCase(llm_analyzer)
 
     @provide(scope=Scope.APP)
     def get_http_client(self, app_settings: AppSettings) -> HTTPClient:

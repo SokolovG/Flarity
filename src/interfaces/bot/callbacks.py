@@ -7,6 +7,7 @@ from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
@@ -17,7 +18,12 @@ from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import handle_report_callback
-from src.interfaces.bot.keyboards import get_main_menu, get_more_errors_button, get_period_options
+from src.interfaces.bot.keyboards import (
+    get_main_menu,
+    get_no_menu,
+    get_period_options,
+    get_yes_or_no_menu,
+)
 from src.interfaces.bot.router import bot_router
 
 logger = getLogger(__name__)
@@ -92,6 +98,7 @@ async def on_analyze_period(
             formatter=formatter,
             notifier=notifier,
             loading_msg=loading_msg,
+            keyboard=get_no_menu(),
         )
 
     except Exception as e:
@@ -124,7 +131,7 @@ async def on_recent_period(
             report_type=ReportType.RECENT,
             formatter=formatter,
             notifier=notifier,
-            keyboard=get_more_errors_button(),
+            keyboard=get_yes_or_no_menu(action=BotAction.RECENT),
             msg="Do you want see all errors?",
         )
 
@@ -181,7 +188,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(BotStates.main_menu)
 
 
-@bot_router.callback_query(F.data == BotCallback.YES.value)
+@bot_router.callback_query(F.data == "yes_recent")
 @inject
 async def get_more_recent_errors(
     callback: CallbackQuery,
@@ -208,6 +215,31 @@ async def get_more_recent_errors(
             keyboard=get_main_menu(),
             show_all_errors=True,
         )
+
+    except Exception as e:
+        logger.exception(e)
+        await callback.message.edit_text(
+            f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
+        )
+    await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
+
+
+@bot_router.callback_query(F.data == "yes_analyze")
+@inject
+async def ask_llm(
+    callback: CallbackQuery,
+    analyze_use_case: FromDishka[AskLLMUseCase],
+    formatter: FromDishka[ReportFormatter],
+    notifier: FromDishka[Notifier],
+) -> None:
+    callback.message.delete()  # TODO: delete last 2 messages
+    text = callback.message.from_user()
+
+    try:
+        report = await analyze_use_case.execute(text)
+
+        html = formatter.to_html(report, ReportType.ANSWER)
+        await notifier.send(html, chat_id=callback.message.chat.id)
 
     except Exception as e:
         logger.exception(e)
