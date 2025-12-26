@@ -1,4 +1,5 @@
 from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
@@ -83,9 +84,6 @@ async def cmd_stats(
 
     try:
         hours = int(args[0])
-        if hours <= 0:
-            await message.answer("❌ Hours must be positive!")
-            return
 
         time_range = TimeRange(hours)
         report = await use_case.execute(time_range)
@@ -111,6 +109,7 @@ async def cmd_recent(
     use_case: FromDishka[RecentErrorsUseCase],
     notifier: FromDishka[Notifier],
     formatter: FromDishka[ReportFormatter],
+    state: FSMContext,
 ) -> None:
     args = message.text.split()[1:] if message.text else []
 
@@ -120,9 +119,6 @@ async def cmd_recent(
 
     try:
         hours = int(args[0])
-        if hours <= 0:
-            await message.answer("❌ Hours must be positive!")
-            return
 
         time_range = TimeRange(hours)
         report = await use_case.execute(time_range)
@@ -135,10 +131,17 @@ async def cmd_recent(
 
         show_all_errors = None
         if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore
-            await message.answer(
+            set_data = {"hours": hours}
+            html = formatter.to_html(
+                report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
+            )
+            await notifier.send(html, chat_id=str(message.chat.id))
+            msg = await message.answer(
                 "Do you want see all errors?",
                 reply_markup=get_yes_or_no_menu(action=BotAction.RECENT),
             )
+            set_data["msg"] = msg
+            await state.set_data(set_data)
             return
 
         html = formatter.to_html(
@@ -148,7 +151,9 @@ async def cmd_recent(
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 
     except ValueError:
-        await message.answer("❌ Invalid number! Use: <code>/recent 12</code>", parse_mode="HTML")
+        await message.answer(
+            "❌ Invalid number! Use (example): <code>/recent 12</code>", parse_mode="HTML"
+        )
 
 
 @bot_router.message(Command("settings"))

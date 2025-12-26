@@ -22,19 +22,20 @@ async def handle_report_callback(
     msg: str | None = None,
 ) -> None:
     if not report.has_errors:
-        msg = None
+        loading_msg = None
         if loading_msg:
-            msg = loading_msg
+            loading_msg = loading_msg
         else:
-            msg = callback.message
+            loading_msg = callback.message
 
-        await msg.edit_text( # type: ignore
+        await loading_msg.edit_text(
             f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}",
             reply_markup=get_main_menu(),
         )
         return
+
     html = formatter.to_html(report, report_type, show_all_errors)
     await notifier.send(html, chat_id=callback.message.chat.id)
     if not msg:
-        msg = "Do you want ask something from LLM about report?\nIf you want, write your question!"
+        msg = "Choose an action:"
     await callback.message.answer(msg, reply_markup=keyboard)

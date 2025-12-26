@@ -18,7 +18,6 @@ class BotCallback(str, Enum):
     YES = "yes"
     NO = "no"
     YES_RECENT = "yes_recent"
-    YES_ANALYZE = "yes_analyze"
 
 
 class BotStates(StatesGroup):

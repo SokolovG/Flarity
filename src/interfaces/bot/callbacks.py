@@ -2,17 +2,20 @@ from logging import getLogger
 
 from aiogram import F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from dishka.integrations.aiogram import FromDishka, inject
 
+from src.application.dto.analysis_report import AnalysisReport
+from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import ReportType
+from src.domain.entities.enums import LLMProvider, ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
@@ -88,7 +91,12 @@ async def on_analyze_period(
     )
 
     try:
-        report = await analyze_use_case.execute(time_range)
+        # report = await analyze_use_case.execute(time_range)
+        report = AnalysisReport(
+            has_errors=True,
+            time_range=TimeRange(24),
+            llm_analysis=LLMAnalysisResult("TEXT FROM LLM", provider=LLMProvider.OLLAMA),
+        )
 
         await handle_report_callback(
             callback,
@@ -99,6 +107,7 @@ async def on_analyze_period(
             notifier=notifier,
             loading_msg=loading_msg,
             keyboard=get_no_menu(),
+            msg="Do you want ask something from LLM about report?\nIf you want, write your question!",
         )
 
     except Exception as e:
@@ -123,6 +132,12 @@ async def on_recent_period(
 
     try:
         report = await errors_use_case.execute(time_range)
+        if report.has_errors and report.logs and len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:
+            msg = "Do you want see all errors?"
+            keyboard = get_yes_or_no_menu(action=BotAction.RECENT)
+        else:
+            msg = "Choose an action:"
+            keyboard = get_main_menu()
 
         await handle_report_callback(
             callback,
@@ -131,8 +146,8 @@ async def on_recent_period(
             report_type=ReportType.RECENT,
             formatter=formatter,
             notifier=notifier,
-            keyboard=get_yes_or_no_menu(action=BotAction.RECENT),
-            msg="Do you want see all errors?",
+            keyboard=keyboard,
+            msg=msg,
         )
 
     except Exception as e:
@@ -198,10 +213,18 @@ async def get_more_recent_errors(
     state: FSMContext,
 ) -> None:
     data = await state.get_data()
+
     hours = data.get("hours")
+    msg: Message | None = data.get("msg")
     time_range = TimeRange(hours)
 
-    callback.message.delete()  # TODO: delete last 2 messages
+    if msg:
+        msg = msg
+    else:
+        msg = callback.message
+
+    msg.delete()
+    # TODO: delete last 2 messages
     try:
         report = await errors_use_case.execute(time_range)
 
@@ -218,32 +241,31 @@ async def get_more_recent_errors(
 
     except Exception as e:
         logger.exception(e)
-        await callback.message.edit_text(
-            f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
-        )
-    await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
+        await msg.edit_text(f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu())
+    await msg.edit_text("Choose an action:", reply_markup=get_main_menu())
 
 
-@bot_router.callback_query(F.data == BotCallback.YES_ANALYZE)
-@inject
-async def ask_llm(
-    callback: CallbackQuery,
-    analyze_use_case: FromDishka[AskLLMUseCase],
-    formatter: FromDishka[ReportFormatter],
-    notifier: FromDishka[Notifier],
-) -> None:
-    callback.message.delete()  # TODO: delete last 2 messages
-    text = callback.message.from_user()
+# @bot_router.callback_query()
+# @inject
+# async def ask_llm(
+#     callback: CallbackQuery,
+#     analyze_use_case: FromDishka[AskLLMUseCase],
+#     formatter: FromDishka[ReportFormatter],
+#     notifier: FromDishka[Notifier],
+# ) -> None:
+#     callback.message.delete()  # TODO: delete last 2 messages
+#     text = callback.message.text
+#     print(text)
 
-    try:
-        report = await analyze_use_case.execute(text)
+#     try:
+#         report = await analyze_use_case.execute(text)
 
-        html = formatter.to_html(report, ReportType.ANSWER)
-        await notifier.send(html, chat_id=callback.message.chat.id)
+#         html = formatter.to_html(report, ReportType.ANSWER)
+#         await notifier.send(html, chat_id=callback.message.chat.id)
 
-    except Exception as e:
-        logger.exception(e)
-        await callback.message.edit_text(
-            f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
-        )
-    await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
+#     except Exception as e:
+#         logger.exception(e)
+#         await callback.message.edit_text(
+#             f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
+#         )
+#     await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())

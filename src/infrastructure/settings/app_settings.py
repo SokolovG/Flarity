@@ -18,14 +18,3 @@ class AppSettings(BaseSettings):
     report: ReportSettings = Field(default_factory=ReportSettings)
     schedule_interval_hours: str = "6"
     schedule_enabled: bool
-
-    @model_validator(mode="after")
-    def validate_schedule(self) -> Self:
-        if self.schedule_enabled:
-            try:
-                hours = int(self.schedule_interval_hours)
-                if hours <= 0:
-                    raise ValueError("schedule_interval_hours must be positive")
-            except ValueError as e:
-                raise ValueError(f"Invalid schedule_interval_hours: {e}")
-        return self
