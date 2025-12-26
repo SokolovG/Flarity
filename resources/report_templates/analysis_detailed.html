@@ -5,8 +5,8 @@ Time range: {{ time_range_hours }} h
 - Unique types: {{ unique_types }}
 
 {% if groups %}
-Top-{{ groups[:5] | length }} errors:
-{% for group in groups[:5] %}
+Top-{{ groups[:max_groups] | length }} errors:
+{% for group in groups[:max_groups] %}
 {{ loop.index }}. {{ group.error_type }} ({{ group.count }} times)
 {% endfor %}
 {% endif %}

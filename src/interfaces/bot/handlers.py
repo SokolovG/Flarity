@@ -9,6 +9,7 @@ from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseC
 from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction
@@ -128,8 +129,12 @@ async def cmd_recent(
                 f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
             )
             return
-
-        html = formatter.to_html(report, report_type=ReportType.RECENT)
+        show_all_errors = None
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT: # type: ignore
+            show_all_errors = True
+        html = formatter.to_html(
+            report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
+        )
         await notifier.send(html, chat_id=str(message.chat.id))
         await message.answer(text="Choose an action:", reply_markup=get_main_menu())
 

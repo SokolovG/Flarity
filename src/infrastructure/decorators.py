@@ -18,7 +18,7 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
             logger.info(f"{func.__name__} completed successfully")
             return await func(*args, **kwargs)
         except Exception as e:
-            logger.error(f"{func.__name__} failed: {e}")
+            logger.exception(f"{func.__name__} failed: {e}")
             raise
 
     return wrapper

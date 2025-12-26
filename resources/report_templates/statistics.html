@@ -5,13 +5,13 @@
 <b>Unique types:</b> {{ unique_types }}
 
 {% if groups and groups | length > 0 %}
-<b>Top {{ groups[:10] | length }} errors:</b>
-{% for group in groups[:10] %}
+<b>Top {{ groups[:max_errors] | length }} errors:</b>
+{% for group in groups[:max_errors] %}
 {{ loop.index }}. <code>{{ group.error_type }}</code>
    └─ {{ group.count }} occurrence{{ 's' if group.count > 1 else '' }}
 {% endfor %}
 {% endif %}
 
-{% if groups | length > 10 %}
-... and {{ groups | length - 10 }} more error types
+{% if groups | length > max_errors %}
+... and {{ groups | length - max_errors }} more error types
 {% endif %}

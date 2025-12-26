@@ -15,6 +15,8 @@ class BotCallback(str, Enum):
     RECENT = "recent"
     SETTINGS = "settings"
     BACK_TO_MENU = "back_to_menu"
+    YES = "yes"
+    NO = "no"
 
 
 class BotStates(StatesGroup):

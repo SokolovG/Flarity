@@ -1,4 +1,4 @@
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.notifier import Notifier
@@ -17,6 +17,9 @@ async def handle_report_callback(
     formatter: ReportFormatter,
     notifier: Notifier,
     loading_msg: Message | None = None,
+    keyboard: InlineKeyboardMarkup | None = get_main_menu(),
+    show_all_errors: bool | None = False,
+    msg: str | None = None,
 ) -> None:
     if not report.has_errors:
         msg = None
@@ -30,7 +33,8 @@ async def handle_report_callback(
             reply_markup=get_main_menu(),
         )
         return
-
-    html = formatter.to_html(report, report_type)
+    html = formatter.to_html(report, report_type, show_all_errors)
     await notifier.send(html, chat_id=callback.message.chat.id)
-    await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
+    if not msg:
+        msg = "Choose an action:"
+    await callback.message.answer(msg, reply_markup=keyboard)

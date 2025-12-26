@@ -17,7 +17,7 @@ from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import handle_report_callback
-from src.interfaces.bot.keyboards import get_main_menu, get_period_options
+from src.interfaces.bot.keyboards import get_main_menu, get_more_errors_button, get_period_options
 from src.interfaces.bot.router import bot_router
 
 logger = getLogger(__name__)
@@ -95,7 +95,7 @@ async def on_analyze_period(
         )
 
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         await loading_msg.edit_text(f"❌ Analyze failed: {e}", reply_markup=get_main_menu())
 
 
@@ -112,6 +112,8 @@ async def on_recent_period(
     hours = int(callback.data.split("_")[1])
     time_range = TimeRange(hours)
 
+    await state.set_data({"hours": hours})
+
     try:
         report = await errors_use_case.execute(time_range)
 
@@ -122,10 +124,12 @@ async def on_recent_period(
             report_type=ReportType.RECENT,
             formatter=formatter,
             notifier=notifier,
+            keyboard=get_more_errors_button(),
+            msg="Do you want see all errors?",
         )
 
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         await callback.message.edit_text(
             f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
         )
@@ -157,19 +161,57 @@ async def on_statistics_period(
         )
 
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         await callback.message.edit_text(
             f"❌ Fetching statistics failed: {e}", reply_markup=get_main_menu()
         )
 
 
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
+@bot_router.callback_query(F.data == BotCallback.NO.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     current_state = await state.get_state()
     if current_state == BotStates.period_selection:
+        # TODO: wtf?
         await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
     else:
         await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
 
     await state.set_state(BotStates.main_menu)
+
+
+@bot_router.callback_query(F.data == BotCallback.YES.value)
+@inject
+async def get_more_recent_errors(
+    callback: CallbackQuery,
+    errors_use_case: FromDishka[RecentErrorsUseCase],
+    formatter: FromDishka[ReportFormatter],
+    notifier: FromDishka[Notifier],
+    state: FSMContext,
+) -> None:
+    data = await state.get_data()
+    hours = data.get("hours")
+    time_range = TimeRange(hours)
+
+    callback.message.delete()  # TODO: delete last 2 messages
+    try:
+        report = await errors_use_case.execute(time_range)
+
+        await handle_report_callback(
+            callback,
+            time_range=time_range,
+            report=report,
+            report_type=ReportType.RECENT,
+            formatter=formatter,
+            notifier=notifier,
+            keyboard=get_main_menu(),
+            show_all_errors=True,
+        )
+
+    except Exception as e:
+        logger.exception(e)
+        await callback.message.edit_text(
+            f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
+        )
+    await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())

@@ -3,6 +3,11 @@ from jinja2 import Environment, FileSystemLoader
 from src.application.dto.analysis_report import AnalysisReport, ErrorGroup
 from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
+from src.infrastructure.constants import (
+    MAX_ERRORS_IN_ONE_REPORT,
+    MAX_GROUPS_IN_REPORT,
+    MAX_SYMBOLS_LOG_MSG,
+)
 from src.infrastructure.settings.app_settings import AppSettings
 
 
@@ -13,7 +18,9 @@ class ReportFormatter:
         )
         self.settings = settings
 
-    def to_html(self, report: AnalysisReport, report_type: ReportType) -> str:
+    def to_html(
+        self, report: AnalysisReport, report_type: ReportType, show_all_errors: bool | None = False
+    ) -> str:
         template_name = self.settings.report.get_template(report_type)
         template = self.env.get_template(template_name)
 
@@ -49,4 +56,8 @@ class ReportFormatter:
             provider=provider,
             tokens_in=tokens_in,
             tokens_out=tokens_out,
+            show_all_errors=show_all_errors,
+            max_errors=MAX_ERRORS_IN_ONE_REPORT,
+            max_symbols=MAX_SYMBOLS_LOG_MSG,
+            max_groups=MAX_GROUPS_IN_REPORT,
         )

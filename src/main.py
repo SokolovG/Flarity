@@ -30,7 +30,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("asyncio").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("src").setLevel(logging.DEBUG)
+logging.getLogger("src").setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,9 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
 
         if report.has_errors:
             html = formatter.to_html(report, report_type=ReportType.ANALYZE)
-            await notifier.send(html, reply_markup=get_main_menu())
+            await notifier.send(
+                html, reply_markup=get_main_menu()
+            )  # TODO: после отправки отчета коллбеки делают edit text - и отчет исчезает
             logger.info(
                 f"Scheduled report sent: {report.time_range.hours} {format_time_range(report.time_range)}"
             )
@@ -55,7 +57,7 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
             logger.info(f"✅ No errors found, skipping notification")
 
     except InfrastructureException as e:
-        logger.error(f"Analysis failed: {e.__class__.__name__}: {e}")
+        logger.exception(f"Analysis failed: {e.__class__.__name__}: {e}")
     except Exception as e:
         logger.exception(f"Unexpected error during analysis: {e}")
 
@@ -80,7 +82,7 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     try:
         await scheduled_analysis(container)
     except Exception as e:
-        logger.error(f"Initial analysis failed (non-critical): {e}")
+        logger.exception(f"Initial analysis failed (non-critical): {e}")
 
 
 async def main() -> None:
@@ -97,8 +99,9 @@ async def main() -> None:
 
         tasks = []
 
-        if settings.schedule_enabled:
-            tasks.append(start_scheduler(container, settings))
+        # TODO: !
+        # if settings.schedule_enabled:
+        #     tasks.append(start_scheduler(container, settings))
 
         tasks.append(dp.start_polling(bot))
 
