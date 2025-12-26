@@ -26,7 +26,8 @@ async def handle_report_callback(
             msg = callback.message
 
         await msg.edit_text(
-            f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}"
+            f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}",
+            reply_markup=get_main_menu(),
         )
         return
 

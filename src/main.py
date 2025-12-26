@@ -17,6 +17,7 @@ from src.infrastructure.exceptions.base_exceptions import InfrastructureExceptio
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import setup_bot
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
+from src.interfaces.bot.keyboards import get_main_menu
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,12 +43,11 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
         settings = await container.get(AppSettings)
         notifier = await container.get(Notifier)
         formatter = await container.get(ReportFormatter)
-
         report = await use_case.execute(TimeRange(int(settings.schedule_interval_hours)))
 
         if report.has_errors:
             html = formatter.to_html(report, report_type=ReportType.ANALYZE)
-            await notifier.send(html)
+            await notifier.send(html, reply_markup=get_main_menu())
             logger.info(
                 f"Scheduled report sent: {report.time_range.hours} {format_time_range(report.time_range)}"
             )

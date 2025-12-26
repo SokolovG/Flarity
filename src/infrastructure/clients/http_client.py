@@ -4,19 +4,28 @@ from http import HTTPMethod
 from logging import getLogger
 
 import msgspec
-from httpx import AsyncClient, ConnectError, ConnectTimeout, ReadTimeout, Response
+from httpx import (
+    AsyncClient,
+    ConnectError,
+    ConnectTimeout,
+    ReadTimeout,
+    RemoteProtocolError,
+    Response,
+)
 
 from src.infrastructure.decorators import retry
 from src.infrastructure.exceptions.network_exeptions import NetworkError
+from src.infrastructure.settings.app_settings import AppSettings
 
 logger = getLogger(__name__)
 
 
 class HTTPClient:
-    def __init__(self, default_timeout: int = 10) -> None:
-        self.client = AsyncClient(timeout=default_timeout)
+    def __init__(self, app_settings: AppSettings) -> None:
+        self.timeout = app_settings.llm_provider.get_config.timeout
+        self.client = AsyncClient(timeout=self.timeout)
 
-    @retry(max_attempts=3, backoff=1.0)
+    @retry(max_attempts=3, backoff=3.0)
     async def make_request(
         self,
         method: HTTPMethod = HTTPMethod.POST,
@@ -24,7 +33,7 @@ class HTTPClient:
         headers: dict[str, str] | None = None,
         data: dict | str | bytes | None = None,
         params: dict | None = None,
-        timeout: int | None = 10,
+        timeout: int | None = None,
         no_log_answer: bool = False,
     ) -> Response:
         """Performs an HTTP request to the API.
@@ -60,7 +69,7 @@ class HTTPClient:
                     method=method.value,
                     url=url,
                     headers=headers,
-                    timeout=timeout,
+                    timeout=timeout if timeout else self.timeout,
                     params=params,
                 )
 
@@ -79,7 +88,7 @@ class HTTPClient:
                     method=method.value,
                     url=url,
                     headers=headers,
-                    timeout=timeout,
+                    timeout=timeout if timeout else self.timeout,
                     content=content,
                 )
             duration_ms = int((time.time() - start_time) * 1000)
@@ -104,8 +113,10 @@ class HTTPClient:
                     )
                 return response
 
-        except (ReadTimeout, ConnectTimeout, ConnectError) as error:
-            raise NetworkError(f"Connection failed: {error}", is_retryable=True) from error
+        except (ReadTimeout, ConnectTimeout, ConnectError, RemoteProtocolError) as error:
+            raise NetworkError(
+                f"Connection failed: {type(error).__name__}", is_retryable=True
+            ) from error
 
         except Exception as error:
             logger.exception(f"Unexpected HTTP error: {error}")

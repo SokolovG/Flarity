@@ -1,5 +1,7 @@
 from http import HTTPMethod, HTTPStatus
 
+from aiogram.types import InlineKeyboardMarkup
+
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.constants import TELEGRAM_MESSAGE_LIMIT
 from src.infrastructure.exceptions import (
@@ -17,33 +19,50 @@ class TelegramClient:
 
     @property
     def _base_url(self) -> str:
-        return f"https://api.telegram.org/bot{self.settings.get_config.bot_id}"
+        return f"https://api.telegram.org/bot{self.settings.get_config.bot_token}"
 
     async def send_message(
-        self, text: str, parse_mode: str = "HTML", chat_id: str | None = None
+        self,
+        text: str,
+        parse_mode: str = "HTML",
+        chat_id: str | None = None,
+        reply_markup: InlineKeyboardMarkup | None = None,
     ) -> bool:
         if not text or len(text.strip()) == 0:
             raise ValueError("Message text is empty")
 
         if len(text) > TELEGRAM_MESSAGE_LIMIT:
             chunks = self._split_message(text)
-            for chunk in chunks:
-                await self._send_single_message(chunk, parse_mode=parse_mode, chat_id=chat_id)
+            for i, chunk in enumerate(chunks):
+                markup = reply_markup if i == len(chunks) - 1 else None
+                await self._send_single_message(
+                    chunk, parse_mode=parse_mode, chat_id=chat_id, reply_markup=markup
+                )
             return True
 
-        return await self._send_single_message(text, parse_mode=parse_mode, chat_id=chat_id)
+        return await self._send_single_message(
+            text, parse_mode=parse_mode, chat_id=chat_id, reply_markup=reply_markup
+        )
 
     async def _send_single_message(
-        self, text: str, parse_mode: str = "HTML", chat_id: str | None = None
+        self,
+        text: str,
+        parse_mode: str = "HTML",
+        chat_id: str | None = None,
+        reply_markup: InlineKeyboardMarkup | None = None,
     ) -> bool:
         data = {
             "text": text,
             "chat_id": chat_id if chat_id else self.settings.get_config.chat_id,
             "parse_mode": parse_mode,
         }
+
+        if reply_markup:
+            data["reply_markup"] = reply_markup.model_dump(exclude_none=True)
+
         response = await self._http.make_request(
             method=HTTPMethod.POST,
-            url=f"https://api.telegram.org/bot{self.settings.get_config.bot_id}/sendMessage",
+            url=f"{self._base_url}/sendMessage",
             data=data,
             no_log_answer=True,
         )

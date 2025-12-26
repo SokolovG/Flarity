@@ -23,5 +23,5 @@ __all__ = [
     "TelegramError",
     "TelegramRateLimitError",
     "LokiUnavailableError",
-    "NetworkError"
+    "NetworkError",
 ]

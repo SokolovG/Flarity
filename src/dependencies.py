@@ -34,8 +34,8 @@ class MyProvider(Provider):
         return AppSettings()
 
     @provide(scope=Scope.APP)
-    def get_http_client(self) -> HTTPClient:
-        return HTTPClient()
+    def get_http_client(self, app_settings: AppSettings) -> HTTPClient:
+        return HTTPClient(app_settings)
 
     @provide(scope=Scope.APP)
     def get_loki_client(self, http_client: HTTPClient, settings: AppSettings) -> LokiClient:

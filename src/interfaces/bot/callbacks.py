@@ -95,6 +95,7 @@ async def on_analyze_period(
         )
 
     except Exception as e:
+        logger.error(e)
         await loading_msg.edit_text(f"❌ Analyze failed: {e}", reply_markup=get_main_menu())
 
 
@@ -124,6 +125,7 @@ async def on_recent_period(
         )
 
     except Exception as e:
+        logger.error(e)
         await callback.message.edit_text(
             f"❌ Fetching recent errors failed: {e}", reply_markup=get_main_menu()
         )
@@ -155,6 +157,7 @@ async def on_statistics_period(
         )
 
     except Exception as e:
+        logger.error(e)
         await callback.message.edit_text(
             f"❌ Fetching statistics failed: {e}", reply_markup=get_main_menu()
         )
