@@ -21,8 +21,8 @@ logger = getLogger(__name__)
 
 
 class HTTPClient:
-    def __init__(self, app_settings: AppSettings) -> None:
-        self.timeout = app_settings.llm_provider.get_config.timeout
+    def __init__(self, timeout: int | None = None) -> None:
+        self.timeout = timeout
         self.client = AsyncClient(timeout=self.timeout)
 
     @retry(max_attempts=3, backoff=3.0)

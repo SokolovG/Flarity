@@ -8,16 +8,17 @@ from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
+from src.domain.entities.enums import LLMProvider
 from src.domain.services.error_grouper import ErrorGrouper
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.clients.loki_client import LokiClient
 from src.infrastructure.clients.telegram_client import TelegramClient
 from src.infrastructure.llm.ollama.analyzer import OllamaAnalyzer
-from src.infrastructure.llm.providers import LLMProvider
 from src.infrastructure.llm.yandex.analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.infrastructure.repositories.loki_repository import LokiLogRepository
 from src.infrastructure.settings.app_settings import AppSettings
+from src.infrastructure.settings.report_settings import ReportSettings
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 
@@ -39,8 +40,8 @@ class MyProvider(Provider):
         return AskLLMUseCase(llm_analyzer)
 
     @provide(scope=Scope.APP)
-    def get_http_client(self, app_settings: AppSettings) -> HTTPClient:
-        return HTTPClient(app_settings)
+    def get_http_client(self) -> HTTPClient:
+        return HTTPClient()
 
     @provide(scope=Scope.APP)
     def get_loki_client(self, http_client: HTTPClient, settings: AppSettings) -> LokiClient:
@@ -57,8 +58,12 @@ class MyProvider(Provider):
         return TelegramNotifier(telegram_client, settings.notification)
 
     @provide(scope=Scope.APP)
-    def get_formatter(self, app_settings: AppSettings) -> ReportFormatter:
-        return ReportFormatter(app_settings)
+    def get_report_settings(self) -> ReportSettings:
+        return ReportSettings()
+
+    @provide(scope=Scope.APP)
+    def get_formatter(self, report_settings: ReportSettings) -> ReportFormatter:
+        return ReportFormatter(report_settings)
 
     @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(

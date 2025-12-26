@@ -8,20 +8,20 @@ from src.infrastructure.constants import (
     MAX_GROUPS_IN_REPORT,
     MAX_SYMBOLS_LOG_MSG,
 )
-from src.infrastructure.settings.app_settings import AppSettings
+from src.infrastructure.settings.report_settings import ReportSettings
 
 
 class ReportFormatter:
-    def __init__(self, settings: AppSettings) -> None:
+    def __init__(self, report_settings: ReportSettings) -> None:
         self.env = Environment(
             loader=FileSystemLoader("resources/report_templates"), autoescape=True
         )
-        self.settings = settings
+        self.report_settings = report_settings
 
     def to_html(
         self, report: AnalysisReport, report_type: ReportType, show_all_errors: bool | None = False
     ) -> str:
-        template_name = self.settings.report.get_template(report_type)
+        template_name = self.report_settings.get_template(report_type)
         template = self.env.get_template(template_name)
 
         title = f"Error report for the last {report.time_range.hours} {format_time_range(report.time_range)}"

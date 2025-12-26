@@ -1,10 +1,6 @@
-from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.llm_answer import LLMAnswer
 from src.application.ports.llm_analyzer import LLMAnalyzer
-from src.application.ports.log_source import LogSource
-from src.domain.services.error_grouper import ErrorGrouper
-from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.exceptions.llm_exceptions import LLMError
+from src.domain.exceptions import AnalysisFailedError
 
 
 class AskLLMUseCase:
@@ -15,9 +11,9 @@ class AskLLMUseCase:
         self.llm = llm_analyzer
 
     # TODO: add rate limit!
-    async def execute(self, question: str) -> ...:
+    async def execute(self, question: str) -> LLMAnswer:
         answer = await self.llm.ask(question)
         if not answer:
-            raise LLMError("LLM answer is empty!")
+            raise AnalysisFailedError("LLM returned empty response.")
 
         return LLMAnswer(data=answer.analysis_text)

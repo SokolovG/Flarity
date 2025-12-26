@@ -64,6 +64,7 @@ class TelegramClient:
             method=HTTPMethod.POST,
             url=f"{self._base_url}/sendMessage",
             data=data,
+            timeout=10,
             no_log_answer=True,
         )
 

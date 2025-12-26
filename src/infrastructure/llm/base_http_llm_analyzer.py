@@ -52,6 +52,7 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
             method=HTTPMethod.POST,
             url=self._get_api_url(),
             data=data,
+            timeout=self.settings.llm_provider.get_config.timeout,
             headers=self._get_headers(),
             no_log_answer=True,
         )

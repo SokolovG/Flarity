@@ -188,7 +188,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(BotStates.main_menu)
 
 
-@bot_router.callback_query(F.data == "yes_recent")
+@bot_router.callback_query(F.data == BotCallback.YES_RECENT)
 @inject
 async def get_more_recent_errors(
     callback: CallbackQuery,
@@ -224,7 +224,7 @@ async def get_more_recent_errors(
     await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
 
 
-@bot_router.callback_query(F.data == "yes_analyze")
+@bot_router.callback_query(F.data == BotCallback.YES_ANALYZE)
 @inject
 async def ask_llm(
     callback: CallbackQuery,

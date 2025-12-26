@@ -7,10 +7,10 @@ import msgspec
 from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
+from src.domain.entities.enums import LLMProvider
 from src.infrastructure.exceptions import LLMError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
-from src.infrastructure.llm.providers import LLMProvider
 
 logger = getLogger(__name__)
 

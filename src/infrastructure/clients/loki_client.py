@@ -39,6 +39,7 @@ class LokiClient:
             method=HTTPMethod.GET,
             url=f"{self.settings.get_config.url}/loki/api/v1/query_range",
             params=params,
+            timeout=10,
             no_log_answer=True,
         )
 

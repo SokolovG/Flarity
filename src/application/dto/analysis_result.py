@@ -1,6 +1,6 @@
 from msgspec import Struct
 
-from src.infrastructure.llm.providers import LLMProvider
+from src.domain.entities.enums import LLMProvider
 
 
 class LLMAnalysisResult(Struct):
