@@ -9,10 +9,9 @@ from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
-from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import LLMProvider, ReportType
+from src.domain.entities.enums import LLMProvider, ReportTextFormat, ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
@@ -94,7 +93,6 @@ async def on_analyze_period(
     )
 
     try:
-        # TODO: fix it after tests!
         # report = await analyze_use_case.execute(time_range)
         a = """"level": "ERROR"
             "message": "Null pointer exception in user service: user.profile is null",
@@ -102,7 +100,7 @@ async def on_analyze_period(
         report = AnalysisReport(
             has_errors=True,
             time_range=TimeRange(24),
-            llm_analysis=LLMAnalysisResult(a, provider=LLMProvider.OLLAMA),
+            llm_analysis=LLMAnalysisResult(analysis_text=a, provider=LLMProvider.OLLAMA),
         )
 
         await handle_report_callback(
@@ -114,6 +112,7 @@ async def on_analyze_period(
             notifier=notifier,
             loading_msg=loading_msg,
             keyboard=get_back_to_menu_button(),
+            #TODO: add delete msg keyboard
             msg="Do you want ask something from LLM about report?\nIf you want, write your question!",
         )
         await state.set_state(BotStates.waiting_for_question)

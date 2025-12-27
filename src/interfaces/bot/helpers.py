@@ -21,6 +21,7 @@ async def handle_report_callback(
     show_all_errors: bool = False,
     msg: str | None = None,
 ) -> dict:
+    
     if not report.has_errors:
         msg_to_edit = loading_msg if loading_msg else callback.message
         await msg_to_edit.edit_text(
@@ -31,10 +32,10 @@ async def handle_report_callback(
 
     html = formatter.to_html(report, report_type, show_all_errors)
     msg_details = await notifier.send(
-        html, chat_id=callback.message.chat.id, reply_markup=keyboard, return_message_details=True
+        html, chat_id=callback.message.chat.id, return_message_details=True
     )
 
     if msg:
-        await callback.message.answer(msg or "Choose an action:", reply_markup=get_main_menu())
+        await callback.message.answer(msg or "Choose an action:", reply_markup=keyboard if keyboard else get_main_menu())
 
     return msg_details

@@ -200,9 +200,9 @@ async def handle_llm_question(
     question: str = message.text  # type: ignore
 
     loading_msg = await message.answer("Asking LLM...")
-
+    session_id = str(message.chat.id)
     try:
-        answer = await ask_use_case.execute(question)
+        answer = await ask_use_case.execute(question, session_id)
         html = formatter.format_llm_answer(answer, ReportType.ANSWER)
         await notifier.send(html, chat_id=str(message.chat.id))
         await loading_msg.delete()
