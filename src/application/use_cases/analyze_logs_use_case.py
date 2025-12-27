@@ -18,7 +18,7 @@ class AnalyzeLogsUseCase:
         self.log_source = log_source
         self.llm = llm_analyzer
         self.grouper = error_grouper
-    
+
     @limits(calls=MAX_RATE_LIMIT_CALLS, period=MAX_RATE_LIMIT_PERIOD)
     async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)

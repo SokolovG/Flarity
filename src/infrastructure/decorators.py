@@ -24,6 +24,7 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
 
     return wrapper
 
+
 def retry(
     max_attempts: int,
     backoff: float,

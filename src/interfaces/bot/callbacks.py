@@ -112,7 +112,7 @@ async def on_analyze_period(
             notifier=notifier,
             loading_msg=loading_msg,
             keyboard=get_back_to_menu_button(),
-            #TODO: add delete msg keyboard
+            # TODO: add delete msg keyboard
             msg="Do you want ask something from LLM about report?\nIf you want, write your question!",
         )
         await state.set_state(BotStates.waiting_for_question)

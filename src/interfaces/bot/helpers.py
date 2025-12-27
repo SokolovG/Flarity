@@ -21,7 +21,6 @@ async def handle_report_callback(
     show_all_errors: bool = False,
     msg: str | None = None,
 ) -> dict:
-    
     if not report.has_errors:
         msg_to_edit = loading_msg if loading_msg else callback.message
         await msg_to_edit.edit_text(
@@ -36,6 +35,8 @@ async def handle_report_callback(
     )
 
     if msg:
-        await callback.message.answer(msg or "Choose an action:", reply_markup=keyboard if keyboard else get_main_menu())
+        await callback.message.answer(
+            msg or "Choose an action:", reply_markup=keyboard if keyboard else get_main_menu()
+        )
 
     return msg_details
