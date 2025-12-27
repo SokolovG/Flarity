@@ -11,6 +11,7 @@ from dishka.integrations.aiogram import setup_dishka
 from src.application.ports.notifier import Notifier
 from src.dependencies import MyProvider
 from src.domain.entities.enums import ReportType
+from src.domain.logging import setup_logging
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
@@ -19,20 +20,7 @@ from src.interfaces.bot import setup_bot
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu
 
-# TODO: add normal config, timestamp, colors, req-id
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(levelname)s] %(name)s: %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-    ],
-)
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
-logging.getLogger("asyncio").setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("src").setLevel(logging.INFO)
-
+setup_logging(level="INFO")
 logger = logging.getLogger(__name__)
 
 
@@ -48,9 +36,7 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
 
         if report.has_errors:
             html = formatter.to_html(report, report_type=ReportType.ANALYZE)
-            await notifier.send(
-                html, reply_markup=get_main_menu()
-            )  # TODO: после отправки отчета коллбеки делают edit text - и отчет исчезает
+            await notifier.send(html, reply_markup=get_main_menu())
             logger.info(
                 f"Scheduled report sent: {report.time_range.hours} {format_time_range(report.time_range)}"
             )

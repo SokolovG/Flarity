@@ -35,6 +35,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
+    # TODO: теряется чат и контекст. проверить доку и добавить нужный параметр по айди чата или что то похожее.
     def _build_request(self, logs_text: str) -> dict[str, Any]:
         request_data = {
             "model": self.settings.llm.model,
