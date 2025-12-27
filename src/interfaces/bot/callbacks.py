@@ -36,7 +36,7 @@ logger = getLogger(__name__)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
-    await callback.message.edit_text(
+    await callback.message.answer(
         "Choose analysis period:", reply_markup=get_period_options(BotAction.ANALYZE)
     )
 
@@ -45,7 +45,7 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.set_state(BotStates.period_selection)
-    await callback.message.edit_text(
+    await callback.message.answer(
         "Choose period:", reply_markup=get_period_options(BotAction.RECENT)
     )
 
@@ -53,14 +53,16 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(BotStates.period_selection)
-    await callback.message.edit_text(
+    await callback.message.answer(
         "Choose period:", reply_markup=get_period_options(BotAction.STATS)
     )
 
 
 @bot_router.callback_query(F.data == BotCallback.SETTINGS.value)
 @inject
-async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSettings]) -> None:
+async def on_settings(
+    callback: CallbackQuery, app_settings: FromDishka[AppSettings], state: FSMContext
+) -> None:
     await callback.answer()
     info = BotTextFormatter.format_settings(
         provider=app_settings.llm_provider.provider,
@@ -68,6 +70,7 @@ async def on_settings(callback: CallbackQuery, app_settings: FromDishka[AppSetti
         schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
         schedule_enabled=app_settings.schedule_enabled,
     )
+    await state.set_state(BotStates.viewing_report)
     await callback.message.answer(info, reply_markup=get_main_menu(), parse_mode="HTML")
 
 
@@ -133,25 +136,38 @@ async def on_recent_period(
     hours = int(callback.data.split("_")[1])
     time_range = TimeRange(hours)
 
-    await state.set_data({"hours": hours})
-    msg = "Choose an action:"
     try:
         report = await errors_use_case.execute(time_range)
-        if report.has_errors and report.logs and len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:
-            keyboard = get_more_errors_menu(errors_count=len(report.logs))
-        else:
-            keyboard = get_main_menu()
 
-        await handle_report_callback(
-            callback,
-            time_range=time_range,
-            report=report,
-            report_type=ReportType.RECENT,
-            formatter=formatter,
-            notifier=notifier,
-            keyboard=keyboard,
-            msg=msg,
+        if not report.has_errors:
+            await callback.message.edit_text(
+                f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}",
+                reply_markup=get_main_menu(),
+            )
+            return
+
+        html = formatter.to_html(report, ReportType.RECENT, show_all_errors=False)
+        html_msg = await notifier.send(
+            html, chat_id=str(callback.message.chat.id), return_message_details=True
         )
+
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:
+            keyboard_msg = await callback.message.answer(
+                "Choose an action:", reply_markup=get_more_errors_menu(len(report.logs))
+            )
+            data = {
+                "hours": hours,
+                "html_message_id": html_msg.get("message_id"),
+                "keyboard_message_id": keyboard_msg.message_id,
+                "chat_id": callback.message.chat.id,
+            }
+            print(data)
+            await state.set_data(data)
+
+        else:
+            await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
+
+        await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)
@@ -183,6 +199,7 @@ async def on_statistics_period(
             report_type=ReportType.STATS,
             formatter=formatter,
             notifier=notifier,
+            keyboard=get_main_menu(),
         )
 
     except Exception as e:
@@ -196,7 +213,11 @@ async def on_statistics_period(
 @bot_router.callback_query(F.data == BotCallback.NO.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-    await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
+    current_state = await state.get_state()
+    if current_state == BotStates.viewing_report or current_state == BotStates.waiting_for_question:
+        await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
+    else:
+        await callback.message.edit_text("Choose an action:", reply_markup=get_main_menu())
 
     await state.set_state(BotStates.main_menu)
 
@@ -211,36 +232,37 @@ async def get_more_recent_errors(
     state: FSMContext,
 ) -> None:
     data = await state.get_data()
-
     hours = data.get("hours")
     time_range = TimeRange(hours)
 
-    # TODO: delete last 2 messages
     try:
         report = await errors_use_case.execute(time_range)
 
-        await handle_report_callback(
-            callback,
-            time_range=time_range,
-            report=report,
-            report_type=ReportType.RECENT,
-            formatter=formatter,
-            notifier=notifier,
-            keyboard=get_main_menu(),
-            show_all_errors=True,
-        )
-        await callback.bot.edit_message_text(
-            text="Choose an action:",
-            reply_markup=get_main_menu(),
-            chat_id=data.get("chat_id"),
-            message_id=data.get("message_id"),
-        )
+        # TODO: вынести логику, сделать более продумано, убрать хардкод
+        try:
+            await callback.bot.delete_message(
+                chat_id=data.get("chat_id"), message_id=int(data.get("html_message_id"))
+            )
+
+            await callback.bot.delete_message(
+                chat_id=data.get("chat_id"), message_id=int(data.get("keyboard_message_id"))
+            )
+        except Exception as e:
+            logger.warning(f"Failed to delete old messages: {e}")
+
+        html = formatter.to_html(report, ReportType.RECENT, show_all_errors=True)
+        await notifier.send(html, chat_id=str(callback.message.chat.id))
+
+        await callback.message.answer("Choose an action:", reply_markup=get_main_menu())
+
+        await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)
-        await callback.bot.edit_message_text(
-            text=f"❌ Fetching recent errors failed: {e}",
-            reply_markup=get_main_menu(),
-            chat_id=data.get("chat_id"),
-            message_id=data.get("message_id"),
-        )
+        await callback.message.answer(f"❌ Error: {e}", reply_markup=get_main_menu())
+
+        await state.set_state(BotStates.main_menu)
+
+    except Exception as e:
+        logger.exception(e)
+        await callback.message.edit_text(f"❌ Error: {e}", reply_markup=get_main_menu())  # type: ignore

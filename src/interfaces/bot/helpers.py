@@ -17,25 +17,24 @@ async def handle_report_callback(
     formatter: ReportFormatter,
     notifier: Notifier,
     loading_msg: Message | None = None,
-    keyboard: InlineKeyboardMarkup | None = get_main_menu(),
-    show_all_errors: bool | None = False,
+    keyboard: InlineKeyboardMarkup | None = None,
+    show_all_errors: bool = False,
     msg: str | None = None,
-) -> None:
+) -> dict:
     if not report.has_errors:
-        loading_msg = None
-        if loading_msg:
-            loading_msg = loading_msg
-        else:
-            loading_msg = callback.message
-
-        await loading_msg.edit_text(
+        msg_to_edit = loading_msg if loading_msg else callback.message
+        await msg_to_edit.edit_text(
             f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}",
             reply_markup=get_main_menu(),
         )
         return
 
     html = formatter.to_html(report, report_type, show_all_errors)
-    await notifier.send(html, chat_id=callback.message.chat.id)
-    if not msg:
-        msg = "Choose an action:"
-    await callback.message.answer(msg, reply_markup=keyboard)
+    msg_details = await notifier.send(
+        html, chat_id=callback.message.chat.id, reply_markup=keyboard, return_message_details=True
+    )
+
+    if msg:
+        await callback.message.answer(msg or "Choose an action:", reply_markup=get_main_menu())
+
+    return msg_details

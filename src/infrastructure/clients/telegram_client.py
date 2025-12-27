@@ -39,7 +39,11 @@ class TelegramClient:
             for i, chunk in enumerate(chunks):
                 markup = reply_markup if i == len(chunks) - 1 else None
                 await self._send_single_message(
-                    chunk, parse_mode=parse_mode, chat_id=chat_id, reply_markup=markup, return_message_details=return_message_details
+                    chunk,
+                    parse_mode=parse_mode,
+                    chat_id=chat_id,
+                    reply_markup=markup,
+                    return_message_details=return_message_details,
                 )
             return True
 
@@ -96,11 +100,19 @@ class TelegramClient:
 
     def _parse_message_details(self, response: Response) -> dict[str, Any]:
         response_data = response.json()
-        data = {
-            "message_id": response_data.get("result").get("message_id"),
-            "chat_id": response_data.get("result").get("chat").get("id"),
+        result = response_data.get("result")
+
+        if not result:
+            raise TelegramError("Invalid Telegram API response: missing 'result'")
+
+        chat = result.get("chat")
+        if not chat:
+            raise TelegramError("Invalid Telegram API response: missing 'chat'")
+
+        return {
+            "message_id": result.get("message_id"),
+            "chat_id": chat.get("id"),
         }
-        return data
 
     @staticmethod
     def _split_message(text: str, max_length: int = 4096) -> list[str]:

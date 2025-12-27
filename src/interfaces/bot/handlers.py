@@ -197,7 +197,7 @@ async def handle_llm_question(
     notifier: FromDishka[Notifier],
     state: FSMContext,
 ) -> None:
-    question = message.text
+    question: str = message.text  # type: ignore
 
     loading_msg = await message.answer("Asking LLM...")
 
