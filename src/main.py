@@ -19,6 +19,7 @@ from src.interfaces.bot import setup_bot
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu
 
+# TODO: add normal config, timestamp, colors, req-id
 logging.basicConfig(
     level=logging.INFO,
     format="[%(levelname)s] %(name)s: %(message)s",

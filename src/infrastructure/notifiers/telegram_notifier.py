@@ -1,3 +1,5 @@
+from typing import Any
+
 from aiogram.types import InlineKeyboardMarkup
 
 from src.application.ports.notifier import Notifier
@@ -15,7 +17,11 @@ class TelegramNotifier(Notifier):
         message: str,
         chat_id: str | None = None,
         reply_markup: InlineKeyboardMarkup | None = None,
-    ) -> bool:
+        return_message_details: bool | None = False,
+    ) -> bool | Any:
         return await self.telegram_client.send_message(
-            message, chat_id=chat_id, reply_markup=reply_markup
+            message,
+            chat_id=chat_id,
+            reply_markup=reply_markup,
+            return_message_details=return_message_details,
         )

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 from aiogram.types import InlineKeyboardMarkup
 
@@ -10,4 +11,5 @@ class Notifier(ABC):
         message: str,
         chat_id: str | None = None,
         reply_markup: InlineKeyboardMarkup | None = None,
-    ) -> bool: ...
+        return_message_details: bool | None = False,
+    ) -> bool | Any: ...

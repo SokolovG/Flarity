@@ -1,6 +1,8 @@
 from http import HTTPMethod, HTTPStatus
+from typing import Any
 
 from aiogram.types import InlineKeyboardMarkup
+from httpx import Response
 
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.constants import TELEGRAM_MESSAGE_LIMIT
@@ -24,10 +26,11 @@ class TelegramClient:
     async def send_message(
         self,
         text: str,
+        return_message_details: bool | None = False,
         parse_mode: str = "HTML",
         chat_id: str | None = None,
         reply_markup: InlineKeyboardMarkup | None = None,
-    ) -> bool:
+    ) -> bool | dict[str, Any]:
         if not text or len(text.strip()) == 0:
             raise ValueError("Message text is empty")
         # TODO: fck ** in telegram report! fix it.
@@ -36,21 +39,26 @@ class TelegramClient:
             for i, chunk in enumerate(chunks):
                 markup = reply_markup if i == len(chunks) - 1 else None
                 await self._send_single_message(
-                    chunk, parse_mode=parse_mode, chat_id=chat_id, reply_markup=markup
+                    chunk, parse_mode=parse_mode, chat_id=chat_id, reply_markup=markup, return_message_details=return_message_details
                 )
             return True
 
         return await self._send_single_message(
-            text, parse_mode=parse_mode, chat_id=chat_id, reply_markup=reply_markup
+            text,
+            parse_mode=parse_mode,
+            chat_id=chat_id,
+            reply_markup=reply_markup,
+            return_message_details=return_message_details,
         )
 
     async def _send_single_message(
         self,
         text: str,
+        return_message_details: bool,
         parse_mode: str = "HTML",
         chat_id: str | None = None,
         reply_markup: InlineKeyboardMarkup | None = None,
-    ) -> bool:
+    ) -> bool | dict[str, Any]:
         data = {
             "text": text,
             "chat_id": chat_id if chat_id else self.settings.get_config.chat_id,
@@ -79,7 +87,20 @@ class TelegramClient:
                 )
             elif response.status_code >= 400:
                 raise TelegramBadRequestError(f"Bad request: {response.status_code}")
+
+        if return_message_details:
+            msg_details = self._parse_message_details(response)
+            return msg_details
+
         return True
+
+    def _parse_message_details(self, response: Response) -> dict[str, Any]:
+        response_data = response.json()
+        data = {
+            "message_id": response_data.get("result").get("message_id"),
+            "chat_id": response_data.get("result").get("chat").get("id"),
+        }
+        return data
 
     @staticmethod
     def _split_message(text: str, max_length: int = 4096) -> list[str]:

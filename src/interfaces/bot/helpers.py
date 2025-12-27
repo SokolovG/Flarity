@@ -6,7 +6,7 @@ from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.keyboards import get_main_menu, get_yes_or_no_menu
+from src.interfaces.bot.keyboards import get_main_menu
 
 
 async def handle_report_callback(

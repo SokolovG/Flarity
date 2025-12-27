@@ -21,8 +21,4 @@
    <b>REQUEST ID: <code>{{ log.request_id }}</code></b>
 {%- endif -%}
 {% endfor %}
-
-{% if logs | length > max_errors %}
-... and {{ logs | length - max_errors }} more errors
-{% endif %}
 {% endif %}

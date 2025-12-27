@@ -113,6 +113,7 @@ class HTTPClient:
                 return response
 
         except (ReadTimeout, ConnectTimeout, ConnectError, RemoteProtocolError) as error:
+            logger.error(f"Connection failed: {type(error).__name__}")
             raise NetworkError(
                 f"Connection failed: {type(error).__name__}", is_retryable=True
             ) from error

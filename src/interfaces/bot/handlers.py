@@ -19,7 +19,12 @@ from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
-from src.interfaces.bot.keyboards import get_main_menu, get_period_options, get_yes_or_no_menu
+from src.interfaces.bot.keyboards import (
+    get_back_to_menu_button,
+    get_main_menu,
+    get_more_errors_menu,
+    get_period_options,
+)
 from src.interfaces.bot.router import bot_router
 
 logger = getLogger(__name__)
@@ -67,7 +72,7 @@ async def cmd_analyze(
     await notifier.send(
         html,
         chat_id=str(message.chat.id),
-        reply_markup=get_yes_or_no_menu(action=BotAction.ANALYZE),
+        reply_markup=get_back_to_menu_button(),
     )
 
 
@@ -139,13 +144,17 @@ async def cmd_recent(
             html = formatter.to_html(
                 report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
             )
-            await notifier.send(html, chat_id=str(message.chat.id))
-            msg = await message.answer(
-                "Do you want see all errors?",
-                reply_markup=get_yes_or_no_menu(action=BotAction.RECENT),
+            msg = await notifier.send(
+                html,
+                chat_id=str(message.chat.id),
+                reply_markup=get_more_errors_menu(len(report.logs)),  # type: ignore
+                return_message_details=True,
             )
-
-            set_data = {"hours": hours, "message_id": msg.message_id, "chat_id": msg.chat.id}
+            set_data = {
+                "hours": hours,
+                "message_id": msg.get("message_id"),  # type: ignore
+                "chat_id": msg.get("chat_id"),  # type: ignore
+            }
             await state.set_data(set_data)
             return
 
@@ -202,7 +211,7 @@ async def handle_llm_question(
 
     except Exception as e:
         logger.exception(e)
-        await loading_msg.edit_text(f"❌ Error: {e}")
+        await loading_msg.edit_text(f"❌ Error: {e}", reply_markup=get_main_menu())
 
 
 @bot_router.message()

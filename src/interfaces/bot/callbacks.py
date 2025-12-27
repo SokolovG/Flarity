@@ -22,10 +22,10 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import handle_report_callback
 from src.interfaces.bot.keyboards import (
+    get_back_to_menu_button,
     get_main_menu,
-    get_no_menu,
+    get_more_errors_menu,
     get_period_options,
-    get_yes_or_no_menu,
 )
 from src.interfaces.bot.router import bot_router
 
@@ -93,10 +93,13 @@ async def on_analyze_period(
     try:
         # TODO: fix it after tests!
         # report = await analyze_use_case.execute(time_range)
+        a = """"level": "ERROR"
+            "message": "Null pointer exception in user service: user.profile is null",
+            "target": "ogonek_server::services::user","""
         report = AnalysisReport(
             has_errors=True,
             time_range=TimeRange(24),
-            llm_analysis=LLMAnalysisResult("TEXT FROM LLM", provider=LLMProvider.OLLAMA),
+            llm_analysis=LLMAnalysisResult(a, provider=LLMProvider.OLLAMA),
         )
 
         await handle_report_callback(
@@ -107,7 +110,7 @@ async def on_analyze_period(
             formatter=formatter,
             notifier=notifier,
             loading_msg=loading_msg,
-            keyboard=get_no_menu(),
+            keyboard=get_back_to_menu_button(),
             msg="Do you want ask something from LLM about report?\nIf you want, write your question!",
         )
         await state.set_state(BotStates.waiting_for_question)
@@ -131,14 +134,12 @@ async def on_recent_period(
     time_range = TimeRange(hours)
 
     await state.set_data({"hours": hours})
-
+    msg = "Choose an action:"
     try:
         report = await errors_use_case.execute(time_range)
         if report.has_errors and report.logs and len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:
-            msg = "Do you want see all errors?"
-            keyboard = get_yes_or_no_menu(action=BotAction.RECENT)
+            keyboard = get_more_errors_menu(errors_count=len(report.logs))
         else:
-            msg = "Choose an action:"
             keyboard = get_main_menu()
 
         await handle_report_callback(
