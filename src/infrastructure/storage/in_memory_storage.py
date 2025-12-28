@@ -1,13 +1,14 @@
 from typing import Any
 
 from src.application.ports.session_storage import SessionStorage
+from src.infrastructure.constants import TTL_FOR_STORAGE
 
 
 class InMemoryStorage(SessionStorage):
-    async def get(self, key: str) -> Any: ...
+    def __init__(self) -> None:
+        self.ttl = TTL_FOR_STORAGE
 
+    async def get(self, key: str) -> dict[str, Any] | None: ...
     async def set(self, key: str, value: Any, ttl: int | None = None) -> None: ...
-
     async def update(self, key: str, value: Any, ttl: int | None = None) -> None: ...
-
     async def delete(self, key: str) -> None: ...

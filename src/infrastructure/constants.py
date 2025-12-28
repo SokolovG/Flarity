@@ -6,3 +6,4 @@ MAX_SYMBOLS_LOG_MSG: Final[int] = 150
 MAX_GROUPS_IN_REPORT: Final[int] = 5
 MAX_RATE_LIMIT_CALLS: Final[int] = 1
 MAX_RATE_LIMIT_PERIOD: Final[int] = 180
+TTL_FOR_STORAGE: Final[int] = 600

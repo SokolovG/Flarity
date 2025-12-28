@@ -25,7 +25,7 @@ class LogsSourceSettings(BaseSettings):
     def get_config(self, config_type: type[LokiConfig]) -> LokiConfig: ...
 
     def get_config(self, config_type: type[BaseLogsSourceConfig]) -> BaseLogsSourceConfig:
-        if config_type == LokiConfig and self.provider != "telegram":
+        if config_type == LokiConfig and self.provider != "loki":
             raise ValueError("Provider mismatch!")
 
         return config_type(**self.config)

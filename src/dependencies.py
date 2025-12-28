@@ -1,11 +1,14 @@
+from typing import AsyncIterator
+
 from aiogram import Bot, Dispatcher
 from dishka import Provider, Scope, provide
-from redis import Redis
+from redis.asyncio import Redis
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
 from src.application.ports.session_storage import SessionStorage
+from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
@@ -84,16 +87,24 @@ class MyProvider(Provider):
         return StorageSettings()
 
     @provide(scope=Scope.APP)
-    def get_redis_client(self, storage_settings: StorageSettings) -> Redis:
+    def get_conv_manager(self, storage: SessionStorage) -> ConversationManager:
+        return ConversationManager(storage)
+
+    @provide(scope=Scope.APP)
+    async def get_redis_client(self, storage_settings: StorageSettings) -> AsyncIterator[Redis]:
         config = storage_settings.get_config(RedisConfig)
 
-        return Redis(
+        client = Redis(
             host=config.host,
             port=config.port,
             db=config.db,
             password=config.password,
             decode_responses=True,
         )
+        try:
+            yield client
+        finally:
+            await client.aclose()
 
     @provide(scope=Scope.APP)
     def get_session_storage(
