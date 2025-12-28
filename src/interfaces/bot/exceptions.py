@@ -4,3 +4,7 @@ class BaseTelegramBotException(Exception):
 
 class BotValueError(BaseTelegramBotException):
     """Analoge for ValueError."""
+
+
+class BotKeyError(BaseTelegramBotException):
+    """Analoge for ValueError."""

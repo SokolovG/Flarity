@@ -4,6 +4,8 @@ from aiogram.types import InlineKeyboardMarkup
 
 from src.application.ports.notifier import Notifier
 from src.infrastructure.clients.telegram_client import TelegramClient
+from src.infrastructure.entities import TelegramMessage
+from src.infrastructure.enums import TextType
 from src.infrastructure.settings.notification_settings import NotificationSettings
 
 
@@ -12,16 +14,16 @@ class TelegramNotifier(Notifier):
         self.telegram_client = telegram_client
         self.settings = settings
 
-    async def send(
+    async def send(  # type: ignore
         self,
         message: str,
         chat_id: str | None = None,
-        reply_markup: InlineKeyboardMarkup | None = None,
-        return_message_details: bool | None = False,
-    ) -> bool | Any:
+        parse_mode: TextType | None = TextType.HTML,
+        keyboard: InlineKeyboardMarkup | None = None,
+    ) -> TelegramMessage:
         return await self.telegram_client.send_message(
             message,
+            parse_mode=parse_mode,
             chat_id=chat_id,
-            reply_markup=reply_markup,
-            return_message_details=return_message_details,
+            reply_markup=keyboard,
         )
