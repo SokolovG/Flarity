@@ -5,20 +5,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.application.ports.notifier import Notifier
 from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
-from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.infrastructure.entities import LLMSession
 from src.infrastructure.enums import TextType
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
-from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
 from src.interfaces.bot.keyboards import (

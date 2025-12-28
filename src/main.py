@@ -37,9 +37,7 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
         if report.has_errors:
             html = formatter.to_html(report, report_type=ReportType.ANALYZE)
             await notifier.send(html, reply_markup=get_main_menu())
-            logger.info(
-                f"Scheduled report sent: {report.time_range.hours} {format_time_range(report.time_range)}"
-            )
+            logger.info(f"Scheduled report sent: {format_time_range(report.time_range)}")
         else:
             logger.info(f"✅ No errors found, skipping notification")
 
@@ -53,16 +51,16 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     if not settings.schedule_enabled:
         return
 
-    scheduler = AsyncIOScheduler()
+    scheduler = AsyncIOScheduler()  # type: ignore[no-untyped-call]
     SCHEDULE_INTERVAL_HOURS = settings.schedule_interval_hours
-    scheduler.add_job(
+    scheduler.add_job(  # type: ignore[no-untyped-call]
         scheduled_analysis,
-        trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),
+        trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),  # type: ignore[no-untyped-call]
         args=[container],
         id="log_analysis",
         max_instances=1,
     )
-    scheduler.start()
+    scheduler.start()  # type: ignore[no-untyped-call]
     logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")
     logger.info("Running initial analysis...")
 

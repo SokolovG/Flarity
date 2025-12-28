@@ -19,7 +19,7 @@ class AnalyzeLogsUseCase:
         self.llm = llm_analyzer
         self.grouper = error_grouper
 
-    # TODO: add rame limit for user!
+    # TODO: add rame limit for user! via Redis. Make RateLimiter service / decorator
     @limits(calls=MAX_RATE_LIMIT_CALLS, period=MAX_RATE_LIMIT_PERIOD)  # type: ignore[no-untyped-call]
     async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)

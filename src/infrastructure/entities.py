@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from msgspec import Struct, field
-from pydantic import Field
 
 
 class BaseInfrastructureObject(Struct):
@@ -20,7 +19,7 @@ class TelegramMessage(BaseInfrastructureObject):
 
 class LLMSession(BaseInfrastructureObject):
     messages: list[LLMMessage] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.now())
+    created_at: datetime = field(default_factory=datetime.now)
 
     def add_message(self, role: str, content: str) -> None:
         self.messages.append(LLMMessage(role=role, content=content))

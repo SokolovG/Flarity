@@ -28,13 +28,17 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         }
         return headers
 
-    def _build_request(self, logs_text: str, context: list[LLMMessage]) -> dict[str, Any]:
+    def _build_request(
+        self, logs_text: str, context: list[LLMMessage] | None = None
+    ) -> dict[str, Any]:
         messages = [
             LLMMessage(role="system", content=self.settings.llm.system_prompt),
             LLMMessage(role="user", content=logs_text),
         ]
-        for msg in context:
-            messages.append(msg)
+        if context:
+            for msg in context:
+                messages.append(msg)
+
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {

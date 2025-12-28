@@ -4,7 +4,7 @@ from src.interfaces.bot.entities import BotAction
 
 
 def loading_msg(time_range: TimeRange) -> str:
-    msg = f"Analyze logs for last {time_range.hours} {format_time_range(time_range)}\nThis may take up to 90 seconds."
+    msg = f"Analyze logs for last {format_time_range(time_range)}\nThis may take up to 90 seconds."
     return msg
 
 
@@ -24,7 +24,7 @@ def failed_msg(error: BaseException, action: BotAction) -> str:
 
 
 def no_errors_msg(time_range: TimeRange) -> str:
-    msg = f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}"
+    msg = f"✅ No errors found in {format_time_range(time_range)}"
     return msg
 
 

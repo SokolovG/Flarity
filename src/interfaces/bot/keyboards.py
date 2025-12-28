@@ -23,7 +23,7 @@ def get_period_options(action: BotAction, periods: list[int] = PERIODS) -> Inlin
     for period in periods:
         btn = [
             InlineKeyboardButton(
-                text=f"{period} {format_time_range(TimeRange(period))}",
+                text=f"{format_time_range(TimeRange(period))}",
                 callback_data=f"{action.value}_{period}",
             )
         ]

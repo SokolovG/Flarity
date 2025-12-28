@@ -26,7 +26,7 @@ class ReportFormatter:
         template_name = self.report_settings.get_template(report_type)
         template = self.env.get_template(template_name)
 
-        title = f"Error report for the last {report.time_range.hours} {format_time_range(report.time_range)}"
+        title = f"Error report for the last {format_time_range(report.time_range)}"
         total_errors = len(report.logs) if report.logs else 0
         unique_types = len(report.groups) if report.groups else 0
 

@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from http import HTTPMethod
-from typing import TypeVar
-
-T = TypeVar("T")
+from typing import Any
 
 
 class HttpPort(ABC):
@@ -16,4 +14,4 @@ class HttpPort(ABC):
         params: dict | None = None,
         timeout: int | None = None,
         no_log_answer: bool = False,
-    ) -> T: ...
+    ) -> Any: ...

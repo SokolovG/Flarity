@@ -1,6 +1,4 @@
-from typing import Self
-
-from pydantic import Field, model_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from src.infrastructure.settings.llm_provider_settings import LLMProviderSettings
@@ -11,6 +9,7 @@ from src.infrastructure.settings.report_settings import ReportSettings
 from src.infrastructure.settings.storage_settings import StorageSettings
 
 
+# TODO:  добавить валидацию совместимости LLM_PROVIDER + LLM_MODEL
 # TODO: привести все к одному типу - с env_nested_delimiter или наоборот
 class AppSettings(BaseSettings):
     log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)  # type: ignore[arg-type]

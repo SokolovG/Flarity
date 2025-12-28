@@ -26,7 +26,7 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
         return self._parse_response(response.content, messages=messages)
 
     async def ask(self, question: str, context: list[LLMMessage]) -> LLMAnalysisResult:
-        request_data = self._build_request(question, context)
+        request_data = self._build_request(question, context=context)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
         return self._parse_response(response.content)
@@ -55,8 +55,8 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
             logs_text += f"[{log.timestamp}] {log.level.value} {clean_message}\n"
         return logs_text
 
-    async def _make_http_request(self, data: dict) -> Response:
-        return await self.http.make_request(
+    async def _make_http_request(self, data: dict) -> Any:
+        response = await self.http.make_request(
             method=HTTPMethod.POST,
             url=self._get_api_url(),
             data=data,
@@ -64,3 +64,4 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
             headers=self._get_headers(),
             no_log_answer=True,
         )
+        return response

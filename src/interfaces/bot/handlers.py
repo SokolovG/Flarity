@@ -10,7 +10,6 @@ from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
-from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.infrastructure.enums import TextType
@@ -64,7 +63,16 @@ async def cmd_analyze(
         return
 
     # TODO: add validation
-    time_range = TimeRange(int(args[0]))
+    try:
+        hours = int(args[0])
+        if hours <= 0 or hours > 168:
+            await message.answer("❌ Hours must be between 1 and 168")
+            return
+        time_range = TimeRange(hours)
+    except ValueError:
+        await message.answer("❌ Invalid number. Example: /analyze 6")
+        return
+
     load_msg = await message.answer(loading_msg(time_range))
 
     try:
@@ -98,7 +106,17 @@ async def cmd_stats(
         return
 
     try:
-        time_range = TimeRange(int(args[0]))
+        try:
+            hours = int(args[0])
+            if hours <= 0 or hours > 168:
+                # TODO: add msg!
+                await message.answer("❌ Hours must be between 1 and 168")
+                return
+            time_range = TimeRange(hours)
+        except ValueError:
+            await message.answer("❌ Invalid number. Example: /analyze 6")
+            return
+
         report = await use_case.execute(time_range=time_range)
         if not report.has_errors:
             await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
@@ -129,7 +147,16 @@ async def cmd_recent(
         return
 
     try:
-        time_range = TimeRange(int(args[0]))
+        try:
+            hours = int(args[0])
+            if hours <= 0 or hours > 168:
+                await message.answer("❌ Hours must be between 1 and 168")
+                return
+            time_range = TimeRange(hours)
+        except ValueError:
+            await message.answer("❌ Invalid number. Example: /analyze 6")
+            return
+
         report = await use_case.execute(time_range=time_range)
 
         if not report.has_errors:

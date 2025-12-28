@@ -14,7 +14,7 @@ class BotTextFormatter:
 Current config:
 • LLM provider: {provider}
 • LLM model: {model.value}
-{(f"• Schedule: every {schedule_hourse.hours} {format_time_range(schedule_hourse)}") if schedule_enabled else ""}
+{(f"• Schedule: every {format_time_range(schedule_hourse)}") if schedule_enabled else ""}
             """
         return info
 
