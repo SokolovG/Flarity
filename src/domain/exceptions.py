@@ -3,4 +3,4 @@ class DomainException(Exception):
 
 
 class AnalysisFailedError(DomainException):
-    """ "Analysis failed Error"""
+    """Analysis failed Error"""

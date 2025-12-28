@@ -13,6 +13,7 @@ from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
+from src.infrastructure.entities import LLMSession
 from src.infrastructure.enums import TextType
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
@@ -94,7 +95,6 @@ async def on_settings(
     )
 
 
-# TODO: create chat id entity?
 @bot_router.callback_query(F.data.startswith("analyze_"))
 @inject
 async def on_analyze_period(
@@ -114,7 +114,7 @@ async def on_analyze_period(
     load_msg = await callback.message.edit_text(loading_msg(time_range))
 
     try:
-        report = await analyze_use_case.execute(time_range=time_range)
+        report = await analyze_use_case.execute(time_range)
         if not report.has_errors:
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
@@ -124,6 +124,10 @@ async def on_analyze_period(
         await helper.send_report(report, ReportType.ANALYZE, chat_id)
         await helper.send_menu(chat_id, ask_llm_msg(), get_back_to_menu_button())
         await state.set_state(BotStates.waiting_for_question)
+
+        session = LLMSession()
+        session.add_bulk_messages(report.messages)
+        session.add_message(role="assistant", content=report.llm_analysis.analysis_text)
 
     except Exception as e:
         logger.exception(e)

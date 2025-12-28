@@ -4,23 +4,27 @@ from msgspec import Struct
 from pydantic import Field
 
 
-class BaseMessageObject(Struct):
+class BaseInfrastructureObject(Struct):
     pass
 
 
-class LLMMessage(BaseMessageObject):
-    role: str
+class LLMMessage(BaseInfrastructureObject):
+    role: str  # "user" или "assistant"
     content: str
 
 
-class TelegramMessage(BaseMessageObject):
+class TelegramMessage(BaseInfrastructureObject):
     message_id: int
     chat_id: int
 
 
-class LLMSession(BaseMessageObject):
+class LLMSession(BaseInfrastructureObject):
     messages: list[LLMMessage] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.now)
 
     def add_message(self, role: str, content: str) -> None:
         self.messages.append(LLMMessage(role=role, content=content))
+
+    def add_bulk_messages(self, messages: list[LLMMessage]) -> None:
+        for msg in messages:
+            self.messages.append(msg)

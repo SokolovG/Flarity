@@ -7,6 +7,7 @@ from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import LLMModel, LLMProvider
+from src.infrastructure.entities import LLMMessage
 from src.infrastructure.exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.yandex.responses import YandexResponse
@@ -58,7 +59,16 @@ class YandexAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
+    def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
+        data = [
+            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="user", content=logs_text),
+        ]
+        return data
+
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage] | None = None
+    ) -> LLMAnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
         except msgspec.DecodeError as e:
@@ -77,6 +87,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         output_used_token = response_model.result.usage.completionTokens
 
         return LLMAnalysisResult(
+            messages=messages,
             analysis_text=text,
             provider=LLMProvider.YANDEX,
             input_tokens_used=int(input_used_token),

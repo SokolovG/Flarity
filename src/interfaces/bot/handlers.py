@@ -186,10 +186,9 @@ async def handle_llm_question(
     chat_id = str(message.chat.id)
 
     loading_msg = await message.answer(text=asking_llm_message())
-    session_id = str(message.chat.id)
 
     try:
-        answer = await ask_use_case.execute(question, session_id)
+        answer = await ask_use_case.execute(question, chat_id)
         await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
         await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())

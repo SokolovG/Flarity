@@ -8,6 +8,7 @@ from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import LLMProvider
+from src.infrastructure.entities import LLMMessage
 from src.infrastructure.exceptions import LLMError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
@@ -36,7 +37,6 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    # TODO: теряется чат и контекст. проверить доку и добавить нужный параметр по айди чата или что то похожее.
     def _build_request(self, logs_text: str) -> dict[str, Any]:
         request_data = {
             "model": self.settings.llm.model,
@@ -49,7 +49,16 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         }
         return request_data
 
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
+    def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
+        data = [
+            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="user", content=logs_text),
+        ]
+        return data
+
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage] | None = None
+    ) -> LLMAnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=OllamaResponse)
         except msgspec.DecodeError:
@@ -69,6 +78,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             logger.warning("LLM response might be truncated")
 
         return LLMAnalysisResult(
+            messages=messages,
             analysis_text=text,
             provider=LLMProvider.OLLAMA,
             input_tokens_used=response_model.prompt_eval_count,

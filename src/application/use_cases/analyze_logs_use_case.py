@@ -30,6 +30,7 @@ class AnalyzeLogsUseCase:
         analysis = await self.llm.analyze(logs)
 
         return AnalysisReport(
+            messages=analysis.messages,
             has_errors=True,
             time_range=time_range,
             logs=logs,

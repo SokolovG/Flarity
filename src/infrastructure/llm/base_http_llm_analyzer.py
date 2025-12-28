@@ -8,6 +8,7 @@ from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.domain.entities.log_entry import LogEntry
 from src.infrastructure.clients.http_client import HTTPClient
+from src.infrastructure.entities import LLMMessage
 from src.infrastructure.settings.app_settings import AppSettings
 
 
@@ -18,12 +19,13 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
 
     async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         formatted_logs = self._format_logs_for_llm(logs)
+        messages = self._build_prompt(formatted_logs)
         request_data = self._build_request(formatted_logs)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
-        return self._parse_response(response.content)
+        return self._parse_response(response.content, messages=messages)
 
-    async def ask(self, question: str, session_id: str) -> LLMAnalysisResult:
+    async def ask(self, question: str, context: list[LLMMessage]) -> LLMAnalysisResult:
         request_data = self._build_request(question)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
@@ -32,11 +34,15 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
     @abstractmethod
     def _build_request(self, logs_text: str) -> dict[str, Any]: ...
     @abstractmethod
+    def _build_prompt(self, logs_text: str) -> list[LLMMessage]: ...
+    @abstractmethod
     def _get_headers(self) -> dict[str, Any]: ...
     @abstractmethod
     def _handle_response(self, response: Response) -> None: ...
     @abstractmethod
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult: ...
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage] | None = None
+    ) -> LLMAnalysisResult: ...
     @abstractmethod
     def _get_api_url(self) -> str: ...
 

@@ -1,6 +1,7 @@
 from msgspec import Struct
 
 from src.domain.entities.enums import LLMProvider
+from src.infrastructure.entities import LLMMessage
 
 
 class LLMAnalysisResult(Struct):
@@ -8,3 +9,4 @@ class LLMAnalysisResult(Struct):
     provider: LLMProvider
     input_tokens_used: int | None = None
     output_tokens_used: int | None = None
+    messages: list[LLMMessage] | None = None
