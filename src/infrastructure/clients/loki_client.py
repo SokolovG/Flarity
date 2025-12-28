@@ -35,28 +35,28 @@ class LokiClient:
             "direction": direction.value,
         }
 
-        response = await self._http.make_request(
+        http_response = await self._http.make_request(
             method=HTTPMethod.GET,
-            url=f"{self.settings.get_config.url}/loki/api/v1/query_range",
+            url=f"{self.settings.get_config.url}/loki/api/v1/query_range",  # type: ignore [attr-defined]
             params=params,
             timeout=10,
             no_log_answer=True,
         )
 
-        if response.status_code == HTTPStatus.SERVICE_UNAVAILABLE:
+        if http_response.status_code == HTTPStatus.SERVICE_UNAVAILABLE:
             raise LokiUnavailableError("Loki is temporarily unavailable")
-        elif response.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR:
-            raise LokiError(f"Loki server error: {response.status_code}")
-        elif response.status_code >= HTTPStatus.BAD_REQUEST:
-            raise LokiError(f"Bad request: {response.status_code}")
+        elif http_response.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR:
+            raise LokiError(f"Loki server error: {http_response.status_code}")
+        elif http_response.status_code >= HTTPStatus.BAD_REQUEST:
+            raise LokiError(f"Bad request: {http_response.status_code}")
 
-        response = msgspec.json.decode(response.content, type=LokiQueryRangeResponse)
-        return response  # type: ignore
+        response = msgspec.json.decode(http_response.content, type=LokiQueryRangeResponse)
+        return response
 
     async def is_loki_is_ready(self) -> bool:
         try:
             response = await self._http.make_request(
-                url=f"{self.settings.get_config.url}/ready",
+                url=f"{self.settings.get_config.url}/ready",  # type: ignore [attr-defined]
                 method=HTTPMethod.GET,
                 timeout=5,
                 no_log_answer=True,

@@ -1,10 +1,6 @@
 class BaseTelegramBotException(Exception):
-    """BAse error."""
+    """Base error."""
 
 
-class BotValueError(BaseTelegramBotException):
-    """Analoge for ValueError."""
-
-
-class BotKeyError(BaseTelegramBotException):
-    """Analoge for ValueError."""
+class BotParsingError(BaseTelegramBotException):
+    pass

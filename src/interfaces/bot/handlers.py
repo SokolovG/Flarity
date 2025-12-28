@@ -5,7 +5,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.application.ports.notifier import Notifier
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
@@ -14,16 +13,27 @@ from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
+from src.infrastructure.enums import TextType
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: ignore
 from src.interfaces.bot.entities import BotAction, BotStates
-from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
+from src.interfaces.bot.helpers import TelegramBotHelper
 from src.interfaces.bot.keyboards import (
     get_back_to_menu_button,
     get_main_menu,
     get_more_errors_menu,
     get_period_options,
+)
+from src.interfaces.bot.messages import (
+    ask_llm_msg,
+    asking_llm_message,
+    choose_an_action_msg,
+    choose_period_msg,
+    failed_msg,
+    greetings_msg,
+    loading_msg,
+    no_errors_msg,
 )
 from src.interfaces.bot.router import bot_router
 
@@ -33,144 +43,120 @@ logger = getLogger(__name__)
 @bot_router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     await message.answer(
-        "👋 Hello! I'm Flarity, a bot for analyzing logs.\nChoose an action below or use /help",
+        text=greetings_msg(),
         reply_markup=get_main_menu(),
     )
 
 
-@bot_router.message(Command("analyze"))
+@bot_router.message(Command(BotAction.ANALYZE.value))
 @inject
 async def cmd_analyze(
     message: Message,
     use_case: FromDishka[AnalyzeLogsUseCase],
-    notifier: FromDishka[Notifier],
-    formatter: FromDishka[ReportFormatter],
+    helper: FromDishka[TelegramBotHelper],
 ) -> None:
+    chat_id = str(message.chat.id)
     args = message.text.split()[1:] if message.text else []
     if not args:
         await message.answer(
-            "Choose analysis period:", reply_markup=get_period_options(BotAction.ANALYZE)
+            text=choose_period_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
         )
         return
 
-    hours = int(args[0])
-    time_range = TimeRange(hours)
+    time_range = TimeRange(int(args[0]))
+    load_msg = await message.answer(loading_msg(time_range))
 
-    loading_msg = f"Analyzing logs for last {time_range.hours} {format_time_range(time_range)}\n{'This may take up to 30 seconds.'}"
-    await message.answer(loading_msg)
+    try:
+        report = await use_case.execute(time_range=time_range)
+        if not report.has_errors:
+            await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
+            return
 
-    time_range = TimeRange(hours)
-    report = await use_case.execute(time_range)
+        await load_msg.delete()
+        await helper.send_report(report, ReportType.ANALYZE, chat_id)
+        await helper.send_menu(chat_id, ask_llm_msg(), get_back_to_menu_button())
 
-    if not report.has_errors:
-        await message.answer(
-            f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
-        )
-        return
-
-    html = formatter.to_html(report, report_type=ReportType.ANALYZE)
-    await notifier.send(
-        html,
-        chat_id=str(message.chat.id),
-        reply_markup=get_back_to_menu_button(),
-    )
+    except Exception as e:
+        logger.exception(e)
+        await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
-@bot_router.message(Command("stats"))
+@bot_router.message(Command(BotAction.STATS.value))
 @inject
 async def cmd_stats(
     message: Message,
     use_case: FromDishka[StatisticsLogsUseCase],
-    notifier: FromDishka[Notifier],
-    formatter: FromDishka[ReportFormatter],
+    helper: FromDishka[TelegramBotHelper],
+    state: FSMContext,
 ) -> None:
-    args = message.text.split()[1:] if message.text else []
+    chat_id = str(message.chat.id)
+    args = helper.parse_args_from_text(message.text)
 
     if not args:
-        await message.answer(
-            "Choose analysis period:", reply_markup=get_period_options(BotAction.STATS)
-        )
+        await message.answer(choose_period_msg(), reply_markup=get_period_options(BotAction.STATS))
         return
 
     try:
-        hours = int(args[0])
-
-        time_range = TimeRange(hours)
-        report = await use_case.execute(time_range)
-
+        time_range = TimeRange(int(args[0]))
+        report = await use_case.execute(time_range=time_range)
         if not report.has_errors:
-            await message.answer(
-                f"✅No errors found in {time_range.hours} {format_time_range(time_range)}"
-            )
+            await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
-        html = formatter.to_html(report, report_type=ReportType.STATS)
-        await notifier.send(html, chat_id=str(message.chat.id))
-        await message.answer(text="Choose an action:", reply_markup=get_main_menu())
+        await helper.send_report(report, ReportType.STATS, chat_id)
+        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
+        await state.set_state(BotStates.viewing_report)
 
-    except ValueError:
-        await message.answer("❌ Invalid number! Use: <code>/stats 24</code>", parse_mode="HTML")
+    except Exception as e:
+        logger.exception(e)
+        await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
 
 
-@bot_router.message(Command("recent"))
+@bot_router.message(Command(BotAction.RECENT.value))
 @inject
 async def cmd_recent(
     message: Message,
     use_case: FromDishka[RecentErrorsUseCase],
-    notifier: FromDishka[Notifier],
-    formatter: FromDishka[ReportFormatter],
+    helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
-    args = message.text.split()[1:] if message.text else []
+    chat_id = str(message.chat.id)
+    args = helper.parse_args_from_text(message.text)
 
     if not args:
-        await message.answer("Choose period:", reply_markup=get_period_options(BotAction.RECENT))
+        await message.answer(choose_period_msg(), reply_markup=get_period_options(BotAction.STATS))
         return
 
     try:
-        hours = int(args[0])
-
-        time_range = TimeRange(hours)
-        report = await use_case.execute(time_range)
+        time_range = TimeRange(int(args[0]))
+        report = await use_case.execute(time_range=time_range)
 
         if not report.has_errors:
-            await message.answer(
-                f"✅ No errors found in {time_range.hours} {format_time_range(time_range)}"
-            )
+            await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
-        show_all_errors = None
-        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore
-            html = formatter.to_html(
-                report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
+        report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
+            keyboard = get_more_errors_menu(len(report.logs))  # type: ignore[arg-type]
+            await state.set_data(
+                {
+                    "hours": time_range.hours,
+                    "report_msg_id": report_msg.message_id,
+                }
             )
-            msg = await notifier.send(
-                html,
-                chat_id=str(message.chat.id),
-                reply_markup=get_more_errors_menu(len(report.logs)),  # type: ignore
-                return_message_details=True,
-            )
-            set_data = {
-                "hours": hours,
-                "message_id": msg.get("message_id"),  # type: ignore
-                "chat_id": msg.get("chat_id"),  # type: ignore
-            }
-            await state.set_data(set_data)
-            return
+        else:
+            keyboard = get_main_menu()
 
-        html = formatter.to_html(
-            report, report_type=ReportType.RECENT, show_all_errors=show_all_errors
-        )
-        await notifier.send(html, chat_id=str(message.chat.id))
-        await message.answer(text="Choose an action:", reply_markup=get_main_menu())
+        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
+        # TODO: Сохранить [report_msg, menu_msg] для удаления
+        await state.set_state(BotStates.waiting_for_question)
 
-    except ValueError:
-        await message.answer(
-            "❌ Invalid number! Use (example): <code>/recent 12</code>", parse_mode="HTML"
-        )
+    except Exception as e:
+        logger.exception(e)
+        await message.edit_text(failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu())
 
 
-@bot_router.message(Command("settings"))
+@bot_router.message(Command(BotAction.SETTINGS.value))
 @inject
 async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) -> None:
     info = BotTextFormatter.format_settings(
@@ -179,13 +165,13 @@ async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) 
         schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
         schedule_enabled=app_settings.schedule_enabled,
     )
-    await message.answer(info, parse_mode="HTML")
+    await message.answer(info, parse_mode=TextType.HTML.value)
 
 
-@bot_router.message(Command("help"))
+@bot_router.message(Command(BotAction.HELP.value))
 async def cmd_help(message: Message) -> None:
     help_text = BotTextFormatter.format_help()
-    await message.answer(help_text, parse_mode="HTML", reply_markup=get_main_menu())
+    await message.answer(help_text, parse_mode=TextType.HTML.value, reply_markup=get_main_menu())
 
 
 @bot_router.message(BotStates.waiting_for_question)
@@ -193,25 +179,25 @@ async def cmd_help(message: Message) -> None:
 async def handle_llm_question(
     message: Message,
     ask_use_case: FromDishka[AskLLMUseCase],
-    formatter: FromDishka[ReportFormatter],
-    notifier: FromDishka[Notifier],
+    helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
-    question: str = message.text  # type: ignore
+    question = message.text
+    chat_id = str(message.chat.id)
 
-    loading_msg = await message.answer("Asking LLM...")
+    loading_msg = await message.answer(text=asking_llm_message())
     session_id = str(message.chat.id)
+
     try:
         answer = await ask_use_case.execute(question, session_id)
-        html = formatter.format_llm_answer(answer, ReportType.ANSWER)
-        await notifier.send(html, chat_id=str(message.chat.id))
+        await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
-        await message.answer("Choose an action:", reply_markup=get_main_menu())
+        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
         await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)
-        await loading_msg.edit_text(f"❌ Error: {e}", reply_markup=get_main_menu())
+        await message.edit_text(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
 
 
 @bot_router.message()

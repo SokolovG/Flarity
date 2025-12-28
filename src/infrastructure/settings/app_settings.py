@@ -11,10 +11,10 @@ from src.infrastructure.settings.report_settings import ReportSettings
 
 
 class AppSettings(BaseSettings):
-    log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)
-    llm: LLMSettings = Field(default_factory=LLMSettings)
-    llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
-    notification: NotificationSettings = Field(default_factory=NotificationSettings)
+    log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)  # type: ignore[arg-type]
+    llm: LLMSettings = Field(default_factory=LLMSettings)  # type: ignore[arg-type]
+    llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)  # type: ignore[arg-type]
+    notification: NotificationSettings = Field(default_factory=NotificationSettings)  # type: ignore[arg-type]
     report: ReportSettings = Field(default_factory=ReportSettings)
     schedule_interval_hours: str = "6"
     schedule_enabled: bool

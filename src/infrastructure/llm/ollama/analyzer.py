@@ -78,7 +78,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         return {}
 
     def _get_api_url(self) -> str:
-        url = f"{self.settings.llm_provider.get_config.base_url}/api/chat"
+        url = f"{self.settings.llm_provider.get_config.base_url}/api/chat"  # type: ignore [attr-defined]
         return url
 
     @staticmethod

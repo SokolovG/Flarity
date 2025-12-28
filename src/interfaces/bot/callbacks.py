@@ -27,7 +27,7 @@ from src.interfaces.bot.keyboards import (
 )
 from src.interfaces.bot.messages import (
     ask_llm_msg,
-    choose_an_action,
+    choose_an_action_msg,
     choose_period_msg,
     failed_msg,
     loading_msg,
@@ -40,6 +40,9 @@ logger = getLogger(__name__)
 
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
+    if not callback.message:
+        return
+
     await callback.answer()
     await state.set_state(BotStates.period_selection)
     await callback.message.answer(
@@ -49,6 +52,9 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 
 @bot_router.callback_query(F.data == BotAction.RECENT.value)
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
+    if not callback.message:
+        return
+
     await callback.answer()
     await state.set_state(BotStates.period_selection)
     await callback.message.answer(
@@ -58,6 +64,9 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
 
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
+    if not callback.message:
+        return
+
     await state.set_state(BotStates.period_selection)
     await callback.message.answer(
         text=choose_period_msg(), reply_markup=get_period_options(BotAction.STATS)
@@ -69,6 +78,9 @@ async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> No
 async def on_settings(
     callback: CallbackQuery, app_settings: FromDishka[AppSettings], state: FSMContext
 ) -> None:
+    if not callback.message:
+        return
+
     await callback.answer()
     info = BotTextFormatter.format_settings(
         provider=app_settings.llm_provider.provider,
@@ -82,6 +94,7 @@ async def on_settings(
     )
 
 
+# TODO: create chat id entity?
 @bot_router.callback_query(F.data.startswith("analyze_"))
 @inject
 async def on_analyze_period(
@@ -90,28 +103,26 @@ async def on_analyze_period(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
+    if not callback.message:
+        return
+
     await state.set_state(BotStates.viewing_report)
 
+    chat_id = str(callback.message.chat.id)
     time_range = helper.get_time_range_from_callback(callback)
+
     load_msg = await callback.message.edit_text(loading_msg(time_range))
 
     try:
-        report = await helper.execute_report(
-            use_case=analyze_use_case,
-            time_range=time_range,
-            chat_id=str(callback.message.chat.id),
-            report_type=ReportType.ANALYZE,
-        )
-        if not report:
+        report = await analyze_use_case.execute(time_range=time_range)
+        if not report.has_errors:
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
         await load_msg.delete()
-        await helper.send_followup(
-            text=ask_llm_msg(),
-            chat_id=str(callback.message.chat.id),
-            keyboard=get_back_to_menu_button(),
-        )
+
+        await helper.send_report(report, ReportType.ANALYZE, chat_id)
+        await helper.send_menu(chat_id, ask_llm_msg(), get_back_to_menu_button())
         await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
@@ -127,24 +138,39 @@ async def on_recent_period(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
+    if not callback.message:
+        return
+
     await state.set_state(BotStates.viewing_report)
+
     time_range = helper.get_time_range_from_callback(callback)
+    chat_id = str(callback.message.chat.id)
 
     try:
-        report = await helper.execute_report(
-            use_case=errors_use_case,
-            time_range=time_range,
-            chat_id=str(callback.message.chat.id),
-            report_type=ReportType.RECENT,
-            keyboard=get_more_errors_menu(errors_count=0),  # TODO: fix
-        )
-        if not report:
+        report = await errors_use_case.execute(time_range=time_range)
+        if not report.has_errors:
             await callback.message.edit_text(
                 no_errors_msg(time_range), reply_markup=get_main_menu()
             )
             return
 
-        await state.set_state(BotStates.waiting_for_question)
+        report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
+            keyboard = get_more_errors_menu(len(report.logs))  # type: ignore[arg-type]
+            await state.set_data(
+                {
+                    "hours": time_range.hours,
+                    "report_msg_id": report_msg.message_id,
+                }
+            )
+        else:
+            keyboard = get_main_menu()
+
+        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
+
+        # TODO: Сохранить [report_msg, menu_msg] для удаления
+
+        await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)
@@ -157,25 +183,28 @@ async def on_recent_period(
 @inject
 async def on_statistics_period(
     callback: CallbackQuery,
-    statistics_use_case: FromDishka[StatisticsLogsUseCase],
+    stats_use_case: FromDishka[StatisticsLogsUseCase],
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
+    if not callback.message:
+        return
+
     await state.set_state(BotStates.viewing_report)
     time_range = helper.get_time_range_from_callback(callback)
+    chat_id = str(callback.message.chat.id)
 
     try:
-        report = await helper.execute_report(
-            use_case=statistics_use_case,
-            time_range=time_range,
-            chat_id=str(callback.message.chat.id),
-            report_type=ReportType.STATS,
-        )
-        if not report:
+        report = await stats_use_case.execute(time_range=time_range)
+        if not report.has_errors:
             await callback.message.edit_text(
                 no_errors_msg(time_range), reply_markup=get_main_menu()
             )
             return
+
+        await helper.send_report(report, ReportType.STATS, chat_id)
+        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
+        await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)
@@ -187,12 +216,15 @@ async def on_statistics_period(
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 @bot_router.callback_query(F.data == BotCallback.NO.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
+    if not callback.message:
+        return
+
     await callback.answer()
     current_state = await state.get_state()
     if current_state == BotStates.viewing_report or current_state == BotStates.waiting_for_question:
-        await callback.message.answer(text=choose_an_action(), reply_markup=get_main_menu())
+        await callback.message.answer(text=choose_an_action_msg(), reply_markup=get_main_menu())
     else:
-        await callback.message.edit_text(text=choose_an_action(), reply_markup=get_main_menu())
+        await callback.message.edit_text(text=choose_an_action_msg(), reply_markup=get_main_menu())
 
     await state.set_state(BotStates.main_menu)
 
@@ -205,23 +237,25 @@ async def get_more_recent_errors(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
+    if not callback.message:
+        return
+
     data = await state.get_data()
-    time_range = TimeRange(data.get("hours"))
+    chat_id = str(callback.message.chat.id)
+    time_range = TimeRange(data.get("hours"))  # type: ignore[arg-type]
 
     try:
-        report = await helper.execute_report(
-            use_case=errors_use_case,
-            time_range=time_range,
-            chat_id=str(callback.message.chat.id),
-            report_type=ReportType.RECENT,
-            show_all_errors=True,
-        )
+        report = await errors_use_case.execute(time_range=time_range)
 
-        if not report:
+        if not report.has_errors:
             await callback.message.edit_text(
                 no_errors_msg(time_range), reply_markup=get_main_menu()
             )
             return
+
+        await helper.send_report(report, ReportType.RECENT, chat_id, show_all_errors=True)
+        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
+        await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
         logger.exception(e)

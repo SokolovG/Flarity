@@ -19,11 +19,11 @@ class TelegramNotifier(Notifier):
         message: str,
         chat_id: str | None = None,
         parse_mode: TextType | None = TextType.HTML,
-        keyboard: InlineKeyboardMarkup | None = None,
+        reply_markup: InlineKeyboardMarkup | None = None,
     ) -> TelegramMessage:
         return await self.telegram_client.send_message(
             message,
             parse_mode=parse_mode,
             chat_id=chat_id,
-            reply_markup=keyboard,
+            reply_markup=reply_markup,
         )

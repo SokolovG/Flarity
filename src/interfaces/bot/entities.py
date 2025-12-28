@@ -7,6 +7,9 @@ class BotAction(Enum):
     ANALYZE = "analyze"
     RECENT = "recent"
     STATS = "stats"
+    SETTINGS = "settings"
+    HELP = "help"
+    ASK = "ask"
 
 
 class BotCallback(str, Enum):

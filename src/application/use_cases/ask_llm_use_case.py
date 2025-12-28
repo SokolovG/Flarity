@@ -13,7 +13,7 @@ class AskLLMUseCase:
     ):
         self.llm = llm_analyzer
 
-    @limits(calls=MAX_RATE_LIMIT_CALLS, period=MAX_RATE_LIMIT_PERIOD)
+    @limits(calls=MAX_RATE_LIMIT_CALLS, period=MAX_RATE_LIMIT_PERIOD)  # type: ignore[no-untyped-call]
     async def execute(self, question: str, session_id: str) -> LLMAnalysisResult:
         answer = await self.llm.ask(question, session_id)
         if not answer:

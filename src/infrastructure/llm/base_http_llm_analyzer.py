@@ -23,7 +23,7 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
         self._handle_response(response)
         return self._parse_response(response.content)
 
-    async def ask(self, question: str) -> LLMAnalysisResult:
+    async def ask(self, question: str, session_id: str) -> LLMAnalysisResult:
         request_data = self._build_request(question)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
@@ -52,7 +52,7 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
             method=HTTPMethod.POST,
             url=self._get_api_url(),
             data=data,
-            timeout=self.settings.llm_provider.get_config.timeout,
+            timeout=self.settings.llm_provider.get_config.timeout,  # type: ignore [attr-defined]
             headers=self._get_headers(),
             no_log_answer=True,
         )

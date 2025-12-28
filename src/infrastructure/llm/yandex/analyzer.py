@@ -16,12 +16,12 @@ logger = getLogger(__name__)
 
 class YandexAnalyzer(BaseLLMAnalyzer):
     def _get_api_url(self) -> str:
-        url: str = self.settings.llm_provider.get_config.base_url
+        url: str = self.settings.llm_provider.get_config.base_url  # type: ignore [attr-defined]
         return url
 
     def _get_headers(self) -> dict[str, Any]:
         headers = {
-            "Authorization": f"Api-Key {self.settings.llm_provider.get_config.api_key}",
+            "Authorization": f"Api-Key {self.settings.llm_provider.get_config.api_key}",  # type: ignore [attr-defined]
             "Content-Type": "application/json",
         }
         return headers
@@ -83,10 +83,8 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         )
 
     def _get_model_uri(self) -> str:
-        modelUri = f"gpt://{self.settings.llm_provider.get_config.catalog_id}/{self.settings.llm.model.value}"
+        modelUri = f"gpt://{self.settings.llm_provider.get_config.catalog_id}/{self.settings.llm.model.value}"  # type: ignore [attr-defined]
         match self.settings.llm.model:
             case LLMModel.YANDEX_GPT_5:
                 modelUri += "latest"
-            case LLMModel.YANDEX_GPT_PRO_5_1:
-                modelUri += "rc"
         return modelUri

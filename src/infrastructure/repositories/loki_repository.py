@@ -36,10 +36,10 @@ class LokiLogRepository(LogSource):
                         level=LogLevel.ERROR,
                         app=stream.stream.get("app", "unknown"),
                         metadata={
-                            "target": parsed.get("target"),
-                            "request_id": parsed.get("request_id"),
-                            "method": parsed.get("method"),
-                            "uri": parsed.get("uri"),
+                            "target": parsed.get("target") or "",
+                            "request_id": parsed.get("request_id") or "",
+                            "method": parsed.get("method") or "",
+                            "uri": parsed.get("uri") or "",
                         },
                     )
                 )

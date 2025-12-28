@@ -13,7 +13,7 @@ def choose_period_msg() -> str:
     return msg
 
 
-def choose_an_action() -> str:
+def choose_an_action_msg() -> str:
     msg = "Choose an action:"
     return msg
 
@@ -30,4 +30,14 @@ def no_errors_msg(time_range: TimeRange) -> str:
 
 def ask_llm_msg() -> str:
     msg = "Do you want ask something from LLM about report?\nIf you want, write your question!"
+    return msg
+
+
+def asking_llm_message() -> str:
+    msg = "Asking LLM..."
+    return msg
+
+
+def greetings_msg() -> str:
+    msg = "👋 Hello! I'm Flarity, a bot for analyzing logs.\nChoose an action below or use /help"
     return msg

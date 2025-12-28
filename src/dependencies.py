@@ -20,12 +20,13 @@ from src.infrastructure.repositories.loki_repository import LokiLogRepository
 from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.report_settings import ReportSettings
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
+from src.interfaces.bot.helpers import TelegramBotHelper
 
 
 class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_bot(self, settings: AppSettings) -> Bot:
-        return Bot(token=settings.notification.get_config.bot_token)
+        return Bot(token=settings.notification.get_config.bot_token)  # type: ignore[attr-defined]
 
     @provide(scope=Scope.APP)
     def get_dispatcher(self) -> Dispatcher:
@@ -33,7 +34,7 @@ class MyProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_app_settings(self) -> AppSettings:
-        return AppSettings()
+        return AppSettings()  # type: ignore[call-arg]
 
     @provide(scope=Scope.APP)
     def get_ask_llm_use_case(self, llm_analyzer: LLMAnalyzer) -> AskLLMUseCase:
@@ -64,6 +65,12 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_formatter(self, report_settings: ReportSettings) -> ReportFormatter:
         return ReportFormatter(report_settings)
+
+    @provide(scope=Scope.APP)
+    def get_telegram_bot_helper(
+        self, formatter: ReportFormatter, notifier: TelegramNotifier
+    ) -> TelegramBotHelper:
+        return TelegramBotHelper(formatter, notifier)
 
     @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(

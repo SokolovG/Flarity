@@ -23,7 +23,7 @@ class TelegramClient:
 
     @property
     def _base_url(self) -> str:
-        return f"https://api.telegram.org/bot{self.settings.get_config.bot_token}"
+        return f"https://api.telegram.org/bot{self.settings.get_config.bot_token}"  # type: ignore [attr-defined]
 
     async def send_message(
         self,
@@ -66,7 +66,7 @@ class TelegramClient:
     ) -> TelegramMessage:
         data = {
             "text": text,
-            "chat_id": chat_id if chat_id else self.settings.get_config.chat_id,
+            "chat_id": chat_id if chat_id else self.settings.get_config.chat_id,  # type: ignore [attr-defined]
             "parse_mode": parse_mode.value,  # type: ignore
         }
 
