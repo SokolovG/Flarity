@@ -1,9 +1,11 @@
 from aiogram import Bot, Dispatcher
 from dishka import Provider, Scope, provide
+from redis import Redis
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.application.ports.notifier import Notifier
+from src.application.ports.session_storage import SessionStorage
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
@@ -18,7 +20,11 @@ from src.infrastructure.llm.yandex.analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.infrastructure.repositories.loki_repository import LokiLogRepository
 from src.infrastructure.settings.app_settings import AppSettings
+from src.infrastructure.settings.notification_settings import TelegramConfig
 from src.infrastructure.settings.report_settings import ReportSettings
+from src.infrastructure.settings.storage_settings import RedisConfig, StorageSettings
+from src.infrastructure.storage.in_memory_storage import InMemoryStorage
+from src.infrastructure.storage.redis_storage import RedisStorage
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
 
@@ -26,7 +32,8 @@ from src.interfaces.bot.helpers import TelegramBotHelper
 class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_bot(self, settings: AppSettings) -> Bot:
-        return Bot(token=settings.notification.get_config.bot_token)  # type: ignore[attr-defined]
+        config = settings.notification.get_config(TelegramConfig)
+        return Bot(token=config.bot_token)
 
     @provide(scope=Scope.APP)
     def get_dispatcher(self) -> Dispatcher:
@@ -55,7 +62,7 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_telegram_notifier(
         self, telegram_client: TelegramClient, settings: AppSettings
-    ) -> Notifier:
+    ) -> TelegramNotifier:
         return TelegramNotifier(telegram_client, settings.notification)
 
     @provide(scope=Scope.APP)
@@ -71,6 +78,36 @@ class MyProvider(Provider):
         self, formatter: ReportFormatter, notifier: TelegramNotifier
     ) -> TelegramBotHelper:
         return TelegramBotHelper(formatter, notifier)
+
+    @provide(scope=Scope.APP)
+    def get_storage_settings(self) -> StorageSettings:
+        return StorageSettings()
+
+    @provide(scope=Scope.APP)
+    def get_redis_client(self, storage_settings: StorageSettings) -> Redis:
+        config = storage_settings.get_config(RedisConfig)
+
+        return Redis(
+            host=config.host,
+            port=config.port,
+            db=config.db,
+            password=config.password,
+            decode_responses=True,
+        )
+
+    @provide(scope=Scope.APP)
+    def get_session_storage(
+        self,
+        redis_client: Redis,
+        storage_settings: StorageSettings,
+    ) -> SessionStorage:
+        match storage_settings.provider:
+            case "redis":
+                return RedisStorage(redis_client)
+            case "memory":
+                return InMemoryStorage()
+            case _:
+                raise ValueError(f"Unknown provider: {storage_settings.provider}")
 
     @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(

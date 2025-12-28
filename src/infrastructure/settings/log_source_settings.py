@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, overload
 
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,10 +21,11 @@ class LogsSourceSettings(BaseSettings):
         env_prefix="LOG_SOURCE_", case_sensitive=False, env_nested_delimiter="__"
     )
 
-    @property
-    def get_config(self) -> BaseLogsSourceConfig:
-        match self.provider:
-            case "loki":
-                return LokiConfig(**self.config)
-            case _:
-                raise ValueError(f"Unknown log source provider: {self.provider}")
+    @overload  # type: ignore[misc]
+    def get_config(self, config_type: type[LokiConfig]) -> LokiConfig: ...
+
+    def get_config(self, config_type: type[BaseLogsSourceConfig]) -> BaseLogsSourceConfig:
+        if config_type == LokiConfig and self.provider != "telegram":
+            raise ValueError("Provider mismatch!")
+
+        return config_type(**self.config)

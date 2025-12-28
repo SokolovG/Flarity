@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, overload
 
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,10 +21,11 @@ class NotificationSettings(BaseSettings):
         env_prefix="NOTIFICATION_", case_sensitive=False, env_nested_delimiter="__"
     )
 
-    @property
-    def get_config(self) -> BaseNotificationConfig:
-        match self.provider:
-            case "telegram":
-                return TelegramConfig(**self.config)
-            case _:
-                raise ValueError(f"Unknown notification provider: {self.provider}")
+    @overload  # type: ignore[misc]
+    def get_config(self, config_type: type[TelegramConfig]) -> TelegramConfig: ...
+
+    def get_config(self, config_type: type[BaseNotificationConfig]) -> BaseNotificationConfig:
+        if config_type == TelegramConfig and self.provider != "telegram":
+            raise ValueError("Provider mismatch!")
+
+        return config_type(**self.config)

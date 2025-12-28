@@ -209,4 +209,3 @@ marimo/_lsp/
 __marimo__/
 
 *alloy
-docker-compose.yml

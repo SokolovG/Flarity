@@ -1,4 +1,4 @@
-from typing import Any, Self
+from typing import Any, Self, overload
 
 from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -40,12 +40,15 @@ class LLMProviderSettings(BaseSettings):
         env_prefix="LLM_PROVIDER_", case_sensitive=False, env_nested_delimiter="__"
     )
 
-    @property
-    def get_config(self) -> BaseLLMProviderConfig:
-        match self.provider:
-            case "yandex":
-                return YandexConfig(**self.config)
-            case "ollama":
-                return OllamaConfig(**self.config)
-            case _:
-                raise ValueError(f"Unknown provider: {self.provider}")
+    @overload
+    def get_config(self, config_type: type[OllamaConfig]) -> OllamaConfig: ...
+    @overload
+    def get_config(self, config_type: type[YandexConfig]) -> YandexConfig: ...
+
+    def get_config(self, config_type: type[BaseLLMProviderConfig]) -> BaseLLMProviderConfig:
+        if config_type == YandexConfig and self.provider != "yandex":
+            raise ValueError("Provider mismatch!")
+        elif config_type == OllamaConfig and self.provider != "ollama":
+            raise ValueError("Provider mismatch!")
+
+        return config_type(**self.config)

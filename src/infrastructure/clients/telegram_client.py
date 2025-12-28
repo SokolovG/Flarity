@@ -13,17 +13,18 @@ from src.infrastructure.exceptions import (
     TelegramError,
     TelegramRateLimitError,
 )
-from src.infrastructure.settings.notification_settings import NotificationSettings
+from src.infrastructure.settings.notification_settings import NotificationSettings, TelegramConfig
 
 
 class TelegramClient:
     def __init__(self, http_client: HTTPClient, settings: NotificationSettings):
         self._http = http_client
         self.settings = settings
+        self.config = settings.get_config(TelegramConfig)
 
     @property
     def _base_url(self) -> str:
-        return f"https://api.telegram.org/bot{self.settings.get_config.bot_token}"  # type: ignore [attr-defined]
+        return f"https://api.telegram.org/bot{self.config.bot_token}"
 
     async def send_message(
         self,
@@ -66,7 +67,7 @@ class TelegramClient:
     ) -> TelegramMessage:
         data = {
             "text": text,
-            "chat_id": chat_id if chat_id else self.settings.get_config.chat_id,  # type: ignore [attr-defined]
+            "chat_id": chat_id if chat_id else self.config.chat_id,
             "parse_mode": parse_mode.value,  # type: ignore
         }
 

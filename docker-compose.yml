@@ -1,0 +1,50 @@
+name: log-helper-dev
+
+services:
+  flarity:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - "8080:8080"
+    volumes:
+        - .:/app
+    environment:
+        - PYTHONPATH=/app
+    env_file:
+      - .env
+    networks:
+      - flarity
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - flarity
+  redis:
+    image: redis:latest
+    volumes:
+      - ./data:/data
+    ports:
+      - "6739:6739"
+    networks:
+      - flarity
+  loki: # for tests! delete before release
+    image: grafana/loki:latest
+    volumes:
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - flarity
+
+networks:
+  flarity:
+    driver: bridge
+
+volumes:
+  ollama-data:
+  loki-data:
+    name: loki-ogonek-dev

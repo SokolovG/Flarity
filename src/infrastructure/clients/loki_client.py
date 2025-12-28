@@ -9,7 +9,7 @@ from src.domain.entities.enums import Directions
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.exceptions import LokiError, LokiUnavailableError
 from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
-from src.infrastructure.settings.log_source_settings import LogsSourceSettings
+from src.infrastructure.settings.log_source_settings import LogsSourceSettings, LokiConfig
 
 logger = getLogger(__name__)
 
@@ -17,7 +17,8 @@ logger = getLogger(__name__)
 class LokiClient:
     def __init__(self, http_client: HTTPClient, settings: LogsSourceSettings):
         self._http = http_client
-        self.settings = settings
+        self.config = settings.get_config(LokiConfig)
+        self.url = self.config.url
 
     async def query_range(
         self,
@@ -37,7 +38,7 @@ class LokiClient:
 
         http_response = await self._http.make_request(
             method=HTTPMethod.GET,
-            url=f"{self.settings.get_config.url}/loki/api/v1/query_range",  # type: ignore [attr-defined]
+            url=f"{self.url}/loki/api/v1/query_range",
             params=params,
             timeout=10,
             no_log_answer=True,
@@ -56,7 +57,7 @@ class LokiClient:
     async def is_loki_is_ready(self) -> bool:
         try:
             response = await self._http.make_request(
-                url=f"{self.settings.get_config.url}/ready",  # type: ignore [attr-defined]
+                url=f"{self.url}/ready",
                 method=HTTPMethod.GET,
                 timeout=5,
                 no_log_answer=True,

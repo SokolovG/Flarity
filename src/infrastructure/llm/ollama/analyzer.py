@@ -11,6 +11,7 @@ from src.domain.entities.enums import LLMProvider
 from src.infrastructure.exceptions import LLMError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
+from src.infrastructure.settings.llm_provider_settings import OllamaConfig
 
 logger = getLogger(__name__)
 
@@ -78,7 +79,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         return {}
 
     def _get_api_url(self) -> str:
-        url = f"{self.settings.llm_provider.get_config.base_url}/api/chat"  # type: ignore [attr-defined]
+        url = f"{self.settings.llm_provider.get_config(OllamaConfig).base_url}/api/chat"
         return url
 
     @staticmethod
