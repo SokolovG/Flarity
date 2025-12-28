@@ -13,14 +13,14 @@ from httpx import (
     Response,
 )
 
+from src.application.ports.http_client_port import HttpPort
 from src.infrastructure.decorators import retry
 from src.infrastructure.exceptions.network_exeptions import NetworkError
-from src.infrastructure.settings.app_settings import AppSettings
 
 logger = getLogger(__name__)
 
 
-class HTTPClient:
+class HTTPClient(HttpPort):
     def __init__(self, timeout: int | None = None) -> None:
         self.timeout = timeout
         self.client = AsyncClient(timeout=self.timeout)

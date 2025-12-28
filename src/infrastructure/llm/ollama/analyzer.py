@@ -37,13 +37,17 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _build_request(self, logs_text: str) -> dict[str, Any]:
+    def _build_request(self, logs_text: str, context: list[LLMMessage]) -> dict[str, Any]:
+        messages = [
+            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="user", content=logs_text),
+        ]
+        for msg in context:
+            messages.append(msg)
+
         request_data = {
             "model": self.settings.llm.model,
-            "messages": [
-                {"role": "system", "content": self.settings.llm.system_prompt},
-                {"role": "user", "content": logs_text},
-            ],
+            "messages": msgspec.to_builtins(messages),
             "stream": False,
             "options": {"num_predict": self.settings.llm.max_tokens},
         }
@@ -95,5 +99,4 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
     @staticmethod
     def _clean_llm_answer(text: str) -> str:
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
-        text = text.replace("<think>", "").replace("</think>", "")
         return text.strip()

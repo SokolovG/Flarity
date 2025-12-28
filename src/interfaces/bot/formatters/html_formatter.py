@@ -5,16 +5,19 @@ from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import ReportType
 from src.domain.utils import format_time_range
 from src.infrastructure.constants import (
+    BASE_DIR,
     MAX_ERRORS_IN_ONE_REPORT,
     MAX_GROUPS_IN_REPORT,
     MAX_SYMBOLS_LOG_MSG,
 )
 from src.infrastructure.settings.report_settings import ReportSettings
 
+TEMPLATES_DIR = BASE_DIR / "resources" / "templates"
+
 
 class ReportFormatter:
     def __init__(self, report_settings: ReportSettings) -> None:
-        self.env = Environment(loader=FileSystemLoader("resources/templates"), autoescape=True)
+        self.env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
         self.report_settings = report_settings
 
     def to_html(

@@ -21,6 +21,9 @@ class RedisStorage(SessionStorage):
     async def get(self, key: str) -> dict[str, Any] | None:
         try:
             data = await self.client.get(key)
+            if data is None:
+                return None
+
             decoded: dict[str, Any] = self.decoder.decode(data)
             return decoded
 

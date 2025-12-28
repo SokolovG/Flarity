@@ -5,34 +5,36 @@ from typing import Any
 from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
+from src.application.ports.http_client_port import HttpPort
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.domain.entities.log_entry import LogEntry
-from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.entities import LLMMessage
 from src.infrastructure.settings.app_settings import AppSettings
 
 
 class BaseLLMAnalyzer(LLMAnalyzer, ABC):
-    def __init__(self, http_client: HTTPClient, settings: AppSettings):
+    def __init__(self, http_client: HttpPort, settings: AppSettings):
         self.http = http_client
         self.settings = settings
 
     async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         formatted_logs = self._format_logs_for_llm(logs)
         messages = self._build_prompt(formatted_logs)
-        request_data = self._build_request(formatted_logs)
+        request_data = self._build_request(formatted_logs, context=messages)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
         return self._parse_response(response.content, messages=messages)
 
     async def ask(self, question: str, context: list[LLMMessage]) -> LLMAnalysisResult:
-        request_data = self._build_request(question)
+        request_data = self._build_request(question, context)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
         return self._parse_response(response.content)
 
     @abstractmethod
-    def _build_request(self, logs_text: str) -> dict[str, Any]: ...
+    def _build_request(
+        self, logs_text: str, context: list[LLMMessage] | None = None
+    ) -> dict[str, Any]: ...
     @abstractmethod
     def _build_prompt(self, logs_text: str) -> list[LLMMessage]: ...
     @abstractmethod

@@ -47,8 +47,10 @@ class MyProvider(Provider):
         return AppSettings()  # type: ignore[call-arg]
 
     @provide(scope=Scope.APP)
-    def get_ask_llm_use_case(self, llm_analyzer: LLMAnalyzer) -> AskLLMUseCase:
-        return AskLLMUseCase(llm_analyzer)
+    def get_ask_llm_use_case(
+        self, llm_analyzer: LLMAnalyzer, conversation_manager: ConversationManager
+    ) -> AskLLMUseCase:
+        return AskLLMUseCase(llm_analyzer, conversation_manager)
 
     @provide(scope=Scope.APP)
     def get_http_client(self) -> HTTPClient:

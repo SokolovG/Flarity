@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.ports.notifier import Notifier
+from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
@@ -101,6 +102,7 @@ async def on_analyze_period(
     callback: CallbackQuery,
     analyze_use_case: FromDishka[AnalyzeLogsUseCase],
     helper: FromDishka[TelegramBotHelper],
+    conv_manager: FromDishka[ConversationManager],
     state: FSMContext,
 ) -> None:
     if not callback.message:
@@ -128,6 +130,7 @@ async def on_analyze_period(
         session = LLMSession()
         session.add_bulk_messages(report.messages)
         session.add_message(role="assistant", content=report.llm_analysis.analysis_text)
+        await conv_manager.save_session(chat_id, session)
 
     except Exception as e:
         logger.exception(e)

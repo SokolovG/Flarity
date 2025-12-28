@@ -63,6 +63,7 @@ async def cmd_analyze(
         )
         return
 
+    # TODO: add validation
     time_range = TimeRange(int(args[0]))
     load_msg = await message.answer(loading_msg(time_range))
 

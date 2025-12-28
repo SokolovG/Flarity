@@ -28,7 +28,13 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         }
         return headers
 
-    def _build_request(self, logs_text: str) -> dict[str, Any]:
+    def _build_request(self, logs_text: str, context: list[LLMMessage]) -> dict[str, Any]:
+        messages = [
+            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="user", content=logs_text),
+        ]
+        for msg in context:
+            messages.append(msg)
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {
@@ -36,10 +42,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
                 "temperature": self.settings.llm.temperature,
                 "maxTokens": self.settings.llm.max_tokens,
             },
-            "messages": [
-                {"role": "system", "text": self.settings.llm.system_prompt},
-                {"role": "user", "text": logs_text},
-            ],
+            "messages": msgspec.to_builtins(messages),
         }
         return request_data
 

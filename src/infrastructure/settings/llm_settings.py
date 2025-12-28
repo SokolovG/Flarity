@@ -4,6 +4,9 @@ from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.domain.entities.enums import LLMModel
+from src.infrastructure.constants import BASE_DIR
+
+PROMPT_DIR = BASE_DIR / "resources" / "prompts"
 
 
 class LLMSettings(BaseSettings):
@@ -17,7 +20,7 @@ class LLMSettings(BaseSettings):
 
     @model_validator(mode="after")
     def load_system_prompt(self) -> Self:
-        with open("resources/prompts/base_prompt.txt", "r") as f:
+        with open(f"{PROMPT_DIR}/base_prompt.txt", "r") as f:
             self._system_prompt = f.read()
         return self
 
