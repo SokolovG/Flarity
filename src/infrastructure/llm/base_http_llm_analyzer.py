@@ -8,6 +8,7 @@ from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.http_client_port import HttpPort
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.domain.entities.log_entry import LogEntry
+from src.infrastructure.decorators import log_calls
 from src.infrastructure.dto import LLMMessage
 from src.infrastructure.settings.app_settings import AppSettings
 
@@ -17,6 +18,7 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
         self.http = http_client
         self.settings = settings
 
+    @log_calls
     async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         formatted_logs = self._format_logs_for_llm(logs)
         messages = self._build_prompt(formatted_logs)
@@ -25,6 +27,7 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
         self._handle_response(response)
         return self._parse_response(response.content, messages=messages)
 
+    @log_calls
     async def ask(self, question: str, context: list[LLMMessage]) -> LLMAnalysisResult:
         request_data = self._build_request(question, context=context)
         response = await self._make_http_request(request_data)

@@ -39,6 +39,14 @@ class TelegramBotHelper:
         html = self.formatter.to_html(report, report_type, show_all_errors)
         return await self.notifier.send(html, chat_id=chat_id)
 
+    async def create_report(
+        self,
+        report: AnalysisReport,
+        report_type: ReportType,
+        show_all_errors: bool = False,
+    ) -> str:
+        return self.formatter.to_html(report, report_type, show_all_errors)
+
     async def send_llm_answer(
         self,
         answer: LLMAnalysisResult,

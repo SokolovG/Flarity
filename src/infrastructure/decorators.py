@@ -14,10 +14,12 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
     @wraps(func)
     # TODO: настроить на более удобное логирование и прикрутить везде
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
-        logger.info(f"Calling {func.__name__} with args={args}, kwargs={kwargs}")
+        class_name, func_name = func.__qualname__.split(".")
+        logger.info(f"Calling {func_name} from {class_name}")
         try:
-            logger.info(f"{func.__name__} completed successfully")
-            return await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
+            return result
+
         except Exception as e:
             logger.exception(f"{func.__name__} failed: {e}")
             raise

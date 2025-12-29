@@ -39,7 +39,8 @@ logger = getLogger(__name__)
 
 
 @bot_router.message(CommandStart())
-async def cmd_start(message: Message) -> None:
+async def cmd_start(message: Message, state: FSMContext) -> None:
+    await state.set_state(BotStates.start)
     await message.answer(
         text=greetings_msg(),
         reply_markup=get_main_menu(),
@@ -119,7 +120,7 @@ async def cmd_stats(
         report = await use_case.execute(time_range=time_range)
         if not report.has_errors:
             # TODO: не работает
-            await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
+            await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
         await helper.send_report(report, ReportType.STATS, chat_id)
@@ -160,8 +161,7 @@ async def cmd_recent(
         report = await use_case.execute(time_range=time_range)
 
         if not report.has_errors:
-            # TODO: не работает
-            await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
+            await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
         report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
@@ -225,7 +225,7 @@ async def handle_llm_question(
 
     except Exception as e:
         logger.exception(e)
-        await message.edit_text(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
+        await message.answer(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
 
 
 @bot_router.message()

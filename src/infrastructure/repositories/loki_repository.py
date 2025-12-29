@@ -7,6 +7,7 @@ from src.domain.entities.enums import LogLevel
 from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.clients.loki_client import LokiClient
+from src.infrastructure.decorators import log_calls
 from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
 
 logger = getLogger(__name__)
@@ -16,6 +17,7 @@ class LokiLogRepository(LogSource):
     def __init__(self, loki_client: LokiClient):
         self.client = loki_client
 
+    @log_calls
     async def get_errors(self, time_range: TimeRange) -> list[LogEntry]:
         query = f'{{level="error"}}'
         start, end = time_range.to_timestamps()

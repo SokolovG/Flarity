@@ -3,6 +3,7 @@ from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.decorators import log_calls
 
 
 class StatisticsLogsUseCase:
@@ -11,6 +12,7 @@ class StatisticsLogsUseCase:
         self.llm = llm
         self.grouper = grouper
 
+    @log_calls
     async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)
 

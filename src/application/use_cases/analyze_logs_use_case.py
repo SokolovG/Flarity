@@ -3,6 +3,7 @@ from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.decorators import log_calls
 
 
 class AnalyzeLogsUseCase:
@@ -17,6 +18,7 @@ class AnalyzeLogsUseCase:
         self.grouper = error_grouper
 
     # TODO: add rame limit for user! via Redis. Make RateLimiter service / decorator
+    @log_calls
     async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)
         if not logs:

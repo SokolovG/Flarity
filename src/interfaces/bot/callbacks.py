@@ -32,6 +32,10 @@ from src.interfaces.bot.messages import (
     no_errors_msg,
 )
 from src.interfaces.bot.router import bot_router
+from src.interfaces.bot.utils import (
+    get_keyboard_from_state,
+    send_or_edit_message_from_state,
+)
 
 logger = getLogger(__name__)
 
@@ -42,10 +46,11 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
         return
 
     await callback.answer()
-    await state.set_state(BotStates.period_selection)
-    await callback.message.answer(
-        text=choose_period_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
+    await send_or_edit_message_from_state(
+        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
     )
+
+    await state.set_state(BotStates.period_selection)
 
 
 @bot_router.callback_query(F.data == BotAction.RECENT.value)
@@ -54,10 +59,11 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
         return
 
     await callback.answer()
-    await state.set_state(BotStates.period_selection)
-    await callback.message.answer(
-        text=choose_period_msg(), reply_markup=get_period_options(BotAction.RECENT)
+    await send_or_edit_message_from_state(
+        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.RECENT)
     )
+
+    await state.set_state(BotStates.period_selection)
 
 
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
@@ -65,10 +71,12 @@ async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> No
     if not callback.message:
         return
 
-    await state.set_state(BotStates.period_selection)
-    await callback.message.answer(
-        text=choose_period_msg(), reply_markup=get_period_options(BotAction.STATS)
+    await callback.answer()
+    await send_or_edit_message_from_state(
+        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.STATS)
     )
+
+    await state.set_state(BotStates.period_selection)
 
 
 @bot_router.callback_query(F.data == BotCallback.SETTINGS.value)
@@ -114,13 +122,13 @@ async def on_analyze_period(
     try:
         report = await analyze_use_case.execute(time_range)
         if not report.has_errors:
-            await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
+            keyboard = await get_keyboard_from_state(state)
+            await load_msg.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
 
-        await load_msg.delete()
-
-        await helper.send_report(report, ReportType.ANALYZE, chat_id)
-        await helper.send_menu(chat_id, ask_llm_msg(), get_back_to_menu_button())
+        report_text = await helper.create_report(report, ReportType.ANALYZE)
+        await load_msg.edit_text(report_text)
+        await callback.message.answer(ask_llm_msg(), reply_markup=get_back_to_menu_button())
         await state.set_state(BotStates.waiting_for_question)
 
         session = LLMSession()
@@ -148,30 +156,27 @@ async def on_recent_period(
     await state.set_state(BotStates.viewing_report)
 
     time_range = helper.get_time_range_from_callback(callback)
-    chat_id = str(callback.message.chat.id)
 
     try:
-        report = await errors_use_case.execute(time_range=time_range)
-        if not report.has_errors:
-            await callback.message.edit_text(
-                no_errors_msg(time_range), reply_markup=get_main_menu()
-            )
+        result = await errors_use_case.execute(time_range=time_range)
+        if not result.has_errors:
+            keyboard = await get_keyboard_from_state(state)
+            await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
 
-        report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
-        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
-            keyboard = get_more_errors_menu(len(report.logs))  # type: ignore[arg-type]
+        report = await helper.create_report(result, ReportType.RECENT)
+        if len(result.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
+            keyboard = get_more_errors_menu(len(result.logs))  # type: ignore[arg-type]
             await state.set_data(
                 {
                     "hours": time_range.hours,
-                    "report_msg_id": report_msg.message_id,
+                    "report_msg_id": callback.message.message_id,
                 }
             )
         else:
             keyboard = get_main_menu()
 
-        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
-
+        await callback.message.edit_text(report, reply_markup=keyboard)
         # TODO: Сохранить [report_msg, menu_msg] для удаления
 
         await state.set_state(BotStates.main_menu)
@@ -196,18 +201,16 @@ async def on_statistics_period(
 
     await state.set_state(BotStates.viewing_report)
     time_range = helper.get_time_range_from_callback(callback)
-    chat_id = str(callback.message.chat.id)
 
     try:
-        report = await stats_use_case.execute(time_range=time_range)
-        if not report.has_errors:
-            await callback.message.edit_text(
-                no_errors_msg(time_range), reply_markup=get_main_menu()
-            )
+        result = await stats_use_case.execute(time_range=time_range)
+        if not result.has_errors:
+            keyboard = await get_keyboard_from_state(state)
+            await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
 
-        await helper.send_report(report, ReportType.STATS, chat_id)
-        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
+        report = await helper.create_report(result, ReportType.STATS)
+        await callback.message.edit_text(report, reply_markup=get_main_menu())
         await state.set_state(BotStates.main_menu)
 
     except Exception as e:
@@ -224,12 +227,10 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
         return
 
     await callback.answer()
-    current_state = await state.get_state()
-    if current_state == BotStates.viewing_report or current_state == BotStates.waiting_for_question:
-        await callback.message.answer(text=choose_an_action_msg(), reply_markup=get_main_menu())
-    else:
-        await callback.message.edit_text(text=choose_an_action_msg(), reply_markup=get_main_menu())
+    keyboard = await get_keyboard_from_state(state)
+    await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
 
+    # TODO: если дважды вернутся в меню после отчета - будет стейт main и сообщение с отчетом отредактируется
     await state.set_state(BotStates.main_menu)
 
 
@@ -252,9 +253,8 @@ async def get_more_recent_errors(
         report = await errors_use_case.execute(time_range=time_range)
 
         if not report.has_errors:
-            await callback.message.edit_text(
-                no_errors_msg(time_range), reply_markup=get_main_menu()
-            )
+            keyboard = await get_keyboard_from_state(state)
+            await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
 
         await helper.send_report(report, ReportType.RECENT, chat_id, show_all_errors=True)
