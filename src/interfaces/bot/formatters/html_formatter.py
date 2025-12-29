@@ -3,7 +3,6 @@ from jinja2 import Environment, FileSystemLoader
 from src.application.dto.analysis_report import AnalysisReport, ErrorGroup
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import ReportType
-from src.domain.utils import format_time_range
 from src.infrastructure.constants import (
     BASE_DIR,
     MAX_ERRORS_IN_ONE_REPORT,
@@ -26,7 +25,7 @@ class ReportFormatter:
         template_name = self.report_settings.get_template(report_type)
         template = self.env.get_template(template_name)
 
-        title = f"Error report for the last {format_time_range(report.time_range)}"
+        title = f"Error report for the last {report.time_range.hour_and_unit}"
         total_errors = len(report.logs) if report.logs else 0
         unique_types = len(report.groups) if report.groups else 0
 

@@ -3,8 +3,6 @@ import sys
 
 
 class ColoredFormatter(logging.Formatter):
-    """Форматтер с цветами для консоли"""
-
     COLORS = {
         "DEBUG": "\033[36m",  # Cyan
         "INFO": "\033[32m",  # Green

@@ -5,9 +5,8 @@ from aiogram.types import InlineKeyboardMarkup
 from httpx import Response
 
 from src.infrastructure.clients.http_client import HTTPClient
-from src.infrastructure.constants import TELEGRAM_MESSAGE_LIMIT
-from src.infrastructure.entities import TelegramMessage
-from src.infrastructure.enums import TextType
+from src.infrastructure.constants import TELEGRAM_MESSAGE_LIMIT, TextType
+from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.exceptions import (
     TelegramBadRequestError,
     TelegramError,

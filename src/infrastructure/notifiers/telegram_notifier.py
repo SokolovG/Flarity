@@ -4,8 +4,8 @@ from aiogram.types import InlineKeyboardMarkup
 
 from src.application.ports.notifier import Notifier
 from src.infrastructure.clients.telegram_client import TelegramClient
-from src.infrastructure.entities import TelegramMessage
-from src.infrastructure.enums import TextType
+from src.infrastructure.constants import TextType
+from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.settings.notification_settings import NotificationSettings
 
 

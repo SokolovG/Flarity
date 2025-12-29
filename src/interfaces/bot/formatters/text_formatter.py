@@ -1,5 +1,4 @@
 from src.domain.entities.enums import LLMModel
-from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
 
 
@@ -14,7 +13,7 @@ class BotTextFormatter:
 Current config:
 • LLM provider: {provider}
 • LLM model: {model.value}
-{(f"• Schedule: every {format_time_range(schedule_hourse)}") if schedule_enabled else ""}
+{(f"• Schedule: every {schedule_hourse.hour_and_unit}") if schedule_enabled else ""}
             """
         return info
 

@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import sys
 
 from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -9,12 +8,11 @@ from dishka import AsyncContainer, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
 from src.application.ports.notifier import Notifier
-from src.dependencies import MyProvider
 from src.domain.entities.enums import ReportType
-from src.domain.logging import setup_logging
-from src.domain.utils import format_time_range
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.di.dependencies import MyProvider
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
+from src.infrastructure.logging.logging import setup_logging
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import setup_bot
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
@@ -37,7 +35,7 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
         if report.has_errors:
             html = formatter.to_html(report, report_type=ReportType.ANALYZE)
             await notifier.send(html, reply_markup=get_main_menu())
-            logger.info(f"Scheduled report sent: {format_time_range(report.time_range)}")
+            logger.info(f"Scheduled report sent: {report.time_range.hour_and_unit}")
         else:
             logger.info(f"✅ No errors found, skipping notification")
 

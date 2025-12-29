@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 from typing import Final
 
@@ -8,4 +9,10 @@ MAX_GROUPS_IN_REPORT: Final[int] = 5
 MAX_RATE_LIMIT_CALLS: Final[int] = 1
 MAX_RATE_LIMIT_PERIOD: Final[int] = 180
 TTL_FOR_STORAGE: Final[int] = 600
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+
+class TextType(str, Enum):
+    HTML = "HTML"
+    MARKDOWN = "MARKDOWN"
+    PLAIN = "PLAIN"

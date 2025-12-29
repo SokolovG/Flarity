@@ -3,7 +3,7 @@ from typing import Final
 import msgspec
 
 from src.application.ports.session_storage import SessionStorage
-from src.infrastructure.entities import LLMSession
+from src.infrastructure.dto import LLMSession
 
 LLM_SESSION_PREFIX: Final[str] = "llm:session:"
 

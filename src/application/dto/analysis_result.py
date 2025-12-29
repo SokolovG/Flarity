@@ -1,7 +1,7 @@
 from msgspec import Struct
 
 from src.domain.entities.enums import LLMProvider
-from src.infrastructure.entities import LLMMessage
+from src.infrastructure.dto import LLMMessage
 
 
 class LLMAnalysisResult(Struct):

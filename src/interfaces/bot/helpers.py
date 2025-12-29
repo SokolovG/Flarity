@@ -4,7 +4,7 @@ from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.entities import TelegramMessage
+from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.interfaces.bot.exceptions import BotParsingError
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter

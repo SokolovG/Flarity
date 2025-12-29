@@ -8,7 +8,7 @@ from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.http_client_port import HttpPort
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.domain.entities.log_entry import LogEntry
-from src.infrastructure.entities import LLMMessage
+from src.infrastructure.dto import LLMMessage
 from src.infrastructure.settings.app_settings import AppSettings
 
 

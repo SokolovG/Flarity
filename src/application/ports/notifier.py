@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.infrastructure.entities import BaseInfrastructureObject
+from src.infrastructure.dto import BaseInfrastructureObject
 
 
 class Notifier(ABC):
