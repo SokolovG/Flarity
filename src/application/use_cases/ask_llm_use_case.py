@@ -1,5 +1,3 @@
-from ratelimit import limits
-
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.services.conversation_manager import ConversationManager
@@ -12,7 +10,6 @@ class AskLLMUseCase:
         self.llm = llm_analyzer
         self.conv_manager = conversation_manager
 
-    @limits(calls=MAX_RATE_LIMIT_CALLS, period=MAX_RATE_LIMIT_PERIOD)  # type: ignore[no-untyped-call]
     async def execute(self, question: str, session_id: str) -> LLMAnalysisResult:
         session = await self.conv_manager.get_session(session_id)
         if not session:

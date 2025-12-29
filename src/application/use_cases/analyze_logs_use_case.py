@@ -1,11 +1,8 @@
-from ratelimit import limits
-
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.constants import MAX_RATE_LIMIT_CALLS, MAX_RATE_LIMIT_PERIOD
 
 
 class AnalyzeLogsUseCase:
@@ -20,7 +17,6 @@ class AnalyzeLogsUseCase:
         self.grouper = error_grouper
 
     # TODO: add rame limit for user! via Redis. Make RateLimiter service / decorator
-    @limits(calls=MAX_RATE_LIMIT_CALLS, period=MAX_RATE_LIMIT_PERIOD)  # type: ignore[no-untyped-call]
     async def execute(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)
         if not logs:
