@@ -124,7 +124,8 @@ async def on_analyze_period(
         await state.set_state(BotStates.waiting_for_question)
 
         session = LLMSession()
-        session.add_bulk_messages(report.messages)
+        if report.messages:
+            session.add_bulk_messages(report.messages)
         session.add_message(role="assistant", content=report.llm_analysis.analysis_text)
         await conv_manager.save_session(chat_id, session)
 

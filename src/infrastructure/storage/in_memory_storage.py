@@ -1,10 +1,10 @@
 from typing import Any
 
-from src.application.ports.session_storage import SessionStorage
+from src.application.ports.storage import Storage
 from src.infrastructure.constants import TTL_FOR_STORAGE
 
 
-class InMemoryStorage(SessionStorage):
+class InMemoryStorage(Storage):
     def __init__(self) -> None:
         self.ttl = TTL_FOR_STORAGE
 
@@ -12,3 +12,5 @@ class InMemoryStorage(SessionStorage):
     async def set(self, key: str, value: Any, ttl: int | None = None) -> None: ...
     async def update(self, key: str, value: Any, ttl: int | None = None) -> None: ...
     async def delete(self, key: str) -> None: ...
+    async def expire(self, key: str, ttl: int) -> None: ...
+    async def incr(self, key: str) -> Any: ...

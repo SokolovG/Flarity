@@ -2,14 +2,14 @@ from typing import Final
 
 import msgspec
 
-from src.application.ports.session_storage import SessionStorage
+from src.application.ports.storage import Storage
 from src.infrastructure.dto import LLMSession
 
 LLM_SESSION_PREFIX: Final[str] = "llm:session:"
 
 
 class ConversationManager:
-    def __init__(self, storage: SessionStorage):
+    def __init__(self, storage: Storage):
         self.storage = storage
 
     async def get_session(self, session_id: str) -> LLMSession | None:

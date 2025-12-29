@@ -4,14 +4,14 @@ from typing import Any
 import msgspec
 from redis.asyncio import Redis
 
-from src.application.ports.session_storage import SessionStorage
+from src.application.ports.storage import Storage
 from src.infrastructure.constants import TTL_FOR_STORAGE
 from src.infrastructure.exceptions.storage_exceptions import StorageError
 
 logger = getLogger(__name__)
 
 
-class RedisStorage(SessionStorage):
+class RedisStorage(Storage):
     def __init__(self, redis_client: Redis) -> None:
         self.client = redis_client
         self.ttl = TTL_FOR_STORAGE
@@ -66,4 +66,19 @@ class RedisStorage(SessionStorage):
             await self.client.delete(key)
         except Exception as e:
             logger.error(f"Failed to delete data for key {key}: {str(e)}")
-            raise StorageError(f"Failed to delete session: {str(e)}")
+            raise StorageError(f"Failed to delete: {str(e)}")
+
+    async def expire(self, key: str, ttl: int) -> None:
+        try:
+            await self.client.expire(key, ttl)
+        except Exception as e:
+            logger.error(f"Failed to expire data for key {key}: {str(e)}")
+            raise StorageError(f"Failed to expire data: {str(e)}")
+
+    async def incr(self, key: str) -> int:
+        try:
+            result: int = await self.client.incr(key)
+            return result
+        except Exception as e:
+            logger.error(f"Failed to increment value of key {key}: {str(e)}")
+            raise StorageError(f"Failed to increment data: {str(e)}")

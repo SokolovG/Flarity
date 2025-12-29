@@ -118,6 +118,7 @@ async def cmd_stats(
 
         report = await use_case.execute(time_range=time_range)
         if not report.has_errors:
+            # TODO: не работает
             await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
@@ -159,6 +160,7 @@ async def cmd_recent(
         report = await use_case.execute(time_range=time_range)
 
         if not report.has_errors:
+            # TODO: не работает
             await message.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
@@ -215,7 +217,7 @@ async def handle_llm_question(
     loading_msg = await message.answer(text=asking_llm_message())
 
     try:
-        answer = await ask_use_case.execute(question, chat_id)
+        answer = await ask_use_case.execute(question, chat_id)  # type:ignore[arg-type]
         await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
         await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
