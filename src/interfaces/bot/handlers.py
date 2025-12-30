@@ -188,12 +188,7 @@ async def cmd_recent(
 @bot_router.message(Command(BotAction.SETTINGS.value))
 @inject
 async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) -> None:
-    info = BotTextFormatter.format_settings(
-        provider=app_settings.llm_provider.provider,
-        model=app_settings.llm.model,
-        schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
-        schedule_enabled=app_settings.schedule_enabled,
-    )
+    info = BotTextFormatter.format_settings(app_settings)
     await message.answer(info, parse_mode=TextType.HTML.value)
 
 

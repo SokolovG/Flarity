@@ -11,7 +11,7 @@ from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUse
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
+from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
 from src.infrastructure.dto import LLMSession
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
@@ -44,6 +44,7 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     if not callback.message:
         return
 
+    # TODO: в случае ошибки тупо редачит сообщение об ошибке. исправить! мб стейт error
     await callback.answer()
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
@@ -87,12 +88,7 @@ async def on_settings(
         return
 
     await callback.answer()
-    info = BotTextFormatter.format_settings(
-        provider=app_settings.llm_provider.provider,
-        model=app_settings.llm.model,
-        schedule_hourse=TimeRange(int(app_settings.schedule_interval_hours)),
-        schedule_enabled=app_settings.schedule_enabled,
-    )
+    info = BotTextFormatter.format_settings(app_settings)
     await state.set_state(BotStates.viewing_report)
     await callback.message.answer(
         info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
@@ -123,6 +119,12 @@ async def on_analyze_period(
         if not report.has_errors:
             keyboard = await get_keyboard_from_state(state)
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
+            return
+
+        if len(report.llm_analysis.analysis_text) > TELEGRAM_MESSAGE_LIMIT:
+            await helper.send_report(report, ReportType.ANALYZE, chat_id)
+            await callback.message.answer(ask_llm_msg(), reply_markup=get_back_to_menu_button())
+            await state.set_state(BotStates.waiting_for_question)
             return
 
         report_text = await helper.create_report(report, ReportType.ANALYZE)
