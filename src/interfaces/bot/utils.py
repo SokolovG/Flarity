@@ -1,13 +1,14 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
-from src.interfaces.bot.entities import BotStates
+from src.interfaces.bot.entities import BotStates, MessageAction
 from src.interfaces.bot.keyboards import get_main_menu
 
 STATES_REQUIRING_NEW_MESSAGE = {
     BotStates.viewing_report,
     BotStates.waiting_for_question,
     BotStates.start,
+    BotStates.back_to_main_menu,
 }
 STATES_REQUIRING_DELETE_MSG = {BotStates.period_selection}
 STATES_REQUIRING_MAIN_MENU = {BotStates.period_selection}
@@ -34,6 +35,7 @@ async def send_or_edit_message_from_state(
 
     if current_state in STATES_REQUIRING_DELETE_MSG:
         await callback.message.delete()  # type: ignore[union-attr]
+        await state.set_state(current_state)
         return
 
     if current_state in STATES_REQUIRING_NEW_MESSAGE:

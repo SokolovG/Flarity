@@ -26,7 +26,6 @@ from src.interfaces.bot.keyboards import (
 from src.interfaces.bot.messages import (
     ask_llm_msg,
     choose_an_action_msg,
-    choose_period_msg,
     failed_msg,
     loading_msg,
     no_errors_msg,
@@ -221,8 +220,8 @@ async def on_statistics_period(
 
 
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
-@bot_router.callback_query(F.data == BotCallback.NO.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
+    current_state = await state.get_state()
     if not callback.message:
         return
 
@@ -230,8 +229,10 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     keyboard = await get_keyboard_from_state(state)
     await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
 
-    # TODO: если дважды вернутся в меню после отчета - будет стейт main и сообщение с отчетом отредактируется
-    await state.set_state(BotStates.main_menu)
+    if current_state == BotStates.period_selection:
+        await state.set_state(BotStates.back_to_main_menu)
+    else:
+        await state.set_state(BotStates.main_menu)
 
 
 @bot_router.callback_query(F.data == BotCallback.YES_RECENT)

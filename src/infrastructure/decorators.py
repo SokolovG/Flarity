@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 
 def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(func)
-    # TODO: настроить на более удобное логирование и прикрутить везде
+    # TODO: настроить на более удобное логирование и прикрутить везде, сделать проверку на ValueError
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         class_name, func_name = func.__qualname__.split(".")
         logger.info(f"Calling {func_name} from {class_name}")

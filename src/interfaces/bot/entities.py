@@ -23,9 +23,16 @@ class BotCallback(str, Enum):
     YES_RECENT = "yes_recent"
 
 
+class MessageAction(Enum):
+    EDIT = "edit"
+    NEW = "new"
+    REPLACE = "replace"
+
+
 class BotStates(StatesGroup):
     main_menu = State()
     period_selection = State()
+    back_to_main_menu = State()
     viewing_report = State()
     waiting_for_question = State()
     start = State()
