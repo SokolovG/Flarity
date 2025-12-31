@@ -9,7 +9,7 @@ class BotTextFormatter:
         info = f"""
 Current config:
 • LLM provider: {app_settings.llm_provider.provider.capitalize()}
-• LLM model: {app_settings.llm.model.value.capitalize()}
+• LLM model: {app_settings.llm_settings.model.value.capitalize()}
 • Storage provider: {app_settings.storage.provider.capitalize()}
 • Logs source provider: {app_settings.log_source.provider.capitalize()}
 {(f"• Schedule: every {TimeRange(int(app_settings.schedule_interval_hours)).hour_and_unit}") if app_settings.schedule_enabled else ""}

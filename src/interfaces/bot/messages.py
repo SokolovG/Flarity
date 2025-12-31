@@ -40,3 +40,13 @@ def asking_llm_message() -> str:
 def greetings_msg() -> str:
     msg = "👋 Hello! I'm Flarity, a bot for analyzing logs.\nChoose an action below or use /help"
     return msg
+
+
+def fail_hour_number() -> str:
+    msg = "❌ Hours must be between 1 and 168"
+    return msg
+
+
+def fail_hour_parsing() -> str:
+    msg = "❌ Invalid number. Example: /analyze 6"
+    return msg

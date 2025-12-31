@@ -12,11 +12,8 @@ class RateLimiter:
         self.storage = storage
 
     async def check_limit(self, key: str) -> bool:
-        # TODO: lua script?
         full_key = f"{RATE_LIMITER_PREFIX}{key}"
-        current = await self.storage.incr(full_key)
-        if current == 1:
-            await self.storage.expire(full_key, self.period)
+        current = await self.storage.incr_with_expire(full_key, self.period)
 
         return bool(current <= self.calls)
 

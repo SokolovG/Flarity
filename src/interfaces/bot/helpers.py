@@ -1,4 +1,4 @@
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.analysis_result import LLMAnalysisResult
@@ -6,16 +6,43 @@ from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
+from src.interfaces.bot.entities import BotAction
 from src.interfaces.bot.exceptions import BotParsingError
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.keyboards import get_main_menu
-from src.interfaces.bot.messages import no_errors_msg
+from src.interfaces.bot.keyboards import get_main_menu, get_period_options
+from src.interfaces.bot.messages import (
+    choose_period_msg,
+    fail_hour_number,
+    fail_hour_parsing,
+    no_errors_msg,
+)
 
 
 class TelegramBotHelper:
     def __init__(self, formatter: ReportFormatter, notifier: TelegramNotifier):
         self.formatter = formatter
         self.notifier = notifier
+
+    async def get_time_range_from_msg(
+        self, message: Message, action: BotAction
+    ) -> TimeRange | None:
+        try:
+            args = message.text.split()[1:] if message.text else []
+            if not args:
+                await message.answer(
+                    text=choose_period_msg(), reply_markup=get_period_options(action)
+                )
+                return None
+
+            hours = int(args[0])
+            if hours <= 0 or hours > 168:
+                await message.answer(fail_hour_number())
+                return None
+            return TimeRange(hours)
+
+        except ValueError:
+            await message.answer(fail_hour_parsing())
+            return None
 
     async def send_followup(
         self,
@@ -62,9 +89,6 @@ class TelegramBotHelper:
         keyboard: InlineKeyboardMarkup,
     ) -> TelegramMessage:
         return await self.notifier.send(text, chat_id=chat_id, reply_markup=keyboard)
-
-    def parse_args_from_text(self, text: str | None) -> list[str]:
-        return text.split()[1:] if text else []
 
     def get_time_range_from_callback(self, callback: CallbackQuery) -> TimeRange:
         try:

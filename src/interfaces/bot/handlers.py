@@ -21,13 +21,11 @@ from src.interfaces.bot.keyboards import (
     get_back_to_menu_button,
     get_main_menu,
     get_more_errors_menu,
-    get_period_options,
 )
 from src.interfaces.bot.messages import (
     ask_llm_msg,
     asking_llm_message,
     choose_an_action_msg,
-    choose_period_msg,
     failed_msg,
     greetings_msg,
     loading_msg,
@@ -55,24 +53,9 @@ async def cmd_analyze(
     helper: FromDishka[TelegramBotHelper],
 ) -> None:
     chat_id = str(message.chat.id)
-    args = message.text.split()[1:] if message.text else []
-    if not args:
-        await message.answer(
-            text=choose_period_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
-        )
+    time_range = await helper.get_time_range_from_msg(message, BotAction.ANALYZE)
+    if not time_range:
         return
-
-    # TODO: add validation
-    try:
-        hours = int(args[0])
-        if hours <= 0 or hours > 168:
-            await message.answer("❌ Hours must be between 1 and 168")
-            return
-        time_range = TimeRange(hours)
-    except ValueError:
-        await message.answer("❌ Invalid number. Example: /analyze 6")
-        return
-
     load_msg = await message.answer(loading_msg(time_range))
 
     try:
@@ -99,27 +82,13 @@ async def cmd_stats(
     state: FSMContext,
 ) -> None:
     chat_id = str(message.chat.id)
-    args = helper.parse_args_from_text(message.text)
-
-    if not args:
-        await message.answer(choose_period_msg(), reply_markup=get_period_options(BotAction.STATS))
+    time_range = await helper.get_time_range_from_msg(message, BotAction.STATS)
+    if not time_range:
         return
 
     try:
-        try:
-            hours = int(args[0])
-            if hours <= 0 or hours > 168:
-                # TODO: add msg!
-                await message.answer("❌ Hours must be between 1 and 168")
-                return
-            time_range = TimeRange(hours)
-        except ValueError:
-            await message.answer("❌ Invalid number. Example: /analyze 6")
-            return
-
         report = await use_case.execute(time_range=time_range)
         if not report.has_errors:
-            # TODO: не работает
             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
@@ -141,23 +110,11 @@ async def cmd_recent(
     state: FSMContext,
 ) -> None:
     chat_id = str(message.chat.id)
-    args = helper.parse_args_from_text(message.text)
-
-    if not args:
-        await message.answer(choose_period_msg(), reply_markup=get_period_options(BotAction.STATS))
+    time_range = await helper.get_time_range_from_msg(message, BotAction.RECENT)
+    if not time_range:
         return
 
     try:
-        try:
-            hours = int(args[0])
-            if hours <= 0 or hours > 168:
-                await message.answer("❌ Hours must be between 1 and 168")
-                return
-            time_range = TimeRange(hours)
-        except ValueError:
-            await message.answer("❌ Invalid number. Example: /analyze 6")
-            return
-
         report = await use_case.execute(time_range=time_range)
 
         if not report.has_errors:

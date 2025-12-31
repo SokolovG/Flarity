@@ -22,7 +22,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise LLMError(
                 "Ollama model not found. Did you run 'ollama pull'?",
-                details={"status": response.status_code, "model": self.settings.llm.model},
+                details={"status": response.status_code, "model": self.settings.llm_settings.model},
             )
 
         if response.status_code >= 500:
@@ -41,7 +41,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         self, logs_text: str, context: list[LLMMessage] | None = None
     ) -> dict[str, Any]:
         messages = [
-            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", content=logs_text),
         ]
         if context:
@@ -49,16 +49,16 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
                 messages.append(msg)
 
         request_data = {
-            "model": self.settings.llm.model,
+            "model": self.settings.llm_settings.model,
             "messages": msgspec.to_builtins(messages),
             "stream": False,
-            "options": {"num_predict": self.settings.llm.max_tokens},
+            "options": {"num_predict": self.settings.llm_settings.max_tokens},
         }
         return request_data
 
     def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
         data = [
-            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", content=logs_text),
         ]
         return data

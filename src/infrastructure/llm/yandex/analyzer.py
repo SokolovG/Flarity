@@ -32,7 +32,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         self, logs_text: str, context: list[LLMMessage] | None = None
     ) -> dict[str, Any]:
         messages = [
-            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", content=logs_text),
         ]
         if context:
@@ -43,8 +43,8 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             "modelUri": self._get_model_uri(),
             "completionOptions": {
                 "stream": False,
-                "temperature": self.settings.llm.temperature,
-                "maxTokens": self.settings.llm.max_tokens,
+                "temperature": self.settings.llm_settings.temperature,
+                "maxTokens": self.settings.llm_settings.max_tokens,
             },
             "messages": msgspec.to_builtins(messages),
         }
@@ -68,7 +68,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
 
     def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
         data = [
-            LLMMessage(role="system", content=self.settings.llm.system_prompt),
+            LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", content=logs_text),
         ]
         return data
@@ -102,8 +102,8 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         )
 
     def _get_model_uri(self) -> str:
-        modelUri = f"gpt://{self.settings.llm_provider.get_config(YandexConfig).catalog_id}/{self.settings.llm.model.value}"
-        match self.settings.llm.model:
+        modelUri = f"gpt://{self.settings.llm_provider.get_config(YandexConfig).catalog_id}/{self.settings.llm_settings.model.value}"
+        match self.settings.llm_settings.model:
             case LLMModel.YANDEX_GPT_5:
                 modelUri += "latest"
         return modelUri

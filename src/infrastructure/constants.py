@@ -10,6 +10,13 @@ MAX_RATE_LIMIT_CALLS: Final[int] = 1
 MAX_RATE_LIMIT_PERIOD: Final[int] = 180
 TTL_FOR_STORAGE: Final[int] = 600
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+LUA_INCR_AND_EXPIRE_SCRIPT: Final[str] = """
+local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+    redis.call('EXPIRE' KEYS[1], ARGV[1])
+end
+return current
+"""
 
 
 class TextType(str, Enum):

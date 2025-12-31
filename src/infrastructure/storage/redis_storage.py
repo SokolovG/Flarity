@@ -5,7 +5,7 @@ import msgspec
 from redis.asyncio import Redis
 
 from src.application.ports.storage import Storage
-from src.infrastructure.constants import TTL_FOR_STORAGE
+from src.infrastructure.constants import LUA_INCR_AND_EXPIRE_SCRIPT, TTL_FOR_STORAGE
 from src.infrastructure.exceptions.storage_exceptions import StorageError
 
 logger = getLogger(__name__)
@@ -79,6 +79,14 @@ class RedisStorage(Storage):
         try:
             result: int = await self.client.incr(key)
             return result
+        except Exception as e:
+            logger.error(f"Failed to increment value of key {key}: {str(e)}")
+            raise StorageError(f"Failed to increment data: {str(e)}")
+
+    async def incr_with_expire(self, key: str, ttl: int) -> int:
+        try:
+            result: int = await self.client.eval(LUA_INCR_AND_EXPIRE_SCRIPT, 1, key, ttl)  # type: ignore
+            return int(result)
         except Exception as e:
             logger.error(f"Failed to increment value of key {key}: {str(e)}")
             raise StorageError(f"Failed to increment data: {str(e)}")

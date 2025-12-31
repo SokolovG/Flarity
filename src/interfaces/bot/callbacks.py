@@ -5,11 +5,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
+from src.application.dto.analysis_report import AnalysisReport
+from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import ReportType
+from src.domain.entities.enums import LLMProvider, ReportType
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
 from src.infrastructure.dto import LLMSession
@@ -41,9 +43,6 @@ logger = getLogger(__name__)
 
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
-    if not callback.message:
-        return
-
     # TODO: в случае ошибки тупо редачит сообщение об ошибке. исправить! мб стейт error
     await callback.answer()
     await send_or_edit_message_from_state(
@@ -55,9 +54,6 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 
 @bot_router.callback_query(F.data == BotAction.RECENT.value)
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
-    if not callback.message:
-        return
-
     await callback.answer()
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.RECENT)
@@ -68,9 +64,6 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
 
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
-    if not callback.message:
-        return
-
     await callback.answer()
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.STATS)
@@ -84,9 +77,6 @@ async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> No
 async def on_settings(
     callback: CallbackQuery, app_settings: FromDishka[AppSettings], state: FSMContext
 ) -> None:
-    if not callback.message:
-        return
-
     await callback.answer()
     info = BotTextFormatter.format_settings(app_settings)
     await state.set_state(BotStates.viewing_report)
@@ -104,9 +94,6 @@ async def on_analyze_period(
     conv_manager: FromDishka[ConversationManager],
     state: FSMContext,
 ) -> None:
-    if not callback.message:
-        return
-
     await state.set_state(BotStates.viewing_report)
 
     chat_id = str(callback.message.chat.id)
@@ -115,7 +102,14 @@ async def on_analyze_period(
     load_msg = await callback.message.edit_text(loading_msg(time_range))
 
     try:
-        report = await analyze_use_case.execute(time_range)
+        # report = await analyze_use_case.execute(time_range)
+        report = AnalysisReport(
+            has_errors=True,
+            time_range=time_range,
+            llm_analysis=LLMAnalysisResult(
+                analysis_text="HELLO FROM LLM", provider=LLMProvider.OLLAMA
+            ),
+        )
         if not report.has_errors:
             keyboard = await get_keyboard_from_state(state)
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
@@ -151,11 +145,7 @@ async def on_recent_period(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
-    if not callback.message:
-        return
-
     await state.set_state(BotStates.viewing_report)
-
     time_range = helper.get_time_range_from_callback(callback)
 
     try:
@@ -197,9 +187,6 @@ async def on_statistics_period(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
-    if not callback.message:
-        return
-
     await state.set_state(BotStates.viewing_report)
     time_range = helper.get_time_range_from_callback(callback)
 
@@ -224,8 +211,6 @@ async def on_statistics_period(
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     current_state = await state.get_state()
-    if not callback.message:
-        return
 
     await callback.answer()
     keyboard = await get_keyboard_from_state(state)
@@ -245,9 +230,6 @@ async def get_more_recent_errors(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
-    if not callback.message:
-        return
-
     data = await state.get_data()
     chat_id = str(callback.message.chat.id)
     time_range = TimeRange(data.get("hours"))  # type: ignore[arg-type]
