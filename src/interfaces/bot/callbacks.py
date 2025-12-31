@@ -40,6 +40,10 @@ from src.interfaces.bot.utils import (
 
 logger = getLogger(__name__)
 
+# TODO: допустим у нас есть менб
+# сообщение 100 - меню 101 ✅ No errors found in 1 hour 102 ✅ No errors found in 1 hour 103 ✅ No errors found in 1 hour
+# придет отчет(или ошибка), он отправится не последним как красиво было бы, он изменит сообщение 100
+
 
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:

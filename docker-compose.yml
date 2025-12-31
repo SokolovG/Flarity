@@ -23,7 +23,6 @@ services:
       - ollama-data:/root/.ollama
     networks:
       - flarity
-  #TODO: PULL MODEL??? template with {}
   redis:
     image: redis:latest
     volumes:
@@ -47,5 +46,6 @@ networks:
 
 volumes:
   ollama-data:
+    name: ollama-flarity
   loki-data:
     name: loki-ogonek-dev
