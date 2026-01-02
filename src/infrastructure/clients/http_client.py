@@ -2,6 +2,7 @@ import json
 import time
 from http import HTTPMethod
 from logging import getLogger
+from typing import Any, Self
 
 import msgspec
 from httpx import (
@@ -23,7 +24,15 @@ logger = getLogger(__name__)
 class HTTPClient(HttpPort):
     def __init__(self, timeout: int | None = None) -> None:
         self.timeout = timeout
-        self.client = AsyncClient(timeout=self.timeout)
+        self._client: AsyncClient | None = None
+
+    async def __aenter__(self) -> Self:
+        self._client = AsyncClient(timeout=self.timeout)
+        return self
+
+    async def __aexit__(self, *args: Any) -> None:
+        if self._client:
+            await self._client.aclose()
 
     @retry(max_attempts=3, backoff=3.0)
     async def make_request(
@@ -64,7 +73,7 @@ class HTTPClient(HttpPort):
             )
             if method == HTTPMethod.GET:
                 params = params or {}
-                response = await self.client.request(
+                response = await self._client.request(  # type: ignore
                     method=method.value,
                     url=url,
                     headers=headers,
@@ -83,7 +92,7 @@ class HTTPClient(HttpPort):
                     content = data
                 else:
                     content = None
-                response = await self.client.request(
+                response = await self._client.request(  # type: ignore
                     method=method.value,
                     url=url,
                     headers=headers,
@@ -123,4 +132,4 @@ class HTTPClient(HttpPort):
             raise
 
     async def close(self) -> None:
-        await self.client.aclose()
+        await self._client.aclose()  # type: ignore

@@ -1,7 +1,7 @@
-import json
 from datetime import datetime
 from http import HTTPMethod, HTTPStatus
 from logging import getLogger
+from typing import Final
 
 import msgspec
 
@@ -12,6 +12,8 @@ from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
 from src.infrastructure.settings.log_source_settings import LogsSourceSettings, LokiConfig
 
 logger = getLogger(__name__)
+
+NANOS_PER_SECOND: Final[int] = 1_000_000_000
 
 
 class LokiClient:
@@ -30,8 +32,8 @@ class LokiClient:
     ) -> LokiQueryRangeResponse:
         params = {
             "query": query,
-            "start": str(int(start_time.timestamp() * 1_000_000_000)),
-            "end": str(int(end_time.timestamp() * 1_000_000_000)),
+            "start": self._to_loki_timestamp(start_time),
+            "end": self._to_loki_timestamp(end_time),
             "limit": str(limit),
             "direction": direction.value,
         }
@@ -53,6 +55,9 @@ class LokiClient:
 
         response = msgspec.json.decode(http_response.content, type=LokiQueryRangeResponse)
         return response
+
+    def _to_loki_timestamp(self, dt: datetime) -> str:
+        return str(int(dt.timestamp() * NANOS_PER_SECOND))
 
     async def is_loki_is_ready(self) -> bool:
         try:

@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 LUA_INCR_AND_EXPIRE_SCRIPT: Final[str] = """
 local current = redis.call('INCR', KEYS[1])
 if current == 1 then
-    redis.call('EXPIRE' KEYS[1], ARGV[1])
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
 end
 return current
 """

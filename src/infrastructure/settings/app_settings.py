@@ -10,11 +10,6 @@ from src.infrastructure.settings.notification_settings import NotificationSettin
 from src.infrastructure.settings.report_settings import ReportSettings
 from src.infrastructure.settings.storage_settings import StorageSettings
 
-PROVIDER_PREFIXES = {
-    "yandex": ["YANDEX_"],
-    "ollama": ["DEEPSEEK_", "QWEN", "LLAMA_", "GEMMA"],
-}
-
 
 class AppSettings(BaseSettings):
     log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)  # type: ignore[arg-type]
@@ -27,17 +22,10 @@ class AppSettings(BaseSettings):
     schedule_enabled: bool
 
     @model_validator(mode="after")
-    def check_llm_model_and_provider(self) -> Self:
-        provider = self.llm_provider.provider
-        model_name = self.llm_settings.model.name
-
-        allowed_prefixes = PROVIDER_PREFIXES.get(provider)
-        if not allowed_prefixes:
-            raise ValueError(f"Unknown provider: {provider}")
-
-        if not any(model_name.startswith(prefix) for prefix in allowed_prefixes):
+    def check_compatibility(self) -> Self:
+        if self.llm_settings.model.provider.value != self.llm_provider.provider:
             raise ValueError(
-                f"Model '{self.llm_settings.model.value}' is incompatible with provider '{provider}'"
+                f"Model {self.llm_settings.model.value} requires provider "
+                f"{self.llm_settings.model.provider.value}, got {self.llm_provider.provider}"
             )
-
         return self

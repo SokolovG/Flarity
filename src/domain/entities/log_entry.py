@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from msgspec import Struct
+from msgspec import Struct, field
 
 from src.domain.entities.enums import LogLevel
 
@@ -11,4 +11,4 @@ class LogEntry(Struct):
     level: LogLevel
     app: str
 
-    metadata: dict[str, str] = {}
+    metadata: dict[str, str] = field(default_factory=dict)

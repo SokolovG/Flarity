@@ -20,7 +20,7 @@ class LokiLogRepository(LogSource):
     @log_calls
     async def get_errors(self, time_range: TimeRange) -> list[LogEntry]:
         query = f'{{level="error"}}'
-        start, end = time_range.to_timestamps()
+        start, end = time_range.to_timestamps(datetime.now())
 
         raw_response = await self.client.query_range(query, start, end)
 

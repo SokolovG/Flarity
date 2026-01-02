@@ -1,13 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
 class TimeRange:
     hours: int
 
-    def to_timestamps(self) -> tuple[datetime, datetime]:
-        end = datetime.now()
+    MAX_HOURS: ClassVar[int] = 168
+
+    def to_timestamps(self, current_time: datetime) -> tuple[datetime, datetime]:
+        end = current_time
         start = end - timedelta(hours=self.hours)
         return start, end
 
@@ -17,5 +20,5 @@ class TimeRange:
         return f"{self.hours} {unit}"
 
     def __post_init__(self) -> None:
-        if self.hours <= 0:
-            raise ValueError("Hours must be positive")
+        if not 1 <= self.hours <= self.MAX_HOURS:
+            raise ValueError(f"Hours must be between 1 and {self.MAX_HOURS}")
