@@ -71,7 +71,7 @@ class MyProvider(Provider):
         return TelegramClient(http_client, settings.notification)
 
     @provide(scope=Scope.APP)
-    def get_rate_limiter(storage: Storage) -> RateLimiter:
+    def get_rate_limiter(self, storage: Storage) -> RateLimiter:
         return RateLimiter(storage)
 
     @provide(scope=Scope.APP)

@@ -104,7 +104,7 @@ async def on_analyze_period(
     except Exception:
         pass
 
-    load_msg = await callback.message.edit_text(loading_msg(time_range))
+    load_msg = await callback.message.answer(loading_msg(time_range))
 
     try:
         # report = await analyze_use_case.execute(time_range, user_id)

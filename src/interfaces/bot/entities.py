@@ -10,6 +10,7 @@ class BotAction(Enum):
     SETTINGS = "settings"
     HELP = "help"
     ASK = "ask"
+    MENU = "menu"
 
 
 class BotCallback(str, Enum):

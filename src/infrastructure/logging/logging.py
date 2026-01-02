@@ -32,6 +32,7 @@ def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(level=level, handlers=handlers, force=True)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("aiogram").setLevel(logging.WARNING)
 
 
 setup_logging(level="INFO")

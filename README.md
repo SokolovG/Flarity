@@ -2,6 +2,7 @@
 
 AI-powered log analyzer that automatically fetches error logs from Log Source, analyzes them using LLM providers, and sends intelligent digest reports to Telegram.
 
+#TODO: update
 ## Quick Start
 
 ### Prerequisites
