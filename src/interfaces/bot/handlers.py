@@ -55,6 +55,7 @@ async def cmd_analyze(
     message: Message,
     use_case: FromDishka[AnalyzeLogsUseCase],
     helper: FromDishka[TelegramBotHelper],
+    state: FSMContext,
 ) -> None:
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
@@ -76,6 +77,7 @@ async def cmd_analyze(
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
@@ -104,6 +106,7 @@ async def cmd_stats(
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
 
 
@@ -140,11 +143,11 @@ async def cmd_recent(
             keyboard = get_main_menu()
 
         menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
-        # TODO: Сохранить [report_msg, menu_msg] для удаления
         await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await message.edit_text(failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu())
 
 
@@ -178,7 +181,14 @@ async def handle_llm_question(
     state: FSMContext,
 ) -> None:
     data = await state.get_data()
+    old_menu_msg_id = data.get("menu_msg_id")
     question_count = data.get("question_count", 0)
+
+    if old_menu_msg_id:
+        try:
+            await message.bot.delete_message(message.chat.id, old_menu_msg_id)
+        except Exception:
+            pass
 
     if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
         await message.answer(
@@ -210,17 +220,19 @@ async def handle_llm_question(
         await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
 
-        await message.answer(
-            text=ask_llm_one_more_time_msg(),
-            reply_markup=get_back_to_menu_button(),
+        menu_msg = await helper.send_menu(
+            chat_id, ask_llm_one_more_time_msg(), get_back_to_menu_button()
         )
+        await state.update_data(menu_msg_id=menu_msg.message_id)
         await state.update_data(question_count=question_count + 1)
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await loading_msg.delete()
         await message.answer(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
         await state.set_state(BotStates.main_menu)
+        await state.set_data({})
 
 
 @bot_router.message()

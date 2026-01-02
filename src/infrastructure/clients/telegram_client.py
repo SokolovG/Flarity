@@ -34,7 +34,6 @@ class TelegramClient:
     ) -> TelegramMessage:
         if not text or len(text.strip()) == 0:
             raise ValueError("Message text is empty")
-        # TODO: fck ** in telegram report! fix it.
         if len(text) > TELEGRAM_MESSAGE_LIMIT:
             messages: list[TelegramMessage] = []
             chunks = self._split_message(text)

@@ -77,6 +77,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
 
         text = response_model.message.content
         text = self._clean_llm_answer(text)
+        text = self._markdown_to_html(text)
 
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
@@ -91,6 +92,18 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             input_tokens_used=response_model.prompt_eval_count,
             output_tokens_used=response_model.eval_count,
         )
+
+    @staticmethod
+    def _markdown_to_html(text: str) -> str:
+        # **bold** → <b>bold</b>
+        text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+        # *italic* → <i>italic</i>
+        text = re.sub(r"\*(.+?)\*", r"<i>\1</i>", text)
+        # `code` → <code>code</code>
+        text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
+        # [link](url) → <a href="url">link</a>
+        text = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', text)
+        return text
 
     def _get_headers(self) -> dict[str, Any]:
         return {}

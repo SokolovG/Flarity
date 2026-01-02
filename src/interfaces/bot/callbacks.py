@@ -40,14 +40,9 @@ from src.interfaces.bot.utils import (
 
 logger = getLogger(__name__)
 
-# TODO: допустим у нас есть менб
-# сообщение 100 - меню 101 ✅ No errors found in 1 hour 102 ✅ No errors found in 1 hour 103 ✅ No errors found in 1 hour
-# придет отчет(или ошибка), он отправится не последним как красиво было бы, он изменит сообщение 100
-
 
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
-    # TODO: в случае ошибки тупо редачит сообщение об ошибке. исправить! мб стейт error
     await callback.answer()
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
@@ -104,6 +99,11 @@ async def on_analyze_period(
     user_id = str(callback.from_user.id)
     time_range = helper.get_time_range_from_callback(callback)
 
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+
     load_msg = await callback.message.edit_text(loading_msg(time_range))
 
     try:
@@ -121,14 +121,21 @@ async def on_analyze_period(
             return
 
         if len(report.llm_analysis.analysis_text) > TELEGRAM_MESSAGE_LIMIT:
+            await load_msg.delete()
             await helper.send_report(report, ReportType.ANALYZE, chat_id)
-            await callback.message.answer(ask_llm_msg(), reply_markup=get_back_to_menu_button())
+            menu_msg = await callback.message.answer(
+                ask_llm_msg(), reply_markup=get_back_to_menu_button()
+            )
+            await state.update_data(menu_msg_id=menu_msg.message_id)
             await state.set_state(BotStates.waiting_for_question)
             return
 
         report_text = await helper.create_report(report, ReportType.ANALYZE)
         await load_msg.edit_text(report_text)
-        await callback.message.answer(ask_llm_msg(), reply_markup=get_back_to_menu_button())
+        menu_msg = await callback.message.answer(
+            ask_llm_msg(), reply_markup=get_back_to_menu_button()
+        )
+        await state.update_data(menu_msg_id=menu_msg.message_id)
         await state.set_state(BotStates.waiting_for_question)
 
         session = LLMSession()
@@ -139,6 +146,7 @@ async def on_analyze_period(
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
@@ -173,12 +181,12 @@ async def on_recent_period(
             keyboard = get_main_menu()
 
         await callback.message.edit_text(report, reply_markup=keyboard)
-        # TODO: Сохранить [report_msg, menu_msg] для удаления
 
         await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu()
         )
@@ -208,6 +216,7 @@ async def on_statistics_period(
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.STATS), reply_markup=get_main_menu()
         )
@@ -253,6 +262,7 @@ async def get_more_recent_errors(
 
     except Exception as e:
         logger.exception(e)
+        await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu()
         )

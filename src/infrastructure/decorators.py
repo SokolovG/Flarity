@@ -1,4 +1,5 @@
 import asyncio
+import time
 from collections.abc import Callable, Coroutine
 from functools import wraps
 from logging import getLogger
@@ -12,16 +13,32 @@ logger = getLogger(__name__)
 
 def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(func)
-    # TODO: настроить на более удобное логирование и прикрутить везде, сделать проверку на ValueError
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
-        class_name, func_name = func.__qualname__.split(".")
-        logger.info(f"Calling {func_name} from {class_name}")
+        parts = func.__qualname__.split(".")
+        if len(parts) == 2:
+            class_name, func_name = parts
+            call_name = f"{class_name}.{func_name}"
+        else:
+            call_name = func.__qualname__
+
+        logger.info(f"→ {call_name}()")
+
+        start_time = time.time()
         try:
             result = await func(*args, **kwargs)
+            duration = time.time() - start_time
+
+            logger.info(f"✓ {call_name}() completed in {duration:.2f}s")
             return result
 
+        except ValueError as e:
+            duration = time.time() - start_time
+            logger.warning(f"⚠ {call_name}() validation error in {duration:.2f}s: {e}")
+            raise
+
         except Exception as e:
-            logger.exception(f"{func.__name__} failed: {e}")
+            duration = time.time() - start_time
+            logger.exception(f"✗ {call_name}() failed in {duration:.2f}s: {e}")
             raise
 
     return wrapper

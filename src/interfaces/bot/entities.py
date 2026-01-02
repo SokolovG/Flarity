@@ -36,3 +36,4 @@ class BotStates(StatesGroup):
     viewing_report = State()
     waiting_for_question = State()
     start = State()
+    error = State()
