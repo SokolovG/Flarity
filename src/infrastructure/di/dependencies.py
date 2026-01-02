@@ -21,6 +21,7 @@ from src.infrastructure.clients.telegram_client import TelegramClient
 from src.infrastructure.llm.ollama.analyzer import OllamaAnalyzer
 from src.infrastructure.llm.yandex.analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
+from src.infrastructure.rate_limiter import RateLimiter
 from src.infrastructure.repositories.loki_repository import LokiLogRepository
 from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.notification_settings import TelegramConfig
@@ -48,9 +49,12 @@ class MyProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_ask_llm_use_case(
-        self, llm_analyzer: LLMAnalyzer, conversation_manager: ConversationManager
+        self,
+        llm_analyzer: LLMAnalyzer,
+        conversation_manager: ConversationManager,
+        limiter: RateLimiter,
     ) -> AskLLMUseCase:
-        return AskLLMUseCase(llm_analyzer, conversation_manager)
+        return AskLLMUseCase(llm_analyzer, conversation_manager, limiter)
 
     @provide(scope=Scope.APP)
     def get_http_client(self) -> HTTPClient:
@@ -63,6 +67,10 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: AppSettings) -> TelegramClient:
         return TelegramClient(http_client, settings.notification)
+
+    @provide(scope=Scope.APP)
+    def get_rate_limiter(storage: Storage) -> RateLimiter:
+        return RateLimiter(storage)
 
     @provide(scope=Scope.APP)
     def get_telegram_notifier(
@@ -124,13 +132,13 @@ class MyProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(
-        self, log_source: LogSource, llm_analyzer: LLMAnalyzer, error_grouper: ErrorGrouper
+        self,
+        log_source: LogSource,
+        llm_analyzer: LLMAnalyzer,
+        error_grouper: ErrorGrouper,
+        limiter: RateLimiter,
     ) -> AnalyzeLogsUseCase:
-        return AnalyzeLogsUseCase(
-            log_source,
-            llm_analyzer,
-            error_grouper,
-        )
+        return AnalyzeLogsUseCase(log_source, llm_analyzer, error_grouper, limiter)
 
     @provide(scope=Scope.APP)
     def get_stats_logs_use_case(

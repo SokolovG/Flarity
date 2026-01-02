@@ -4,15 +4,23 @@ from src.application.services.conversation_manager import ConversationManager
 from src.domain.exceptions import AnalysisFailedError
 from src.infrastructure.constants import MAX_RATE_LIMIT_CALLS, MAX_RATE_LIMIT_PERIOD
 from src.infrastructure.decorators import log_calls
+from src.infrastructure.rate_limiter import RateLimiter
 
 
 class AskLLMUseCase:
-    def __init__(self, llm_analyzer: LLMAnalyzer, conversation_manager: ConversationManager):
+    def __init__(
+        self,
+        llm_analyzer: LLMAnalyzer,
+        conversation_manager: ConversationManager,
+        limiter: RateLimiter,
+    ):
         self.llm = llm_analyzer
         self.conv_manager = conversation_manager
+        self.limiter = limiter
 
     @log_calls
-    async def execute(self, question: str, session_id: str) -> LLMAnalysisResult:
+    async def execute(self, question: str, session_id: str, user_id: str) -> LLMAnalysisResult:
+        await self.limiter.check_limit(user_id)
         session = await self.conv_manager.get_session(session_id)
         if not session:
             raise AnalysisFailedError("LLM session is None!")

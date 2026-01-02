@@ -4,6 +4,7 @@ from src.application.ports.log_source import LogSource
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.decorators import log_calls
+from src.infrastructure.rate_limiter import RateLimiter
 
 
 class AnalyzeLogsUseCase:
@@ -12,14 +13,16 @@ class AnalyzeLogsUseCase:
         log_source: LogSource,
         llm_analyzer: LLMAnalyzer,
         error_grouper: ErrorGrouper,
+        limiter: RateLimiter,
     ):
         self.log_source = log_source
         self.llm = llm_analyzer
         self.grouper = error_grouper
+        self.limiter = limiter
 
-    # TODO: add rame limit for user! via Redis. Make RateLimiter service / decorator
     @log_calls
-    async def execute(self, time_range: TimeRange) -> AnalysisReport:
+    async def execute(self, time_range: TimeRange, user_id: str) -> AnalysisReport:
+        await self.limiter.check_limit(user_id)
         logs = await self.log_source.get_errors(time_range)
         if not logs:
             return AnalysisReport(has_errors=False, time_range=time_range)

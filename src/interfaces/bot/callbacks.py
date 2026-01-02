@@ -101,12 +101,13 @@ async def on_analyze_period(
     await state.set_state(BotStates.viewing_report)
 
     chat_id = str(callback.message.chat.id)
+    user_id = str(callback.from_user.id)
     time_range = helper.get_time_range_from_callback(callback)
 
     load_msg = await callback.message.edit_text(loading_msg(time_range))
 
     try:
-        # report = await analyze_use_case.execute(time_range)
+        # report = await analyze_use_case.execute(time_range, user_id)
         report = AnalysisReport(
             has_errors=True,
             time_range=time_range,

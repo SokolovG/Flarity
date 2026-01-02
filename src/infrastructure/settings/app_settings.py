@@ -16,7 +16,6 @@ PROVIDER_PREFIXES = {
 }
 
 
-# TODO: привести все к одному типу - с env_nested_delimiter или наоборот
 class AppSettings(BaseSettings):
     log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)  # type: ignore[arg-type]
     llm_settings: LLMSettings = Field(default_factory=LLMSettings)  # type: ignore[arg-type]

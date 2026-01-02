@@ -2,6 +2,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Final
 
+RATE_LIMIT_CALLS: Final[int] = 3
+RATE_LIMIT_PERIOD: Final[int] = 180
+RATE_LIMITER_PREFIX: Final[str] = "rate_limit:"
 TELEGRAM_MESSAGE_LIMIT: Final[int] = 4096
 MAX_ERRORS_IN_ONE_REPORT: Final[int] = 10
 MAX_SYMBOLS_LOG_MSG: Final[int] = 150
