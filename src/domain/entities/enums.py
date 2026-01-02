@@ -6,13 +6,19 @@ class LLMProvider(Enum):
     YANDEX = "yandex"
 
 
-class LLMModel(Enum):
-    YANDEX_GPT_LITE = ("yandexgpt-lite", LLMProvider.YANDEX)
-    DEEPSEEK_R1_7B = ("deepseek-r1:7b", LLMProvider.OLLAMA)
+class LLMModel(str, Enum):
+    YANDEX_GPT_LITE = "yandexgpt-lite"
+    YANDEX_GPT_5 = "yandexgpt"
+    DEEPSEEK_R1_7B = "deepseek-r1:7b"
 
-    def __init__(self, value: tuple[str, LLMProvider], provider: LLMProvider):
-        self._value_ = value
-        self.provider = provider
+    @property
+    def provider(self) -> LLMProvider:
+        _PROVIDERS = {
+            "yandexgpt-lite": LLMProvider.YANDEX,
+            "yandexgpt": LLMProvider.YANDEX,
+            "deepseek-r1:7b": LLMProvider.OLLAMA,
+        }
+        return _PROVIDERS[self.value]
 
 
 class LogLevel(Enum):

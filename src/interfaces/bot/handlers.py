@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
+from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
@@ -14,6 +15,7 @@ from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: ignore
+from src.interfaces.bot.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
 from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
@@ -24,10 +26,12 @@ from src.interfaces.bot.keyboards import (
 )
 from src.interfaces.bot.messages import (
     ask_llm_msg,
+    ask_llm_one_more_time_msg,
     asking_llm_message,
     choose_an_action_msg,
     failed_msg,
     greetings_msg,
+    llm_limit_msg,
     loading_msg,
     no_errors_msg,
 )
@@ -157,30 +161,66 @@ async def cmd_help(message: Message) -> None:
     await message.answer(help_text, parse_mode=TextType.HTML.value, reply_markup=get_main_menu())
 
 
+@bot_router.message(Command(BotAction.HELP.value))
+async def cmd_menu(message: Message) -> None:
+    await message.answer(
+        text=choose_an_action_msg(), parse_mode=TextType.HTML.value, reply_markup=get_main_menu()
+    )
+
+
 @bot_router.message(BotStates.waiting_for_question)
 @inject
 async def handle_llm_question(
     message: Message,
     ask_use_case: FromDishka[AskLLMUseCase],
     helper: FromDishka[TelegramBotHelper],
+    conv_manager: FromDishka[ConversationManager],
     state: FSMContext,
 ) -> None:
+    data = await state.get_data()
+    question_count = data.get("question_count", 0)
+
+    if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
+        await message.answer(
+            text=llm_limit_msg(MAX_LLM_MESSAGES_IN_ONE_CHAT), reply_markup=get_main_menu()
+        )
+        await state.set_state(BotStates.main_menu)
+        await state.set_data({})
+        return
+
+    if message.text in ["/menu"]:
+        await message.answer(choose_an_action_msg(), reply_markup=get_main_menu())
+        await state.set_state(BotStates.main_menu)
+        return
+
     question = message.text
+
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
 
     loading_msg = await message.answer(text=asking_llm_message())
 
     try:
-        answer = await ask_use_case.execute(question, chat_id, user_id)  # type:ignore[arg-type]
+        answer = await ask_use_case.execute(question, chat_id, user_id)  # type: ignore
+        session = await conv_manager.get_session(chat_id)
+        if session:
+            session.add_message(role="assistant", content=answer.analysis_text)
+            await conv_manager.save_session(chat_id, session)
+
         await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
-        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
-        await state.set_state(BotStates.main_menu)
+
+        await message.answer(
+            text=ask_llm_one_more_time_msg(),
+            reply_markup=get_back_to_menu_button(),
+        )
+        await state.update_data(question_count=question_count + 1)
 
     except Exception as e:
         logger.exception(e)
+        await loading_msg.delete()
         await message.answer(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
+        await state.set_state(BotStates.main_menu)
 
 
 @bot_router.message()

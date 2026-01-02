@@ -17,6 +17,11 @@ def choose_an_action_msg() -> str:
     return msg
 
 
+def llm_limit_msg(limit: int) -> str:
+    msg = f"Maximum {limit} questions reached. Returning to menu."
+    return msg
+
+
 def failed_msg(error: BaseException, action: BotAction) -> str:
     msg = f"❌ {action.value.capitalize()} failed: {error}"
     return msg
@@ -29,6 +34,11 @@ def no_errors_msg(time_range: TimeRange) -> str:
 
 def ask_llm_msg() -> str:
     msg = "Do you want ask something from LLM about report?\nIf you want, write your question!"
+    return msg
+
+
+def ask_llm_one_more_time_msg() -> str:
+    msg = "Ask another question or type /menu to return"
     return msg
 
 

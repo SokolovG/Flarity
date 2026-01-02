@@ -3,6 +3,7 @@ from typing import Self
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
+from src.domain.entities.enums import LLMProvider
 from src.infrastructure.settings.llm_provider_settings import LLMProviderSettings
 from src.infrastructure.settings.llm_settings import LLMSettings
 from src.infrastructure.settings.log_source_settings import LogsSourceSettings
@@ -23,9 +24,11 @@ class AppSettings(BaseSettings):
 
     @model_validator(mode="after")
     def check_compatibility(self) -> Self:
-        if self.llm_settings.model.provider.value != self.llm_provider.provider:
+        if self.llm_settings.model.provider != LLMProvider(self.llm_provider.provider):
             raise ValueError(
-                f"Model {self.llm_settings.model.value} requires provider "
-                f"{self.llm_settings.model.provider.value}, got {self.llm_provider.provider}"
+                f"Configuration mismatch:\n"
+                f"  LLM_MODEL={self.llm_settings.model.value} requires provider '{self.llm_settings.model.provider.value}'\n"
+                f"  LLM_PROVIDER_PROVIDER={self.llm_provider.provider}\n"
+                f"Please update your .env file."
             )
         return self

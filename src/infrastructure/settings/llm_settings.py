@@ -20,8 +20,21 @@ class LLMSettings(BaseSettings):
 
     @model_validator(mode="after")
     def load_system_prompt(self) -> Self:
-        with open(f"{PROMPT_DIR}/base_prompt.txt", "r") as f:
-            self._system_prompt = f.read()
+        prompt_path = PROMPT_DIR / "base_prompt.txt"
+        if not prompt_path.exists():
+            raise FileNotFoundError(
+                f"System prompt not found: {prompt_path}\n"
+                f"Create the file or check your project structure."
+            )
+
+        try:
+            self._system_prompt = prompt_path.read_text(encoding="utf-8").strip()
+        except Exception as e:
+            raise RuntimeError(f"Failed to load system prompt: {e}") from e
+
+        if not self._system_prompt:
+            raise ValueError("System prompt is empty")
+
         return self
 
     @property

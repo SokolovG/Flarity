@@ -58,8 +58,8 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
             logs_text += f"[{log.timestamp}] {log.level.value} {clean_message}\n"
         return logs_text
 
-    async def _make_http_request(self, data: dict) -> Any:
-        response = await self.http.make_request(
+    async def _make_http_request(self, data: dict) -> Response:
+        response: Response = await self.http.make_request(
             method=HTTPMethod.POST,
             url=self._get_api_url(),
             data=data,

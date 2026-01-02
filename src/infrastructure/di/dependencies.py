@@ -57,8 +57,10 @@ class MyProvider(Provider):
         return AskLLMUseCase(llm_analyzer, conversation_manager, limiter)
 
     @provide(scope=Scope.APP)
-    def get_http_client(self) -> HTTPClient:
-        return HTTPClient()
+    async def get_http_client(self) -> AsyncIterator[HTTPClient]:
+        client = HTTPClient()
+        async with client:
+            yield client
 
     @provide(scope=Scope.APP)
     def get_loki_client(self, http_client: HTTPClient, settings: AppSettings) -> LokiClient:
