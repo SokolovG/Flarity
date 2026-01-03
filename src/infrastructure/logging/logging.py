@@ -20,6 +20,14 @@ class ColoredFormatter(logging.Formatter):
         return super().format(record)
 
 
+class IgnoreNetworkTimeouts(logging.Filter):
+    """Ignore ServerDisconnectedError from Telegram long polling"""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not ("ServerDisconnectedError" in message and "Server disconnected" in message)
+
+
 def setup_logging(level: str = "INFO") -> None:
     log_format = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -38,7 +46,8 @@ def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(level=level, handlers=handlers, force=True)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-    logging.getLogger("aiogram").setLevel(logging.WARNING)
+    dispatcher_logger = logging.getLogger("aiogram.dispatcher")
+    dispatcher_logger.addFilter(IgnoreNetworkTimeouts())
 
 
 setup_logging(level="INFO")
