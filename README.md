@@ -222,5 +222,3 @@ class NewProviderSettings(BaseModel):
 LLM_PROVIDER_PROVIDER=new_provider
 LLM_MODEL=your_model
 # ...other custom settings(API key, etc.)
-
-Author: Grigoriy Sokolov

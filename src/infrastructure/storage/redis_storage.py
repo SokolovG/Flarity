@@ -46,21 +46,6 @@ class RedisStorage(Storage):
             logger.error(f"Failed to set data for key {key}: {str(e)}")
             raise StorageError(f"Failed to set data: {str(e)}")
 
-    async def update(self, key: str, value: dict[str, Any], ttl: int | None = None) -> None:
-        try:
-            current = await self.get(key)
-
-            if not current:
-                await self.set(key, value, ttl)
-                return
-
-            current.update(value)
-            await self.set(key, current, ttl)
-
-        except Exception as e:
-            logger.error(f"Failed to update data for key {key}: {str(e)}")
-            raise StorageError(f"Failed to update data: {str(e)}")
-
     async def delete(self, key: str) -> None:
         try:
             await self.client.delete(key)
