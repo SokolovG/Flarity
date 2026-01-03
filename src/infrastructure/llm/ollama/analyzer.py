@@ -82,7 +82,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
 
-        if not text.rstrip().endswith((".", "!", "?")):
+        if not text.rstrip().endswith((",", ":")):
             logger.warning("LLM response might be truncated")
 
         return LLMAnalysisResult(

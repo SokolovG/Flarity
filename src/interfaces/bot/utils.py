@@ -6,12 +6,11 @@ from src.interfaces.bot.keyboards import get_main_menu
 
 STATES_REQUIRING_NEW_MESSAGE = {
     BotStates.viewing_report,
-    BotStates.waiting_for_question,
     BotStates.start,
     BotStates.back_to_main_menu,
 }
 STATES_REQUIRING_DELETE_MSG = {BotStates.period_selection}
-STATES_REQUIRING_MAIN_MENU = {BotStates.period_selection}
+STATES_REQUIRING_MAIN_MENU = {BotStates.period_selection, BotStates.waiting_for_question}
 
 
 async def get_keyboard_from_state(state: FSMContext) -> InlineKeyboardMarkup | None:

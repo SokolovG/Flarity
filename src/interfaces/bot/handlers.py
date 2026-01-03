@@ -128,7 +128,6 @@ async def cmd_recent(
 
         if not report.has_errors:
             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
-            await state.set_state(BotStates.main_menu)
             return
 
         report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
@@ -143,7 +142,7 @@ async def cmd_recent(
         else:
             keyboard = get_main_menu()
 
-        await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
+        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
         await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:

@@ -13,9 +13,10 @@ class ColoredFormatter(logging.Formatter):
     RESET = "\033[0m"
 
     def format(self, record: logging.LogRecord) -> str:
+        record_path = ".".join(record.name.split(".")[1:])
         log_color = self.COLORS.get(record.levelname, self.RESET)
         record.levelname = f"{log_color}{record.levelname}{self.RESET}"
-        record.name = f"\033[34m{record.name}{self.RESET}"
+        record.name = f"\033[34m{record_path}{self.RESET}"
         return super().format(record)
 
 
@@ -27,6 +28,11 @@ def setup_logging(level: str = "INFO") -> None:
     console_handler.setLevel(level)
     console_handler.setFormatter(ColoredFormatter(log_format, datefmt=date_format))
 
+    file_handler = logging.FileHandler("flarity_logs.log", mode="w", encoding="utf-8")
+    file_handler.setLevel(level)
+    file_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
+
+    # handlers = [console_handler, file_handler]
     handlers = [console_handler]
 
     logging.basicConfig(level=level, handlers=handlers, force=True)
