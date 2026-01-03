@@ -4,6 +4,7 @@ from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 from src.domain.entities.enums import LLMProvider
+from src.infrastructure.constants import SCHEDULE_INTERVAL_HOURS
 from src.infrastructure.settings.llm_provider_settings import LLMProviderSettings
 from src.infrastructure.settings.llm_settings import LLMSettings
 from src.infrastructure.settings.log_source_settings import LogsSourceSettings
@@ -19,7 +20,7 @@ class AppSettings(BaseSettings):
     notification: NotificationSettings = Field(default_factory=NotificationSettings)  # type: ignore[arg-type]
     report: ReportSettings = Field(default_factory=ReportSettings)
     storage: StorageSettings | None = Field(default_factory=StorageSettings)
-    schedule_interval_hours: str = "6"
+    schedule_interval_hours: str | int = SCHEDULE_INTERVAL_HOURS
     schedule_enabled: bool
 
     @model_validator(mode="after")

@@ -26,6 +26,6 @@ class LogsSourceSettings(BaseSettings):
 
     def get_config(self, config_type: type[BaseLogsSourceConfig]) -> BaseLogsSourceConfig:
         if config_type == LokiConfig and self.provider != "loki":
-            raise ValueError("Provider mismatch!")
+            raise ValueError("Log source provider mismatch!")
 
         return config_type(**self.config)

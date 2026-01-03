@@ -2,7 +2,6 @@ from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.services.conversation_manager import ConversationManager
 from src.domain.exceptions import AnalysisFailedError
-from src.infrastructure.constants import MAX_RATE_LIMIT_CALLS, MAX_RATE_LIMIT_PERIOD
 from src.infrastructure.decorators import log_calls
 from src.infrastructure.rate_limiter import RateLimiter
 

@@ -5,13 +5,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.application.dto.analysis_report import AnalysisReport
-from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import LLMProvider, ReportType
+from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
 from src.infrastructure.dto import LLMSession
@@ -107,14 +105,7 @@ async def on_analyze_period(
     load_msg = await callback.message.answer(loading_msg(time_range))
 
     try:
-        # report = await analyze_use_case.execute(time_range, user_id)
-        report = AnalysisReport(
-            has_errors=True,
-            time_range=time_range,
-            llm_analysis=LLMAnalysisResult(
-                analysis_text="HELLO FROM LLM", provider=LLMProvider.OLLAMA
-            ),
-        )
+        report = await analyze_use_case.execute(time_range, user_id)
         if not report.has_errors:
             keyboard = await get_keyboard_from_state(state)
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=keyboard)

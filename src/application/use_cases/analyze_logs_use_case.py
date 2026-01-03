@@ -21,8 +21,9 @@ class AnalyzeLogsUseCase:
         self.limiter = limiter
 
     @log_calls
-    async def execute(self, time_range: TimeRange, user_id: str) -> AnalysisReport:
-        await self.limiter.check_limit(user_id)
+    async def execute(self, time_range: TimeRange, user_id: str | None = None) -> AnalysisReport:
+        if user_id:
+            await self.limiter.check_limit(user_id)
         logs = await self.log_source.get_errors(time_range)
         if not logs:
             return AnalysisReport(has_errors=False, time_range=time_range)

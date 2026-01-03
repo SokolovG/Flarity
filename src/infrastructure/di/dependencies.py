@@ -6,7 +6,6 @@ from redis.asyncio import Redis
 
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
-from src.application.ports.notifier import Notifier
 from src.application.ports.storage import Storage
 from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase

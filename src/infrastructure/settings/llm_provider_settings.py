@@ -47,8 +47,8 @@ class LLMProviderSettings(BaseSettings):
 
     def get_config(self, config_type: type[BaseLLMProviderConfig]) -> BaseLLMProviderConfig:
         if config_type == YandexConfig and self.provider != "yandex":
-            raise ValueError("Provider mismatch!")
+            raise ValueError("LLM provider mismatch!")
         elif config_type == OllamaConfig and self.provider != "ollama":
-            raise ValueError("Provider mismatch!")
+            raise ValueError("LLM provider mismatch!")
 
         return config_type(**self.config)

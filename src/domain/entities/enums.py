@@ -28,6 +28,10 @@ class LogLevel(Enum):
     CRITICAL = "critical"
 
 
+class NotificationProvider(Enum):
+    TELEGRAM = "telegram"
+
+
 class Directions(Enum):
     BACKWARD = "backward"
     FORWARD = "forward"

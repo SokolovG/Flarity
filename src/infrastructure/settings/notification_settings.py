@@ -3,6 +3,8 @@ from typing import Any, overload
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from src.domain.entities.enums import NotificationProvider
+
 
 class BaseNotificationConfig(BaseModel):
     """Base config for all providers."""
@@ -14,7 +16,7 @@ class TelegramConfig(BaseNotificationConfig):
 
 
 class NotificationSettings(BaseSettings):
-    provider: str
+    provider: NotificationProvider
     config: dict[str, Any] = {}
 
     model_config = SettingsConfigDict(
@@ -25,7 +27,7 @@ class NotificationSettings(BaseSettings):
     def get_config(self, config_type: type[TelegramConfig]) -> TelegramConfig: ...
 
     def get_config(self, config_type: type[BaseNotificationConfig]) -> BaseNotificationConfig:
-        if config_type == TelegramConfig and self.provider != "telegram":
-            raise ValueError("Provider mismatch!")
+        if config_type == TelegramConfig and self.provider != NotificationProvider.TELEGRAM:
+            raise ValueError("Notifcation provider mismatch!")
 
         return config_type(**self.config)

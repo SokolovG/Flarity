@@ -1,5 +1,3 @@
-from typing import Any
-
 from aiogram.types import InlineKeyboardMarkup
 
 from src.application.ports.notifier import Notifier

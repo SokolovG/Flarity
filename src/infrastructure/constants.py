@@ -2,6 +2,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Final
 
+SCHEDULE_INTERVAL_HOURS: Final[int] = 6
 RATE_LIMIT_CALLS: Final[int] = 3
 RATE_LIMIT_PERIOD: Final[int] = 180
 RATE_LIMITER_PREFIX: Final[str] = "rate_limit:"

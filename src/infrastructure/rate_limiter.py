@@ -1,5 +1,3 @@
-from typing import Final
-
 from src.application.ports.storage import Storage
 from src.infrastructure.constants import RATE_LIMIT_CALLS, RATE_LIMIT_PERIOD, RATE_LIMITER_PREFIX
 from src.infrastructure.exceptions.rate_limit_exceptions import RateLimitExceeded
