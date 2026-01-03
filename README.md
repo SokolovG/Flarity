@@ -2,7 +2,6 @@
 
 AI-powered log analyzer that automatically fetches error logs from Log Source(default: Loki), analyzes them using LLM providers, and sends intelligent digest reports to your notification service (default: Telegram).
 
-[![Code Quality](https://github.com/yourusername/flarity/actions/workflows/code-quality.yaml/badge.svg)](https://github.com/yourusername/flarity/actions)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
