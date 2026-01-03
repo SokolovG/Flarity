@@ -1,172 +1,170 @@
 # Flarity
 
-AI-powered log analyzer that automatically fetches error logs from Log Source, analyzes them using LLM providers, and sends intelligent digest reports to Telegram.
+AI-powered log analyzer that automatically fetches error logs from Log Source(default: Loki), analyzes them using LLM providers, and sends intelligent digest reports to your notification service (default: Telegram).
 
-#TODO: update
+[![Code Quality](https://github.com/yourusername/flarity/actions/workflows/code-quality.yaml/badge.svg)](https://github.com/yourusername/flarity/actions)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
+## ✨ Features
+
+- **AI Analysis**: Intelligent error analysis using LLM
+- **AI Chat**: Chat with LLM - you can ask questions about errors you don't understand!
+- **Real-time Monitoring**: Fetches logs from Log Source in real-time
+- **Telegram Bot**: Interactive bot for on-demand analysis
+- **Scheduled Reports**: Automatic periodic analysis
+- **Statistics**: Error grouping and trending
+- **Recent Errors**: Quick view of latest issues
+- **Redis/Memory Storage**: Flexible storage backends
+
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.12+
-- Running Loki instance (for log aggregation)
+- Running Loki instance
 - Telegram Bot Token
-- LLM Provider:
-  - **YandexGPT** API Key
-  - **Ollama** local, free
+- LLM Provider (Yandex GPT API key OR use Ollama local)
 
 ### Installation
-
-
-1. Install dependencies:
+1. **Clone repository**
 ```bash
+git clone https://github.com/SokolovG/flarity.git
+cd flarity
+```
+
+2. **Install dependencies**
+```bash
+# Using uv (recommended)
+pip install uv
 uv sync
 ```
 
-2. Create `.env` file:
+3. **Configure environment**
 ```bash
 cp .env.example .env
+# Edit .env with your settings
 ```
 
-3. Configure environment variables (see Configuration section)
-
-4. Run the service:
+4. **Run with Docker**
 ```bash
-docker build -t <image-name> .
-docker run --env-file .env <image-name>
+docker compose up --build
 ```
+
+5. **Choose and pull ollama model (Optiona)**
+Choose model from list here: https://ollama.com/search
+```bash
+# Via docker compose
+docker compose exec ollama ollama pull <model>
+
+# Via Make file
+make pull <model>
+```
+
 
 ## Configuration
-
-Create a `.env` file in the project root:
-
+### Required Environment Variables
 ```env
-# Loki Configuration
-LOKI_URL=http://localhost:3100
-LOKI_APP_NAME=your-app-name
+# Log Source
+LOG_SOURCE_PROVIDER=loki
+LOG_SOURCE_CONFIG__URL=http://localhost:3100
+LOG_SOURCE_CONFIG__APP_NAME=your-app-name
 
-# LLM
-LLM_PROVIDER_PROVIDER=yandex OR ollama
-LLM_MODEL=deepseek-r1:latest OR yandex-gpt-lite OR ...
-LLM_TEMPERATURE=0.6
-LLM_MAX_TOKENS=1000
+# LLM Provider (choose one)
+LLM_PROVIDER_PROVIDER=yandex  # or ollama
+LLM_MODEL=yandexgpt-lite  # or deepseek-r1:7b
 
-# YandexGPT (if using)
-LLM_PROVIDER_YANDEX_CATALOG_ID=your-folder-id
-LLM_PROVIDER_YANDEX_API_KEY=your-api-key
-LLM_PROVIDER_YANDEX_BASE_URL=https://llm.api.cloud.yandex.net/foundationModels/v1/completion
+# Yandex GPT (if using)
+LLM_PROVIDER_CONFIG__API_KEY=your-api-key
+LLM_PROVIDER_CONFIG__CATALOG_ID=your-folder-id
 
 # Ollama (if using)
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_TIMEOUT=120
+LLM_PROVIDER_CONFIG__BASE_URL=http://localhost:11434
 
 # Telegram
-TELEGRAM_BOT_TOKEN=your-bot-token
-TELEGRAM_CHAT_ID=your-chat-id
+NOTIFICATION_PROVIDER=telegram
+NOTIFICATION_CONFIG__BOT_TOKEN=your-bot-token
+NOTIFICATION_CONFIG__CHAT_ID=your-chat-id
 
-# Analysis Settings
-SCHEDULE_INTERVAL_HOURS=1
-SCHEDULE_ENABLEN=true
+# Storage (optional)
+STORAGE_PROVIDER=redis  # or memory (not for production!)
+STORAGE_CONFIG__HOST=localhost
+STORAGE_CONFIG__PORT=6379
+
+# Scheduler (optional)
+SCHEDULE_ENABLED=true
+SCHEDULE_INTERVAL_HOURS=6
 ```
 
-**Key Components:**
-- `HTTPClient` - Shared HTTP client with retry logic
-- `LokiClient` - Loki API integration
-- `LLMService` - Abstract LLM provider interface
-- `YandexAdapter` / `OllamaAdapter` - Provider-specific implementations
-- `TelegramClient` - Telegram Bot API client
-- `LogAnalysisService` - Orchestrates the analysis workflow
-
-**Prompt:**
-If you want to change a basic prompt, edit /prompts/base_prompt.txt
-
-
-## Development
-
-### Setup
-
-1. Install and run pre commit
+### Customizing Prompts
+If you want to change a basic prompt, edit /prompts/base_prompt.txt or create your own file.
 ```bash
-uv add pre-commit
-pre-commit install
+cd recources/prompts
+touch my_prompt.txt
+#/src/infrastructure/settings/llm_settings.py
+BASE_PROMPT_FILE_NAME = "my_prompt.txt"
 ```
-
-### Testing
-
-```bash
-# Send fake logs to Loki (for testing)
-python tests/send_logs_to_loki.py
-```
-
-## Architecture
-
-Flarity follows **clean architecture** principles with strict separation of concerns and dependency inversion.
-
-### High-Level Overview
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    main.py (Entry Point)                    │
-│                  Orchestrates workflow                      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│           Dishka DI Container (core/dependencies.py)        │
-│           Manages all dependencies & lifetimes              │
-└───────┬──────────────────┬──────────────────┬───────────────┘
-        │                  │                  │
-        ▼                  ▼                  ▼
-┌───────────────┐  ┌──────────────┐  ┌──────────────────────┐
-│   Services    │  │   Clients    │  │    LLM Adapters      │
-│ (Business     │  │ (External    │  │  (Provider-specific) │
-│  Logic)       │  │  APIs)       │  │                      │
-│               │  │              │  │                      │
-│ - LogAnalysis │  │ - Loki       │  │ - YandexAdapter      │
-│ - ReportFormat│  │ - Telegram   │  │ - OllamaAdapter      │
-└───────────────┘  └──────┬───────┘  └──────┬───────────────┘
-                          │                  │
-                          ▼                  ▼
-                  ┌────────────────────────────────┐
-                  │   HTTPClient (shared base)     │
-                  │  - Retry logic                 │
-                  │  - Error mapping               │
-                  │  - Logging                     │
-                  └────────────────────────────────┘
-```
-
-
-```
-flarity/
-├── prompts/
-│   ├── base_prompt.txt  # Basic prompt for llm
-├── src/
-│   ├── bot/             # Telegram bot logic
-│   ├── main.py          # Entry point
-│   ├── llm_adapters/    # LLM provider adapters
-│   ├── clients/         # HTTP clients (Loki, Telegram, CustomHttp)
-│   ├── core/            # Settings, DI container, decorators
-│   ├── entities/        # Domain models
-│   ├── exceptions/      # Custom exceptions
-│   ├── responses/       # API response models
-│   └── services/        # Business logic
-├── tests/
-├── .env.example
-├── uv.lock
-└── Dockerfile
-```
-
-## Customization
 
 ### Templates
 You can override default templates via environment variables:
 ```bash
 # .env
 REPORT_ANALYZE_TEMPLATE=my_custom_analysis.html
-REPORT_RECENT_TEMPLATE=my_custom_recent.html
+REPORT_RECENT_TEMPLATE=my_custom_
+# Don't forget to put your custom templates in resources/templates
 ```
 
-Place your custom templates in `resources/report_templates/`.
+## 📱 Telegram Bot Commands
+```bash
+/start - Get started
+/help - List of commands
+/analyze [hours] - AI analysis of logs (e.g., /analyze 6)
+/recent [hours] - Recent errors without AI
+/stats [hours] - Statistics summary
+/settings - Current app settings
+```
+## 🏗️ Architecture
+```
+flarity/
+├── src/
+│   ├── domain/              # Business logic & entities
+│   ├── application/         # Use cases & DTOs
+│   ├── infrastructure/      # External integrations
+│   │   ├── clients/        # HTTP clients (Loki, Telegram)
+│   │   ├── llm/           # LLM provider adapters
+│   │   ├── storage/       # Redis/Memory storage
+│   │   └── settings/      # Configuration
+│   └── interfaces/         # UI layer (Telegram bot)
+├── resources/
+│   ├── .logs-example.log  # Example of a logs structure
+│   ├── prompts/           # LLM prompts
+│   └── templates/         # Report templates
+│
+│
+└── tests/
+```
+## Development
 
-### Adding a new group strategy (new logs formar psrsing)
+### Setup
+
+```bash
+# Install dev dependencies
+uv sync
+
+# Install pre-commit hooks
+uv run pre-commit install
+
+# Run tests
+uv run pytest
+
+# Run linting
+uv run ruff check --fix
+uv run mypy src/
+```
+
+
+### Adding a new group strategy (custom log format parsing)
 ```python
 # 1. Create custom strategy
 class MyCustomStrategy(ErrorGroupingStrategy):
@@ -186,84 +184,44 @@ class MyCustomStrategy(ErrorGroupingStrategy):
 
 ### Adding a new LLM Provider
 ```python
-# 1. Create adapter in llm_adapters/
-class NewProviderAdapter(LLMService):
-    async def analyze_logs(self, logs: list[LogEntry]) -> LLMAnalysisResult:
-        # Your implementation
-        ...
+# 1. Create adapter in src/infrastructure/llm/
+class NewAnalyzer(BaseLLMAnalyzer):
+        # Your implementation all abstract methods
 
 # 2. Add your provider and model to Enum
 class LLMProvider(Enum):
-  ...
-  NEW_PROVIDER = "new_provider"
+    ...
+    NEW_PROVIDER = "new_provider"
 
-class LLMModel(Enum):
+class LLMModel(str, Enum):
   ...
-  MODEL = "model"
+  CUSTOM_MODEL = "custom_model"
+
+    @property
+    def provider(self) -> LLMProvider:
+        _PROVIDERS = {
+            ...
+            "custom_model": LLMProvider.<MODELS_PROVIDER>,
+        }
 
 # 3. Register in DI container
-def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> BaseLLMAdapter:
-  provider = LLMProvider(settings.llm_provider.provider)
-  case LLMProvider.NEW_PROVIDER:
-      return NewProvider(http_client, settings)
-    # ...
+@provide(scope=Scope.APP)
+def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> LLMAnalyzer:
+    provider = LLMProvider(settings.llm_provider.provider)
+    match provider:
+        ...
+        case LLMProvider.NEW_PROVIDER:
+            return NewProvider(http_client, settings)
 
 # 3. Add settings
 class NewProviderSettings(BaseModel):
     api_key: str
     base_url: str
+    # Custom fields...
 
 # 4. Change .env
 LLM_PROVIDER_PROVIDER=new_provider
 LLM_MODEL=your_model
 # ...other custom settings(API key, etc.)
 
-#5. Add new provider to validation func
-validate_llm_provider_config
-@model_validator(mode="after")
-    def validate_llm_provider_config(self) -> Self:
-        if self.llm_provider.provider == "new_provider":
-          ...
-```
-
-## Local LLM
-
-1. Install ollama
-```bash
-#MACOS
-brew install ollama
-#Linux
-curl -fsSL https://ollama.com/install.sh | sh
-#Windows
-https://ollama.com/download/windows
-```
-
-2. Run ollama
-```bash
-# start ollama server in foreground
-ollama serve
-# start ollama server in background
-ollama serve &
-
-# if ollama installed using Homebrew
-brew services start ollama
-```
-
-3. Adding new local model
-
-```bash
-# Choose model from list here: https://ollama.com/search
-ollama pull deepseek-r1:7b
-```
-
-4. See installed models
-
-```bash
-ollama list
-```
-
-5. Expose local llm for api
-Ollama exposes a HTTP API at localhost:11434.
-Add url to .env
-
-Autor: Sokolov Grigory
+Author: Grigoriy Sokolov

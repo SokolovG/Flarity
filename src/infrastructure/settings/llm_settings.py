@@ -7,6 +7,7 @@ from src.domain.entities.enums import LLMModel
 from src.infrastructure.constants import BASE_DIR
 
 PROMPT_DIR = BASE_DIR / "resources" / "prompts"
+BASE_PROMPT_FILE_NAME = "base_prompt.txt"
 
 
 class LLMSettings(BaseSettings):
@@ -20,7 +21,7 @@ class LLMSettings(BaseSettings):
 
     @model_validator(mode="after")
     def load_system_prompt(self) -> Self:
-        prompt_path = PROMPT_DIR / "base_prompt.txt"
+        prompt_path = PROMPT_DIR / BASE_PROMPT_FILE_NAME
         if not prompt_path.exists():
             raise FileNotFoundError(
                 f"System prompt not found: {prompt_path}\n"
