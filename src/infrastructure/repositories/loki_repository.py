@@ -25,7 +25,8 @@ class LokiLogRepository(LogSource):
         NOTE: Limited to 1000 most recent errors per query.
         For high-volume periods, some errors may be skipped.
         """
-        query = f'{{level="error"}}'
+        app_name = self.client.config.app_name
+        query = f'{{level="error", app="{app_name}"}}'
         start, end = time_range.to_timestamps(datetime.now(timezone.utc))
 
         raw_response = await self.client.query_range(query, start, end)
@@ -37,10 +38,11 @@ class LokiLogRepository(LogSource):
         for stream in response.data.result:
             for timestamp_ns, message in stream.values:
                 parsed = self._parse_log_message(message)
+                actual_message = parsed.get("message", message)
                 logs.append(
                     LogEntry(
                         timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
-                        message=parsed.get("message", message),
+                        message=actual_message,
                         level=LogLevel.ERROR,
                         app=stream.stream.get("app", "unknown"),
                         metadata={

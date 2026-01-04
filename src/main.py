@@ -15,6 +15,7 @@ setup_logging(level="INFO")
 logger = logging.getLogger(__name__)
 
 
+# TODO: add health check api and check it in docker
 async def main() -> None:
     container = make_async_container(MyProvider())
 
@@ -39,8 +40,18 @@ async def main() -> None:
 
     except (KeyboardInterrupt, SystemExit):
         logger.info("Shutting down...")
+
+        if dp:
+            await dp.stop_polling()
+
+        if bot:
+            await bot.session.close()
+
+    except Exception as e:
+        logger.exception(f"Fatal error: {e}")
     finally:
         await container.close()
+        logger.info("Shutdown complete")
 
 
 if __name__ == "__main__":

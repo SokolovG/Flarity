@@ -1,6 +1,6 @@
 from typing import Self
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.domain.entities.enums import LLMModel
@@ -18,6 +18,20 @@ class LLMSettings(BaseSettings):
     _system_prompt: str = ""
 
     model_config = SettingsConfigDict(env_prefix="LLM_", case_sensitive=False)
+
+    @field_validator("temperature")
+    @classmethod
+    def validate_temperature(cls, v: float) -> float:
+        if not 0.0 <= v <= 2.0:
+            raise ValueError("Temperature must be between 0.0 and 2.0")
+        return v
+
+    @field_validator("max_tokens")
+    @classmethod
+    def validate_max_tokens(cls, v: int) -> int:
+        if v < 1 or v > 128000:
+            raise ValueError("max_tokens must be between 1 and 128000")
+        return v
 
     @model_validator(mode="after")
     def load_system_prompt(self) -> Self:

@@ -1,11 +1,8 @@
-from typing import Final
-
 import msgspec
 
 from src.application.ports.storage import Storage
+from src.infrastructure.constants import LLM_SESSION_PREFIX, TTL_FOR_STORAGE
 from src.infrastructure.dto import LLMSession
-
-LLM_SESSION_PREFIX: Final[str] = "llm:session:"
 
 
 class ConversationManager:
@@ -27,4 +24,5 @@ class ConversationManager:
         key = f"{LLM_SESSION_PREFIX}{session_id}"
         data = msgspec.to_builtins(session)
 
-        await self.storage.set(key, data, ttl)
+        effective_ttl = ttl if ttl is not None else TTL_FOR_STORAGE
+        await self.storage.set(key, data, effective_ttl)

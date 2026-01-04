@@ -14,7 +14,7 @@ from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseC
 from src.domain.entities.enums import ReportType
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
 from src.infrastructure.settings.app_settings import AppSettings
-from src.interfaces.bot import callbacks  # noqa: ignore
+from src.interfaces.bot import callbacks  # noqa: F401
 from src.interfaces.bot.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
 from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
@@ -233,9 +233,10 @@ async def handle_llm_question(
         logger.exception(e)
         await state.set_state(BotStates.error)
         await loading_msg.delete()
-        await message.answer(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
-        await state.set_state(BotStates.main_menu)
-        await state.set_data({})
+        error_menu_msg = await message.answer(
+            failed_msg(e, BotAction.ASK), reply_markup=get_main_menu()
+        )
+        await state.update_data(menu_msg_id=error_menu_msg.message_id)
 
 
 @bot_router.message()

@@ -5,6 +5,7 @@ from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.constants import MAX_HOURS_IN_WEEK
 from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.interfaces.bot.entities import BotAction, BotStates

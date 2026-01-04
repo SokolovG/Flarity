@@ -5,24 +5,15 @@
 
 <b>Latest errors (newest first):</b>
 
-{% if show_all_errors %}
-   {% for log in logs %}
-      {{ loop.index }}. <b>[{{ log.timestamp.strftime('%H:%M:%S') }}]</b>
-      {{ log.message[:max_symbols] }}
-      {%- if log.request_id -%}
-         <b>REQUEST ID: <code>{{ log.request_id }}</code></b>
-      {%- endif -%}
-   {% endfor %}
-{% else %}
-{% for log in logs[:max_errors ] %}
+{% set display_logs = logs if show_all_errors else logs[:max_errors] %}
+{% for log in display_logs %}
 {{ loop.index }}. <b>[{{ log.timestamp.strftime('%H:%M:%S') }}]</b>
-   {{ log.message[:max_symbols] }}
-{%- if log.request_id -%}
-   <b>REQUEST ID: <code>{{ log.request_id }}</code></b>
+{{ log.message[:max_symbols] }}
+{%- if log.metadata.get('request_id') -%}
+<b>REQUEST ID: <code>{{ log.metadata.get('request_id') }}</code></b>
 {%- endif -%}
 {% endfor %}
-{% if total_errors > max_errors %}
 
+{% if not show_all_errors and total_errors > max_errors %}
 <i>... and {{ total_errors - max_errors }} more errors</i>
-{% endif %}
 {% endif %}

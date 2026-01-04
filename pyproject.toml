@@ -23,12 +23,10 @@ line-length = 100
 target-version = "py312"
 indent-width = 4
 extend-exclude = ["tests", "alembic"]
-select = ["I"]
 
 [tool.ruff.lint]
-ignore = [
-    "D100", "D101", "D104", "D105", "D103", "D102", "D107",
-]
+ignore = ["D100", "D101", "D104", "D105", "D103", "D102", "D107"]
+select = ["I"]
 
 [tool.ruff.format]
 quote-style = "double"

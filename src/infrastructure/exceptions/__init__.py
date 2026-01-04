@@ -5,7 +5,7 @@ from src.infrastructure.exceptions.loki_exceptions import (
     LokiError,
     LokiUnavailableError,
 )
-from src.infrastructure.exceptions.network_exeptions import NetworkError
+from src.infrastructure.exceptions.network_exceptions import NetworkError
 from src.infrastructure.exceptions.telegram_exceptions import (
     TelegramBadRequestError,
     TelegramError,

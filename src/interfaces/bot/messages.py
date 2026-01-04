@@ -1,9 +1,10 @@
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.constants import LLM_PROCESSING_TIMEOUT_SECONDS, MAX_HOURS_IN_WEEK
 from src.interfaces.bot.entities import BotAction
 
 
 def loading_msg(time_range: TimeRange) -> str:
-    msg = f"Analyze logs for last {time_range.hour_and_unit}\nThis may take up to 90 seconds."
+    msg = f"Analyze logs for last {time_range.hour_and_unit}\nThis may take up to {LLM_PROCESSING_TIMEOUT_SECONDS} seconds."
     return msg
 
 
@@ -53,7 +54,7 @@ def greetings_msg() -> str:
 
 
 def fail_hour_number() -> str:
-    msg = "❌ Hours must be between 1 and 168"
+    msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"
     return msg
 
 

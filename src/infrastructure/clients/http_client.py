@@ -9,6 +9,7 @@ from httpx import (
     AsyncClient,
     ConnectError,
     ConnectTimeout,
+    Limits,
     ReadTimeout,
     RemoteProtocolError,
     Response,
@@ -16,7 +17,7 @@ from httpx import (
 
 from src.application.ports.http_client_port import HttpPort
 from src.infrastructure.decorators import retry
-from src.infrastructure.exceptions.network_exeptions import NetworkError
+from src.infrastructure.exceptions.network_exceptions import NetworkError
 
 logger = getLogger(__name__)
 
@@ -27,7 +28,13 @@ class HTTPClient(HttpPort):
         self._client: AsyncClient | None = None
 
     async def __aenter__(self) -> Self:
-        self._client = AsyncClient(timeout=self.timeout)
+        limits = Limits(
+            max_connections=100,
+            max_keepalive_connections=20,
+            keepalive_expiry=30.0,
+        )
+
+        self._client = AsyncClient(timeout=self.timeout, limits=limits, http2=True)
         return self
 
     async def __aexit__(self, *args: Any) -> None:

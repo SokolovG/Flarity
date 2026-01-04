@@ -111,6 +111,8 @@ class MyProvider(Provider):
             db=config.db,
             password=config.password,
             decode_responses=True,
+            max_connections=50,
+            retry_on_timeout=True,
         )
         try:
             yield client

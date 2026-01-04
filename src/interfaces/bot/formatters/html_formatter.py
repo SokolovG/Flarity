@@ -47,7 +47,7 @@ class ReportFormatter:
                 ErrorGroup(error_type=key, count=len(logs)) for key, logs in report.groups.items()
             ]
 
-        return template.render(
+        result = template.render(
             title=title,
             time_range_hours=report.time_range.hours,
             total_errors=total_errors,
@@ -63,6 +63,13 @@ class ReportFormatter:
             max_symbols=MAX_SYMBOLS_LOG_MSG,
             max_groups=MAX_GROUPS_IN_REPORT,
         )
+        if not result or len(result.strip()) < 10:
+            raise ValueError(
+                f"Template {template_name} produced empty or invalid output. "
+                "Check template syntax and data."
+            )
+
+        return result
 
     def format_llm_answer(self, answer: LLMAnalysisResult, report_type: ReportType) -> str:
         template_name = self.report_settings.get_template(report_type)

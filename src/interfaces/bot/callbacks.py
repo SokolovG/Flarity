@@ -220,6 +220,8 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     keyboard = await get_keyboard_from_state(state)
     await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
 
+    await state.set_data({})
+
     if current_state == BotStates.period_selection:
         await state.set_state(BotStates.back_to_main_menu)
     else:

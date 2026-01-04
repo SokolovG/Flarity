@@ -65,6 +65,7 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
         args=[container],
         id="log_analysis",
         max_instances=1,
+        replace_existing=False,
     )
     scheduler.start()  # type: ignore[no-untyped-call]
     logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")

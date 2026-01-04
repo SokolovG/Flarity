@@ -1,6 +1,6 @@
 from typing import Any, overload
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.domain.entities.enums import NotificationProvider
@@ -13,6 +13,15 @@ class BaseNotificationConfig(BaseModel):
 class TelegramConfig(BaseNotificationConfig):
     bot_token: str
     chat_id: int | str | None = None
+
+    @field_validator("bot_token")
+    @classmethod
+    def validate_bot_token(cls, v: str) -> str:
+        if not v or len(v) < 20:
+            raise ValueError("Invalid Telegram bot token")
+        if not v.count(":") == 1:
+            raise ValueError("Bot token must contain exactly one ':'")
+        return v
 
 
 class NotificationSettings(BaseSettings):

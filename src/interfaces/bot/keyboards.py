@@ -58,7 +58,7 @@ def get_more_errors_menu(errors_count: int) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=f"Show all {errors_count} errors",
-                    callback_data=f"{BotCallback.YES.value}_{BotAction.RECENT.value}",
+                    callback_data=BotCallback.YES_RECENT.value,
                 )
             ],
         ]
