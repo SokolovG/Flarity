@@ -91,7 +91,7 @@ Choose model from list here: https://ollama.com/search
 docker compose exec ollama ollama pull <model>
 
 # Via Make file
-make pull <model>
+make pull_model model=<model>
 ```
 
 
