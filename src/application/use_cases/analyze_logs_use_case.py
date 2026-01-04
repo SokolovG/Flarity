@@ -23,13 +23,20 @@ class AnalyzeLogsUseCase:
     @log_calls
     async def execute(self, time_range: TimeRange, user_id: str | None = None) -> AnalysisReport:
         if user_id:
-            await self.limiter.check_limit(user_id)
+            lock = self.limiter.acquire_user_lock(user_id)
+            async with lock:
+                await self.limiter.check_limit(user_id)
+                return await self._analyze(time_range)
+        else:
+            return await self._analyze(time_range)
+
+    async def _analyze(self, time_range: TimeRange) -> AnalysisReport:
         logs = await self.log_source.get_errors(time_range)
+
         if not logs:
             return AnalysisReport(has_errors=False, time_range=time_range)
 
         groups = self.grouper.group_by_category(logs)
-
         analysis = await self.llm.analyze(logs)
 
         return AnalysisReport(

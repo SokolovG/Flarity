@@ -1,21 +1,54 @@
-# Flarity
+# Flarity - Universal AI Log Analyzer
 
-AI-powered log analyzer that automatically fetches error logs from Log Source(default: Loki), analyzes them using LLM providers, and sends intelligent digest reports to your notification service (default: Telegram).
+**Pluggable architecture** for intelligent log analysis that works with ANY infrastructure. Built with Clean Architecture principles - no vendor lock-in, easy to extend.
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## 🎯 Why Flarity?
+
+**Stop drowning in logs!** Flarity automatically:
+- **Fetches** errors from your log system
+- **Analyzes** with AI to explain what went wrong
+- **Groups** similar issues to reduce noise
+- **Delivers** smart reports via Telegram bot
+- **Adapts** to YOUR infrastructure (not the other way around)
+
 
 ## ✨ Features
 
-- **AI Analysis**: Intelligent error analysis using LLM
-- **AI Chat**: Chat with LLM - you can ask questions about errors you don't understand!
-- **Real-time Monitoring**: Fetches logs from Log Source in real-time
+### Core Capabilities
+- **AI Analysis**: Intelligent error analysis using LLM providers
+- **AI Chat**: Interactive Q&A about errors you don't understand
+- **Real-time Monitoring**: Fetches logs from any source in real-time
 - **Telegram Bot**: Interactive bot for on-demand analysis
-- **Scheduled Reports**: Automatic periodic analysis
-- **Statistics**: Error grouping and trending
+- **Statistics**: Error grouping, trending, and insights
 - **Recent Errors**: Quick view of latest issues
-- **Redis/Memory Storage**: Flexible storage backends
+
+### Architecture Benefits
+- **Pluggable Design**: Swap providers without changing business logic
+- **Clean Architecture**: Domain-driven design with clear boundaries
+- **No Vendor Lock-in**: Use any log source, LLM, or notification service
+- **Production Ready**: Redis caching, rate limiting, error handling
+
+## 🏗️ Supported Integrations
+
+### 📋 Log Sources
+- ✅ **Loki** (built-in)
+- 🔧 **Your custom source** (implement `LogSource` port)
+
+### 🤖 LLM Providers
+- ✅ **Yandex GPT** (built-in)
+- ✅ **Ollama** (built-in - local models)
+- 🔧 **Your custom LLM** (implement `LLMAnalyzer` port)
+
+### 📢 Notifications
+- ✅ **Telegram** (built-in)
+- 🔧 **Your custom notifier** (implement `Notifier` port)
+
+### 💾 Storage
+- ✅ **Redis** (built-in)
+- ✅ **In-Memory** (built-in)
 
 ## Quick Start
 
@@ -51,7 +84,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-5. **Choose and pull ollama model (Optiona)**
+5. **Choose and pull ollama model (Optional)**
 Choose model from list here: https://ollama.com/search
 ```bash
 # Via docker compose
@@ -99,7 +132,7 @@ SCHEDULE_INTERVAL_HOURS=6
 ### Customizing Prompts
 If you want to change a basic prompt, edit /prompts/base_prompt.txt or create your own file.
 ```bash
-cd recources/prompts
+cd resources/prompts
 touch my_prompt.txt
 #/src/infrastructure/settings/llm_settings.py
 BASE_PROMPT_FILE_NAME = "my_prompt.txt"
@@ -110,7 +143,7 @@ You can override default templates via environment variables:
 ```bash
 # .env
 REPORT_ANALYZE_TEMPLATE=my_custom_analysis.html
-REPORT_RECENT_TEMPLATE=my_custom_
+REPORT_RECENT_TEMPLATE=my_custom_template
 # Don't forget to put your custom templates in resources/templates
 ```
 
@@ -136,7 +169,7 @@ flarity/
 │   │   └── settings/      # Configuration
 │   └── interfaces/         # UI layer (Telegram bot)
 ├── resources/
-│   ├── .logs-example.log  # Example of a logs structure
+│   ├── logs-example.log  # Example of a logs structure
 │   ├── prompts/           # LLM prompts
 │   └── templates/         # Report templates
 │

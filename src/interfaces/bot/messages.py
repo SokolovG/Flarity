@@ -4,7 +4,7 @@ from src.interfaces.bot.entities import BotAction
 
 
 def loading_msg(time_range: TimeRange) -> str:
-    msg = f"Analyze logs for last {time_range.hour_and_unit}\nThis may take up to {LLM_PROCESSING_TIMEOUT_SECONDS} seconds."
+    msg = f"Analyze logs for last {time_range.hour_and_unit}\nThis may take up to 90 seconds."
     return msg
 
 

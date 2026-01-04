@@ -38,7 +38,7 @@ class TelegramBotHelper:
                 return None
 
             hours = int(args[0])
-            if hours <= 0 or hours > 168:
+            if hours <= 0 or hours > MAX_HOURS_IN_WEEK:
                 await message.answer(fail_hour_number())
                 return None
             return TimeRange(hours)
