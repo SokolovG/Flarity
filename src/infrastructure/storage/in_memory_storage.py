@@ -12,6 +12,7 @@ class InMemoryStorage(Storage):
         self._data: dict[str, Any] = {}
         self.ttl = TTL_FOR_STORAGE
         self._expiry_tasks: dict[str, asyncio.Task] = {}
+        self._lock = asyncio.Lock()
 
     async def get(self, key: str) -> dict[str, Any] | None:
         return self._data.get(key)
@@ -39,29 +40,31 @@ class InMemoryStorage(Storage):
         self._expiry_tasks[key] = asyncio.create_task(delete_after_ttl())
 
     async def incr(self, key: str) -> int:
-        value = self._data.get(key, 0)
+        async with self._lock:
+            value = self._data.get(key, 0)
 
-        if not isinstance(value, int):
-            raise TypeError(
-                f"WRONGTYPE Operation against a key holding the wrong kind of value. "
-                f"Expected int, got {type(value).__name__}"
-            )
+            if not isinstance(value, int):
+                raise TypeError(
+                    f"WRONGTYPE Operation against a key holding the wrong kind of value. "
+                    f"Expected int, got {type(value).__name__}"
+                )
 
-        self._data[key] = value + 1
-        new_value: int = self._data[key]
-        return new_value
+            self._data[key] = value + 1
+            new_value: int = self._data[key]
+            return new_value
 
     async def incr_with_expire(self, key: str, ttl: int) -> int:
-        value = self._data.get(key, 0)
+        async with self._lock:
+            value = self._data.get(key, 0)
 
-        if not isinstance(value, int):
-            raise TypeError(
-                f"WRONGTYPE Operation against a key holding the wrong kind of value. "
-                f"Expected int, got {type(value).__name__}"
-            )
+            if not isinstance(value, int):
+                raise TypeError(
+                    f"WRONGTYPE Operation against a key holding the wrong kind of value. "
+                    f"Expected int, got {type(value).__name__}"
+                )
 
-        self._data[key] = value + 1
-        new_value: int = self._data[key]
+            self._data[key] = value + 1
+            new_value: int = self._data[key]
 
-        await self.expire(key, ttl)
-        return new_value
+            await self.expire(key, ttl)
+            return new_value

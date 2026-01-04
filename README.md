@@ -87,7 +87,7 @@ NOTIFICATION_CONFIG__BOT_TOKEN=your-bot-token
 NOTIFICATION_CONFIG__CHAT_ID=your-chat-id
 
 # Storage (optional)
-STORAGE_PROVIDER=redis  # or memory (not for production!)
+STORAGE_PROVIDER=redis  # or memory
 STORAGE_CONFIG__HOST=localhost
 STORAGE_CONFIG__PORT=6379
 

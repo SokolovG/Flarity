@@ -45,8 +45,7 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
 
 
 def retry(
-    max_attempts: int,
-    backoff: float,
+    max_attempts: int, backoff: float, max_backoff: float = 30.0
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         @wraps(func)
@@ -60,7 +59,7 @@ def retry(
                     if not should_retry or attempt == max_attempts - 1:
                         raise
 
-                    wait_time = backoff * (2**attempt)
+                    wait_time = min(backoff * (2**attempt), max_backoff)
                     logger.warning(f"Retrying in {wait_time}s...")
                     await asyncio.sleep(wait_time)
 

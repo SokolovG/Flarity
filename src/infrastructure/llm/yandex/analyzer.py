@@ -84,7 +84,6 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             raise LLMError(f"Error during llm generation {e}")
 
         text = response_model.result.alternatives[0].message.text
-        text = self._markdown_to_html(text)
 
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
@@ -100,19 +99,6 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             input_tokens_used=int(input_used_token),
             output_tokens_used=int(output_used_token),
         )
-
-    @staticmethod
-    def _markdown_to_html(text: str) -> str:
-        text = html.escape(text)
-        # **bold** → <b>bold</b>
-        text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
-        # *italic* → <i>italic</i>
-        text = re.sub(r"\*(.+?)\*", r"<i>\1</i>", text)
-        # `code` → <code>code</code>
-        text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
-        # [link](url) → <a href="url">link</a>
-        text = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', text)
-        return text
 
     def _get_model_uri(self) -> str:
         modelUri = f"gpt://{self.settings.llm_provider.get_config(YandexConfig).catalog_id}/{self.settings.llm_settings.model.value}"

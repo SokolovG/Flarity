@@ -16,9 +16,10 @@ TEMPLATES_DIR = BASE_DIR / "resources" / "templates"
 
 class ReportFormatter:
     def __init__(self, report_settings: ReportSettings) -> None:
-        self.env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+        self.env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
         self.report_settings = report_settings
 
+    # TODO: видны в тг теги
     def to_html(
         self, report: AnalysisReport, report_type: ReportType, show_all_errors: bool | None = False
     ) -> str:

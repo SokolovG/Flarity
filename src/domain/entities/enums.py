@@ -18,7 +18,14 @@ class LLMModel(str, Enum):
             "yandexgpt": LLMProvider.YANDEX,
             "deepseek-r1:7b": LLMProvider.OLLAMA,
         }
-        return _PROVIDERS[self.value]
+
+        provider = _PROVIDERS.get(self.value)
+        if provider is None:
+            raise ValueError(
+                f"Model '{self.value}' is not mapped to any provider. "
+                f"Add mapping in LLMModel.provider property."
+            )
+        return provider
 
 
 class LogLevel(Enum):

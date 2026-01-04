@@ -19,6 +19,12 @@ class LokiLogRepository(LogSource):
 
     @log_calls
     async def get_errors(self, time_range: TimeRange) -> list[LogEntry]:
+        """
+        Fetch error logs from Loki.
+
+        NOTE: Limited to 1000 most recent errors per query.
+        For high-volume periods, some errors may be skipped.
+        """
         query = f'{{level="error"}}'
         start, end = time_range.to_timestamps(datetime.now(timezone.utc))
 
