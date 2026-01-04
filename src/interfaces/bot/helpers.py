@@ -1,3 +1,4 @@
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from src.application.dto.analysis_report import AnalysisReport
@@ -6,7 +7,7 @@ from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
-from src.interfaces.bot.entities import BotAction
+from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.exceptions import BotParsingError
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
@@ -24,7 +25,7 @@ class TelegramBotHelper:
         self.notifier = notifier
 
     async def get_time_range_from_msg(
-        self, message: Message, action: BotAction
+        self, message: Message, action: BotAction, state: FSMContext
     ) -> TimeRange | None:
         try:
             args = message.text.split()[1:] if message.text else []
@@ -32,6 +33,7 @@ class TelegramBotHelper:
                 await message.answer(
                     text=choose_period_msg(), reply_markup=get_period_options(action)
                 )
+                await state.set_state(BotStates.period_selection)
                 return None
 
             hours = int(args[0])

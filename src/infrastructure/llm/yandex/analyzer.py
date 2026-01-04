@@ -1,3 +1,4 @@
+import html
 import re
 from http import HTTPStatus
 from logging import getLogger
@@ -88,9 +89,6 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
 
-        if not text.rstrip().endswith((".", "!", "?")):
-            logger.warning("LLM response might be truncated")
-
         text = response_model.result.alternatives[0].message.text
         input_used_token = response_model.result.usage.inputTextTokens
         output_used_token = response_model.result.usage.completionTokens
@@ -105,6 +103,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
 
     @staticmethod
     def _markdown_to_html(text: str) -> str:
+        text = html.escape(text)
         # **bold** → <b>bold</b>
         text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
         # *italic* → <i>italic</i>

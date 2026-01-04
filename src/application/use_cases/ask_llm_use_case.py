@@ -18,9 +18,9 @@ class AskLLMUseCase:
         self.limiter = limiter
 
     @log_calls
-    async def execute(self, question: str, session_id: str, user_id: str) -> LLMAnalysisResult:
+    async def execute(self, question: str, user_id: str) -> LLMAnalysisResult:
         await self.limiter.check_limit(user_id)
-        session = await self.conv_manager.get_session(session_id)
+        session = await self.conv_manager.get_session(user_id)
         if not session:
             raise AnalysisFailedError("LLM session is None!")
         session.add_message("user", question)

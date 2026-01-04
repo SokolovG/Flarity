@@ -29,8 +29,9 @@ async def main() -> None:
 
         tasks = []
 
-        if settings.schedule_enabled:
-            tasks.append(start_scheduler(container, settings))
+        # TODO
+        # if settings.schedule_enabled:
+        #     tasks.append(start_scheduler(container, settings))
 
         tasks.append(dp.start_polling(bot))
 

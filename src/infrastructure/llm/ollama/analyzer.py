@@ -1,3 +1,4 @@
+import html
 import re
 from http import HTTPStatus
 from logging import getLogger
@@ -77,13 +78,11 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
 
         text = response_model.message.content
         text = self._clean_llm_answer(text)
+        # TODO: не работает в тг html
         text = self._markdown_to_html(text)
 
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
-
-        if not text.rstrip().endswith((",", ":")):
-            logger.warning("LLM response might be truncated")
 
         return LLMAnalysisResult(
             messages=messages,
@@ -95,6 +94,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
 
     @staticmethod
     def _markdown_to_html(text: str) -> str:
+        text = html.escape(text)
         # **bold** → <b>bold</b>
         text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
         # *italic* → <i>italic</i>

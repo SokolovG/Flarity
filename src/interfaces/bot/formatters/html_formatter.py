@@ -16,7 +16,7 @@ TEMPLATES_DIR = BASE_DIR / "resources" / "templates"
 
 class ReportFormatter:
     def __init__(self, report_settings: ReportSettings) -> None:
-        self.env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
+        self.env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
         self.report_settings = report_settings
 
     def to_html(

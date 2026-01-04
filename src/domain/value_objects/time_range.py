@@ -1,12 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import ClassVar
 
 
 @dataclass(frozen=True)
 class TimeRange:
-    hours: int
-
+    hours: int = field()
     MAX_HOURS: ClassVar[int] = 168
 
     def to_timestamps(self, current_time: datetime) -> tuple[datetime, datetime]:

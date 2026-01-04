@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
+from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
@@ -59,7 +60,7 @@ async def cmd_analyze(
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
 
-    time_range = await helper.get_time_range_from_msg(message, BotAction.ANALYZE)
+    time_range = await helper.get_time_range_from_msg(message, BotAction.ANALYZE, state)
     if not time_range:
         return
     load_msg = await message.answer(loading_msg(time_range))
@@ -89,7 +90,7 @@ async def cmd_stats(
     state: FSMContext,
 ) -> None:
     chat_id = str(message.chat.id)
-    time_range = await helper.get_time_range_from_msg(message, BotAction.STATS)
+    time_range = await helper.get_time_range_from_msg(message, BotAction.STATS, state)
     if not time_range:
         return
 
@@ -118,7 +119,7 @@ async def cmd_recent(
     state: FSMContext,
 ) -> None:
     chat_id = str(message.chat.id)
-    time_range = await helper.get_time_range_from_msg(message, BotAction.RECENT)
+    time_range = await helper.get_time_range_from_msg(message, BotAction.RECENT, state)
     if not time_range:
         return
 
@@ -203,6 +204,8 @@ async def handle_llm_question(
         return
 
     question = message.text
+    if not question:
+        return
 
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
@@ -210,9 +213,10 @@ async def handle_llm_question(
     loading_msg = await message.answer(text=asking_llm_message())
 
     try:
-        answer = await ask_use_case.execute(question, chat_id, user_id)  # type: ignore
+        answer: LLMAnalysisResult = await ask_use_case.execute(question, user_id)
         session = await conv_manager.get_session(chat_id)
         if session:
+            session.add_message("user", question)
             session.add_message(role="assistant", content=answer.analysis_text)
             await conv_manager.save_session(chat_id, session)
 

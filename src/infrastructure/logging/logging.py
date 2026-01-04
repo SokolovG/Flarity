@@ -46,7 +46,9 @@ def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(level=level, handlers=handlers, force=True)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("aiogram.event").setLevel(logging.WARNING)
     dispatcher_logger = logging.getLogger("aiogram.dispatcher")
+    dispatcher_logger.setLevel(logging.WARNING)
     dispatcher_logger.addFilter(IgnoreNetworkTimeouts())
 
 

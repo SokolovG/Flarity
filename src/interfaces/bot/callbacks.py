@@ -172,8 +172,7 @@ async def on_recent_period(
             keyboard = get_main_menu()
 
         await callback.message.edit_text(report, reply_markup=keyboard)
-
-        await state.set_state(BotStates.main_menu)
+        await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
         logger.exception(e)
@@ -203,7 +202,7 @@ async def on_statistics_period(
 
         report = await helper.create_report(result, ReportType.STATS)
         await callback.message.edit_text(report, reply_markup=get_main_menu())
-        await state.set_state(BotStates.main_menu)
+        await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
         logger.exception(e)
