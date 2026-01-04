@@ -5,7 +5,7 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎯 Why Flarity?
+## Why Flarity?
 
 **Stop drowning in logs!** Flarity automatically:
 - **Fetches** errors from your log system
@@ -15,7 +15,7 @@
 - **Adapts** to YOUR infrastructure (not the other way around)
 
 
-## ✨ Features
+## Features
 
 ### Core Capabilities
 - **AI Analysis**: Intelligent error analysis using LLM providers
@@ -31,22 +31,22 @@
 - **No Vendor Lock-in**: Use any log source, LLM, or notification service
 - **Production Ready**: Redis caching, rate limiting, error handling
 
-## 🏗️ Supported Integrations
+## Supported Integrations
 
-### 📋 Log Sources
+### Log Sources
 - ✅ **Loki** (built-in)
 - 🔧 **Your custom source** (implement `LogSource` port)
 
-### 🤖 LLM Providers
+### LLM Providers
 - ✅ **Yandex GPT** (built-in)
 - ✅ **Ollama** (built-in - local models)
 - 🔧 **Your custom LLM** (implement `LLMAnalyzer` port)
 
-### 📢 Notifications
+### Notifications
 - ✅ **Telegram** (built-in)
 - 🔧 **Your custom notifier** (implement `Notifier` port)
 
-### 💾 Storage
+### Storage
 - ✅ **Redis** (built-in)
 - ✅ **In-Memory** (built-in)
 
@@ -147,7 +147,7 @@ REPORT_RECENT_TEMPLATE=my_custom_template
 # Don't forget to put your custom templates in resources/templates
 ```
 
-## 📱 Telegram Bot Commands
+## Telegram Bot Commands
 ```bash
 /start - Get started
 /help - List of commands
@@ -156,7 +156,7 @@ REPORT_RECENT_TEMPLATE=my_custom_template
 /stats [hours] - Statistics summary
 /settings - Current app settings
 ```
-## 🏗️ Architecture
+## Architecture
 ```
 flarity/
 ├── src/
