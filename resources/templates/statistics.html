@@ -1,13 +1,13 @@
-<b>{{ title }}</b>
+{{ title }}
 
-<b>Time range:</b> {{ time_range_hours }}h
-<b>Total errors:</b> {{ total_errors }}
-<b>Unique types:</b> {{ unique_types }}
+Time range: {{ time_range_hours }}h
+Total errors: {{ total_errors }}
+Unique types: {{ unique_types }}
 
 {% if groups and groups | length > 0 %}
-<b>Top {{ groups[:max_errors] | length }} errors:</b>
+Top {{ groups[:max_errors] | length }} errors:
 {% for group in groups[:max_errors] %}
-{{ loop.index }}. <code>{{ group.error_type }}</code>
+{{ loop.index }}. {{ group.error_type }}
    └─ {{ group.count }} occurrence{{ 's' if group.count > 1 else '' }}
 {% endfor %}
 {% endif %}

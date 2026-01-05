@@ -1,19 +1,18 @@
-<b>{{ title }}</b>
+{{ title }}
 
-<b>Time range:</b> {{ time_range_hours }}h
-<b>Total errors:</b> {{ total_errors }}
-
-<b>Latest errors (newest first):</b>
+Time range:</ {{ time_range_hours }}h
+Total errors: {{ total_errors }}
+Latest errors (newest first):
 
 {% set display_logs = logs if show_all_errors else logs[:max_errors] %}
 {% for log in display_logs %}
-{{ loop.index }}. <b>[{{ log.timestamp.strftime('%H:%M:%S') }}]</b>
+{{ loop.index }}. [{{ log.timestamp.strftime('%H:%M:%S') }}]
 {{ log.message[:max_symbols] }}
 {%- if log.metadata.get('request_id') -%}
-<b>REQUEST ID: <code>{{ log.metadata.get('request_id') }}</code></b>
+REQUEST ID: {{ log.metadata.get('request_id') }}
 {%- endif -%}
 {% endfor %}
 
 {% if not show_all_errors and total_errors > max_errors %}
-<i>... and {{ total_errors - max_errors }} more errors</i>
+... and {{ total_errors - max_errors }} more errors
 {% endif %}

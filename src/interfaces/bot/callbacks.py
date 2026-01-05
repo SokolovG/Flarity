@@ -247,9 +247,8 @@ async def get_more_recent_errors(
             keyboard = await get_keyboard_from_state(state)
             await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
-
+        # падает 400
         await helper.send_report(report, ReportType.RECENT, chat_id, show_all_errors=True)
-        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:

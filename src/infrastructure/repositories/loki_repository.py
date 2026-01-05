@@ -42,7 +42,7 @@ class LokiLogRepository(LogSource):
                 logs.append(
                     LogEntry(
                         timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),
-                        message=actual_message,
+                        message=parsed.get("message", message),
                         level=LogLevel.ERROR,
                         app=stream.stream.get("app", "unknown"),
                         metadata={
