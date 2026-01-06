@@ -38,6 +38,9 @@ from src.interfaces.bot.messages import (
 from src.interfaces.bot.router import bot_router
 
 logger = getLogger(__name__)
+# TODO: get_last_message и проверять по нему стейт?
+# https://api.telegram.org/bot<token>/getChatHistory?chat_id=-282138506
+# https://api.telegram.org/bot<token>/getUpdates
 
 
 @bot_router.message(CommandStart())

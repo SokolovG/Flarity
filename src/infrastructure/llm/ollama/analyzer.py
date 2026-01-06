@@ -100,4 +100,6 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
     @staticmethod
     def _clean_llm_answer(text: str) -> str:
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+        text = text.replace("#", "")
+        text = text.replace("*", "")
         return text.strip()

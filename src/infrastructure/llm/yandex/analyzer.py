@@ -84,6 +84,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             raise LLMError(f"Error during llm generation {e}")
 
         text = response_model.result.alternatives[0].message.text
+        text = self._clean_llm_answer(text)
 
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
@@ -106,3 +107,10 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             case LLMModel.YANDEX_GPT_5:
                 modelUri += "latest"
         return modelUri
+
+    @staticmethod
+    def _clean_llm_answer(text: str) -> str:
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+        text = text.replace("#", "")
+        text = text.replace("*", "")
+        return text.strip()

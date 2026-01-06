@@ -19,7 +19,6 @@ class ReportFormatter:
         self.env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
         self.report_settings = report_settings
 
-    # TODO: видны в тг теги
     def to_html(
         self, report: AnalysisReport, report_type: ReportType, show_all_errors: bool | None = False
     ) -> str:

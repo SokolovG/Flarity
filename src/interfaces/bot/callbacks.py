@@ -91,6 +91,7 @@ async def on_analyze_period(
     conv_manager: FromDishka[ConversationManager],
     state: FSMContext,
 ) -> None:
+    await callback.answer()
     await state.set_state(BotStates.viewing_report)
 
     chat_id = str(callback.message.chat.id)
@@ -149,6 +150,7 @@ async def on_recent_period(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
+    await callback.answer()
     await state.set_state(BotStates.viewing_report)
     time_range = helper.get_time_range_from_callback(callback)
 
@@ -190,6 +192,7 @@ async def on_statistics_period(
     helper: FromDishka[TelegramBotHelper],
     state: FSMContext,
 ) -> None:
+    await callback.answer()
     await state.set_state(BotStates.viewing_report)
     time_range = helper.get_time_range_from_callback(callback)
 
