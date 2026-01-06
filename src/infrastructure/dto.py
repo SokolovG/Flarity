@@ -8,7 +8,7 @@ class BaseInfrastructureObject(Struct):
 
 
 class LLMMessage(BaseInfrastructureObject):
-    role: str  # "user" или "assistant"
+    role: str  # "user" | "assistant"
     content: str
 
 

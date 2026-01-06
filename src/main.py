@@ -15,7 +15,6 @@ setup_logging(level="INFO")
 logger = logging.getLogger(__name__)
 
 
-# TODO: add health check api and check it in docker
 async def main() -> None:
     container = make_async_container(MyProvider())
 

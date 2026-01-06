@@ -42,6 +42,26 @@ logger = getLogger(__name__)
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+    data = await state.get_data()
+    old_menu_id = data.get("menu_msg_id")
+
+    if old_menu_id:
+        try:
+            await callback.bot.delete_message(
+                chat_id=callback.message.chat.id, message_id=old_menu_id
+            )
+        except Exception:
+            pass
+
+    old_report_id = data.get("last_report_msg_id")
+    if old_report_id:
+        try:
+            await callback.bot.edit_message_reply_markup(
+                chat_id=callback.message.chat.id, message_id=old_report_id, reply_markup=None
+            )
+        except Exception:
+            pass
+
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
     )
@@ -52,6 +72,17 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 @bot_router.callback_query(F.data == BotAction.RECENT.value)
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+    data = await state.get_data()
+    old_msg_id = data.get("last_report_msg_id")
+
+    if old_msg_id:
+        try:
+            await callback.bot.edit_message_reply_markup(
+                chat_id=callback.message.chat.id, message_id=old_msg_id, reply_markup=None
+            )
+        except Exception:
+            pass
+
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.RECENT)
     )
@@ -62,6 +93,17 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+    data = await state.get_data()
+    old_msg_id = data.get("last_report_msg_id")
+
+    if old_msg_id:
+        try:
+            await callback.bot.edit_message_reply_markup(
+                chat_id=callback.message.chat.id, message_id=old_msg_id, reply_markup=None
+            )
+        except Exception:
+            pass
+
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.STATS)
     )
@@ -174,6 +216,7 @@ async def on_recent_period(
             keyboard = get_main_menu()
 
         await callback.message.edit_text(report, reply_markup=keyboard)
+        await state.update_data(last_report_msg_id=callback.message.message_id)
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
@@ -205,6 +248,7 @@ async def on_statistics_period(
 
         report = await helper.create_report(result, ReportType.STATS)
         await callback.message.edit_text(report, reply_markup=get_main_menu())
+        await state.update_data(last_report_msg_id=callback.message.message_id)
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
@@ -218,17 +262,23 @@ async def on_statistics_period(
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     current_state = await state.get_state()
-
     await callback.answer()
-    keyboard = await get_keyboard_from_state(state)
-    await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
 
     await state.set_data({})
 
     if current_state == BotStates.period_selection:
-        await state.set_state(BotStates.back_to_main_menu)
-    else:
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+
+        await callback.message.answer(choose_an_action_msg(), reply_markup=get_main_menu())
         await state.set_state(BotStates.main_menu)
+        return
+
+    await state.set_state(BotStates.main_menu)
+    keyboard = get_main_menu()
+    await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
 
 
 @bot_router.callback_query(F.data == BotCallback.YES_RECENT)
@@ -250,9 +300,9 @@ async def get_more_recent_errors(
             keyboard = await get_keyboard_from_state(state)
             await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
-        # падает 400
         await helper.send_report(report, ReportType.RECENT, chat_id, show_all_errors=True)
-        await state.set_state(BotStates.viewing_report)
+        await callback.message.answer(choose_an_action_msg(), reply_markup=get_main_menu())
+        await state.set_state(BotStates.main_menu)
 
     except Exception as e:
         logger.exception(e)

@@ -33,7 +33,6 @@ class MessageAction(Enum):
 class BotStates(StatesGroup):
     main_menu = State()
     period_selection = State()
-    back_to_main_menu = State()
     viewing_report = State()
     waiting_for_question = State()
     start = State()

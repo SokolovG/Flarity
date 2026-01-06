@@ -7,7 +7,6 @@ from src.interfaces.bot.keyboards import get_main_menu
 STATES_REQUIRING_NEW_MESSAGE = {
     BotStates.viewing_report,
     BotStates.start,
-    BotStates.back_to_main_menu,
     BotStates.error,
 }
 STATES_REQUIRING_DELETE_MSG = {BotStates.period_selection}

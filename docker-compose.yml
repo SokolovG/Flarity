@@ -31,7 +31,14 @@ services:
       - "6739:6379"
     networks:
       - flarity
-  loki: # for tests! delete before release
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  loki: #TODO for tests! delete before release
     image: grafana/loki:latest
     volumes:
       - loki-data:/loki
