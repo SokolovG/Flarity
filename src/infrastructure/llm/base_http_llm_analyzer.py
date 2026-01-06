@@ -29,7 +29,9 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
 
     @log_calls
     async def ask(self, question: str, context: list[LLMMessage]) -> LLMAnalysisResult:
-        request_data = self._build_request(question, context=context)
+        updated_context = context.copy()
+        updated_context.append(LLMMessage(role="user", content=question))
+        request_data = self._build_request("", context=updated_context)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
         return self._parse_response(response.content)

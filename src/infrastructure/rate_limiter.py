@@ -15,9 +15,12 @@ class RateLimiter:
         self._user_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
     def acquire_user_lock(self, user_id: str) -> asyncio.Lock:
-        if user_id not in self._user_locks:
-            self._user_locks[user_id] = asyncio.Lock()
-        return self._user_locks[user_id]
+        lock = self._user_locks.get(user_id)
+        if lock is None:
+            lock = asyncio.Lock()
+            self._user_locks[user_id] = lock
+
+        return lock
 
     async def check_limit(self, key: str) -> None:
         full_key = f"{self.key_prefix}{key}"

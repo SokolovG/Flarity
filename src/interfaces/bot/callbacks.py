@@ -43,6 +43,7 @@ logger = getLogger(__name__)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     data = await state.get_data()
+
     old_menu_id = data.get("menu_msg_id")
 
     if old_menu_id:
@@ -294,6 +295,16 @@ async def get_more_recent_errors(
     state: FSMContext,
 ) -> None:
     data = await state.get_data()
+    old_msg_id = data.get("last_report_msg_id")
+
+    if old_msg_id:
+        try:
+            await callback.bot.edit_message_reply_markup(
+                chat_id=callback.message.chat.id, message_id=old_msg_id, reply_markup=None
+            )
+        except Exception:
+            pass
+
     chat_id = str(callback.message.chat.id)
     time_range = TimeRange(data.get("hours"))  # type: ignore[arg-type]
 

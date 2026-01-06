@@ -55,4 +55,7 @@ volumes:
   ollama-data:
     name: ollama-flarity
   loki-data:
+    #TODO for tests! delete before release
     name: loki-ogonek-dev
+  redis-data:
+    name: redis-flarity

@@ -27,9 +27,8 @@ async def main() -> None:
 
         await setup_bot(bot, dp)
 
-        # TODO
-        # if settings.schedule_enabled:
-        #     await start_scheduler(container, settings)
+        if settings.schedule_enabled:
+            await start_scheduler(container, settings)
 
         await dp.start_polling(bot)
 
