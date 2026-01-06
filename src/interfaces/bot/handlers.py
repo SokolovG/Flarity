@@ -38,9 +38,6 @@ from src.interfaces.bot.messages import (
 from src.interfaces.bot.router import bot_router
 
 logger = getLogger(__name__)
-# TODO: get_last_message и проверять по нему стейт?
-# https://api.telegram.org/bot<token>/getChatHistory?chat_id=-282138506
-# https://api.telegram.org/bot<token>/getUpdates
 
 
 @bot_router.message(CommandStart())
@@ -103,8 +100,13 @@ async def cmd_stats(
             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
-        await helper.send_report(report, ReportType.STATS, chat_id)
-        await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
+        report_msg = await helper.send_report(report, ReportType.STATS, chat_id)
+        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
+
+        await state.update_data(
+            menu_msg_id=menu_msg.message_id,
+            last_report_msg_id=report_msg.message_id,
+        )
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
@@ -136,16 +138,18 @@ async def cmd_recent(
         report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
         if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
             keyboard = get_more_errors_menu(len(report.logs))  # type: ignore[arg-type]
-            await state.set_data(
-                {
-                    "hours": time_range.hours,
-                    "report_msg_id": report_msg.message_id,
-                }
+            await state.update_data(
+                hours=time_range.hours,
+                report_msg_id=report_msg.message_id,
             )
         else:
             keyboard = get_main_menu()
 
         menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
+        await state.update_data(
+            menu_msg_id=menu_msg.message_id,
+            last_report_msg_id=report_msg.message_id,
+        )
         await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:

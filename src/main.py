@@ -27,15 +27,11 @@ async def main() -> None:
 
         await setup_bot(bot, dp)
 
-        tasks = []
-
         # TODO
         # if settings.schedule_enabled:
-        #     tasks.append(start_scheduler(container, settings))
+        #     await start_scheduler(container, settings)
 
-        tasks.append(dp.start_polling(bot))
-
-        await asyncio.gather(*tasks)
+        await dp.start_polling(bot)
 
     except (KeyboardInterrupt, SystemExit):
         logger.info("Shutting down...")

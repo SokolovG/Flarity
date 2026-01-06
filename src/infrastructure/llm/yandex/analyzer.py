@@ -111,6 +111,6 @@ class YandexAnalyzer(BaseLLMAnalyzer):
     @staticmethod
     def _clean_llm_answer(text: str) -> str:
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
-        text = text.replace("#", "")
-        text = text.replace("*", "")
+        text = re.sub(r"^#+\s", "", text, flags=re.MULTILINE)
+        text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
         return text.strip()

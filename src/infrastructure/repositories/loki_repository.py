@@ -64,4 +64,4 @@ class LokiLogRepository(LogSource):
             return {}
 
     async def check_readiness(self) -> bool:
-        return await self.client.is_loki_is_ready()
+        return await self.client.check_loki_readiness()

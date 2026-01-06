@@ -156,11 +156,14 @@ async def on_analyze_period(
 
         if len(report.llm_analysis.analysis_text) > TELEGRAM_MESSAGE_LIMIT:
             await load_msg.delete()
-            await helper.send_report(report, ReportType.ANALYZE, chat_id)
+            report_msg = await helper.send_report(report, ReportType.ANALYZE, chat_id)
             menu_msg = await callback.message.answer(
                 ask_llm_msg(), reply_markup=get_back_to_menu_button()
             )
-            await state.update_data(menu_msg_id=menu_msg.message_id)
+            await state.update_data(
+                menu_msg_id=menu_msg.message_id,
+                last_report_msg_id=report_msg.message_id,
+            )
             await state.set_state(BotStates.waiting_for_question)
             return
 
@@ -172,7 +175,10 @@ async def on_analyze_period(
         await state.update_data(menu_msg_id=menu_msg.message_id)
         await state.set_state(BotStates.waiting_for_question)
 
-        session = LLMSession()
+        session = await conv_manager.get_session(chat_id)
+        if not session:
+            session = LLMSession()
+
         if report.messages:
             session.add_bulk_messages(report.messages)
         session.add_message(role="assistant", content=report.llm_analysis.analysis_text)
@@ -206,11 +212,9 @@ async def on_recent_period(
         report = await helper.create_report(result, ReportType.RECENT)
         if len(result.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
             keyboard = get_more_errors_menu(len(result.logs))  # type: ignore[arg-type]
-            await state.set_data(
-                {
-                    "hours": time_range.hours,
-                    "report_msg_id": callback.message.message_id,
-                }
+            await state.update_data(
+                hours=time_range.hours,
+                report_msg_id=callback.message.message_id,
             )
         else:
             keyboard = get_main_menu()

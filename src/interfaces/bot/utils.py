@@ -5,7 +5,6 @@ from src.interfaces.bot.entities import BotStates, MessageAction
 from src.interfaces.bot.keyboards import get_main_menu
 
 STATES_REQUIRING_NEW_MESSAGE = {
-    BotStates.viewing_report,
     BotStates.start,
     BotStates.error,
 }
@@ -32,8 +31,6 @@ async def send_or_edit_message_from_state(
 
     current_state = await state.get_state()
 
-    # TODO: баг, после отчета ллм меню, если вернутся после выбора периода меню удалится.
-    # отчет - состояние viewing. нажали на back_menu -> main_menu. нажали на period_selection, потом назад = стейт у нас period_selection и менюшка удаляется
     if current_state in STATES_REQUIRING_DELETE_MSG:
         await callback.message.delete()  # type: ignore[union-attr]
         return

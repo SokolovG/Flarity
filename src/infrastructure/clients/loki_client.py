@@ -59,7 +59,7 @@ class LokiClient:
     def _to_loki_timestamp(self, dt: datetime) -> str:
         return str(int(dt.timestamp() * NANOS_PER_SECOND))
 
-    async def is_loki_is_ready(self) -> bool:
+    async def check_loki_readiness(self) -> bool:
         try:
             response = await self._http.make_request(
                 url=f"{self.url}/ready",

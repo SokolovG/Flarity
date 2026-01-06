@@ -1,4 +1,5 @@
 import asyncio
+from weakref import WeakValueDictionary
 
 from src.application.ports.storage import Storage
 from src.infrastructure.constants import RATE_LIMIT_CALLS, RATE_LIMIT_PERIOD, RATE_LIMITER_PREFIX
@@ -11,7 +12,7 @@ class RateLimiter:
         self.period = RATE_LIMIT_PERIOD
         self.key_prefix = RATE_LIMITER_PREFIX
         self.storage = storage
-        self._user_locks: dict[str, asyncio.Lock] = {}
+        self._user_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
     def acquire_user_lock(self, user_id: str) -> asyncio.Lock:
         if user_id not in self._user_locks:
