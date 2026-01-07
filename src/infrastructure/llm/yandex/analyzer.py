@@ -41,6 +41,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
                 LLMMessage(role="user", text=logs_text),
             ]
 
+        print(messages)
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {

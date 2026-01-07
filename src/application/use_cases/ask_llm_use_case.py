@@ -33,9 +33,14 @@ class AskLLMUseCase:
         session = await self.conv_manager.get_session(user_id)
         if not session:
             raise AnalysisFailedError("LLM session is None!")
+
         session.add_message("user", question)
+
         answer = await self.llm.ask(question, context=session.messages)
         if not answer:
             raise AnalysisFailedError("LLM returned empty response.")
+
+        session.add_message("assistant", answer.analysis_text)
+        await self.conv_manager.save_session(user_id, session)
 
         return answer

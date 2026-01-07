@@ -43,9 +43,11 @@ logger = getLogger(__name__)
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-    data = await state.get_data()
 
+    data = await state.get_data()
     old_menu_id = data.get("menu_msg_id")
+
+    await state.set_state(BotStates.period_selection)
 
     if old_menu_id:
         try:
@@ -64,16 +66,15 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
         except Exception:
             pass
 
-    await send_or_edit_message_from_state(
-        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
+    await callback.message.edit_text(
+        choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
     )
-
-    await state.set_state(BotStates.period_selection)
 
 
 @bot_router.callback_query(F.data == BotAction.RECENT.value)
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+
     data = await state.get_data()
     old_msg_id = data.get("last_report_msg_id")
 
@@ -88,13 +89,13 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await send_or_edit_message_from_state(
         callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.RECENT)
     )
-
     await state.set_state(BotStates.period_selection)
 
 
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+
     data = await state.get_data()
     old_msg_id = data.get("last_report_msg_id")
 
@@ -107,7 +108,7 @@ async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> No
             pass
 
     await send_or_edit_message_from_state(
-        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.STATS)
+        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
     )
 
     await state.set_state(BotStates.period_selection)
@@ -121,7 +122,7 @@ async def on_settings(
     await callback.answer()
     info = BotTextFormatter.format_settings(app_settings)
     await state.set_state(BotStates.viewing_report)
-    await callback.message.answer(
+    await callback.message.edit_text(
         info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
     )
 
@@ -183,7 +184,7 @@ async def on_analyze_period(
 
         if report.messages:
             session.add_bulk_messages(report.messages)
-        session.add_message(role="assistant", text=report.llm_analysis.analysis_text)
+
         await conv_manager.save_session(chat_id, session)
 
     except Exception as e:
@@ -277,6 +278,7 @@ async def on_statistics_period(
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     current_state = await state.get_state()
+    print(current_state)
     await callback.answer()
 
     await state.set_data({})
@@ -325,8 +327,10 @@ async def get_more_recent_errors(
             keyboard = await get_keyboard_from_state(state)
             await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
+
         await helper.send_report(report, ReportType.RECENT, chat_id, show_all_errors=True)
-        await callback.message.answer(choose_an_action_msg(), reply_markup=get_main_menu())
+        await callback.message.edit_text(choose_an_action_msg(), reply_markup=get_main_menu())
+        await state.update_data(menu_msg_id=callback.message.message_id)
         await state.set_state(BotStates.main_menu)
 
     except Exception as e:

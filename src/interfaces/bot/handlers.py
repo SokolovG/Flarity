@@ -231,11 +231,6 @@ async def handle_llm_question(
 
     try:
         answer: LLMAnalysisResult = await ask_use_case.execute(question, user_id)
-        session = await conv_manager.get_session(chat_id)
-        if session:
-            session.add_message("user", question)
-            session.add_message(role="assistant", text=answer.analysis_text)
-            await conv_manager.save_session(chat_id, session)
 
         await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
