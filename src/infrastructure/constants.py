@@ -6,10 +6,12 @@ from typing import Final
 SCHEDULE_INTERVAL_HOURS: Final[int] = 6
 
 # Rate limiting settings
-RATE_LIMIT_CALLS: Final[int] = 3
-RATE_LIMIT_PERIOD: Final[int] = 180  # seconds
-RATE_LIMITER_PREFIX: Final[str] = "rate_limit:"
-
+RATE_LIMIT_ANALYZE_CALLS: Final[int] = 3
+RATE_LIMIT_ASK_LLM_CALLS: Final[int] = 10
+RATE_LIMIT_ANALYZE_PERIOD: Final[int] = 180  # seconds
+RATE_LIMIT_ASK_LLM_PERIOD: Final[int] = 300  # seconds
+RATE_LIMITER_ANALYZE_PREFIX: Final[str] = "analyze_rate_limit:"
+RATE_LIMITER_ASK_LLM_PREFIX: Final[str] = "ask_llm_rate_limit:"
 # Telegram limits
 TELEGRAM_MESSAGE_LIMIT: Final[int] = 4096  # Telegram API limit for message length
 

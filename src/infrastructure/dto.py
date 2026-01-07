@@ -9,7 +9,7 @@ class BaseInfrastructureObject(Struct):
 
 class LLMMessage(BaseInfrastructureObject):
     role: str  # "user" | "assistant"
-    content: str
+    text: str
 
 
 class TelegramMessage(BaseInfrastructureObject):
@@ -21,8 +21,8 @@ class LLMSession(BaseInfrastructureObject):
     messages: list[LLMMessage] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
 
-    def add_message(self, role: str, content: str) -> None:
-        self.messages.append(LLMMessage(role=role, content=content))
+    def add_message(self, role: str, text: str) -> None:
+        self.messages.append(LLMMessage(role=role, text=text))
 
     def add_bulk_messages(self, messages: list[LLMMessage]) -> None:
         for msg in messages:

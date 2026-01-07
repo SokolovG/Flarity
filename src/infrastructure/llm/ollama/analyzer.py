@@ -45,8 +45,8 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             messages = context
         else:
             messages = [
-                LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
-                LLMMessage(role="user", content=logs_text),
+                LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
+                LLMMessage(role="user", text=logs_text),
             ]
 
         request_data = {
@@ -59,8 +59,8 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
 
     def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
         data = [
-            LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
-            LLMMessage(role="user", content=logs_text),
+            LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
+            LLMMessage(role="user", text=logs_text),
         ]
         return data
 

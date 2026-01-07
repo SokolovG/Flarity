@@ -37,8 +37,8 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             messages = context
         else:
             messages = [
-                LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
-                LLMMessage(role="user", content=logs_text),
+                LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
+                LLMMessage(role="user", text=logs_text),
             ]
 
         request_data = {
@@ -70,8 +70,8 @@ class YandexAnalyzer(BaseLLMAnalyzer):
 
     def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
         data = [
-            LLMMessage(role="system", content=self.settings.llm_settings.system_prompt),
-            LLMMessage(role="user", content=logs_text),
+            LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
+            LLMMessage(role="user", text=logs_text),
         ]
         return data
 
@@ -89,7 +89,6 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         if not text or len(text.strip()) < 10:
             raise LLMError("LLM returned empty or too short response")
 
-        text = response_model.result.alternatives[0].message.text
         input_used_token = response_model.result.usage.inputTextTokens
         output_used_token = response_model.result.usage.completionTokens
 

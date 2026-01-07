@@ -4,6 +4,11 @@ from src.application.ports.log_source import LogSource
 from src.domain.entities.log_entry import LogEntry
 from src.domain.services.error_grouper import ErrorGrouper
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.constants import (
+    RATE_LIMIT_ANALYZE_CALLS,
+    RATE_LIMIT_ANALYZE_PERIOD,
+    RATE_LIMITER_ANALYZE_PREFIX,
+)
 from src.infrastructure.decorators import log_calls
 from src.infrastructure.rate_limiter import RateLimiter
 
@@ -31,7 +36,12 @@ class AnalyzeLogsUseCase:
         if user_id:
             lock = self.limiter.acquire_user_lock(user_id)
             async with lock:
-                await self.limiter.check_limit(user_id)
+                await self.limiter.check_limit(
+                    user_id,
+                    prefix=RATE_LIMITER_ANALYZE_PREFIX,
+                    calls=RATE_LIMIT_ANALYZE_CALLS,
+                    period=RATE_LIMIT_ANALYZE_PERIOD,
+                )
                 return await self._analyze(time_range, logs)
         else:
             return await self._analyze(time_range, logs)

@@ -182,7 +182,7 @@ async def on_analyze_period(
 
         if report.messages:
             session.add_bulk_messages(report.messages)
-        session.add_message(role="assistant", content=report.llm_analysis.analysis_text)
+        session.add_message(role="assistant", text=report.llm_analysis.analysis_text)
         await conv_manager.save_session(chat_id, session)
 
     except Exception as e:
