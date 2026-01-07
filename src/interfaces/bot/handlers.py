@@ -194,7 +194,6 @@ async def handle_llm_question(
     message: Message,
     ask_use_case: FromDishka[AskLLMUseCase],
     helper: FromDishka[TelegramBotHelper],
-    conv_manager: FromDishka[ConversationManager],
     state: FSMContext,
 ) -> None:
     data = await state.get_data()

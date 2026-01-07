@@ -9,16 +9,22 @@ from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import LLMProvider
+from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.dto import LLMMessage
 from src.infrastructure.exceptions import LLMError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
+from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.llm_provider_settings import OllamaConfig
 
 logger = getLogger(__name__)
 
 
 class OllamaAnalyzer(BaseLLMAnalyzer):
+    def __init__(self, http_client: HTTPClient, settings: AppSettings) -> None:
+        self._messages: list[LLMMessage] | None = None
+        super().__init__(http_client, settings)
+
     def _handle_response(self, response: Response) -> None:
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise LLMError(
@@ -38,18 +44,24 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _build_request(
-        self, logs_text: str, context: list[LLMMessage] | None = None
-    ) -> dict[str, Any]:
-        if context:
-            messages = context
-        else:
-            messages = [
-                LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
-                LLMMessage(role="user", text=logs_text),
-            ]
+    def _build_request_from_context(self, context: list[LLMMessage]) -> dict[str, Any]:
+        request_data = {
+            "model": self.settings.llm_settings.model,
+            "messages": msgspec.to_builtins(context),
+            "stream": False,
+            "options": {"num_predict": self.settings.llm_settings.max_tokens},
+        }
+        return request_data
 
+    def _build_request(self, logs_text: str) -> dict[str, Any]:
+        messages = [
+            LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
+            LLMMessage(role="user", text=logs_text),
+        ]
+        # TODO: Incompatible types in assignment (expression has type "list[dict[str, str]]", variable has type "list[LLMMessage] | None")
+        # подумать. либо делать алиасы6 либо хз...
         ollama_messages = [{"role": msg.role, "content": msg.text} for msg in messages]
+        self._messages = ollama_messages
 
         request_data = {
             "model": self.settings.llm_settings.model,
@@ -59,16 +71,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         }
         return request_data
 
-    def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
-        data = [
-            LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
-            LLMMessage(role="user", text=logs_text),
-        ]
-        return data
-
-    def _parse_response(
-        self, response_bytes: bytes, messages: list[LLMMessage] | None = None
-    ) -> LLMAnalysisResult:
+    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=OllamaResponse)
         except msgspec.DecodeError:
@@ -85,7 +88,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             raise LLMError("LLM returned empty or too short response")
 
         return LLMAnalysisResult(
-            messages=messages,
+            messages=self._messages,
             analysis_text=text,
             provider=LLMProvider.OLLAMA,
             input_tokens_used=response_model.prompt_eval_count,

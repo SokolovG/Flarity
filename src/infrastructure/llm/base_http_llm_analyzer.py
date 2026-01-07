@@ -21,35 +21,28 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
     @log_calls
     async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         formatted_logs = self._format_logs_for_llm(logs)
-        messages = self._build_prompt(formatted_logs)
-        request_data = self._build_request(formatted_logs, context=messages)
+        request_data = self._build_request(formatted_logs)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
-        return self._parse_response(response.content, messages=messages)
+        return self._parse_response(response.content)
 
     @log_calls
-    async def ask(self, question: str, context: list[LLMMessage]) -> LLMAnalysisResult:
-        updated_context = context.copy()
-        updated_context.append(LLMMessage(role="user", text=question))
-        request_data = self._build_request("", context=updated_context)
+    async def ask(self, context: list[LLMMessage]) -> LLMAnalysisResult:
+        request_data = self._build_request_from_context(context)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
         return self._parse_response(response.content)
 
     @abstractmethod
-    def _build_request(
-        self, logs_text: str, context: list[LLMMessage] | None = None
-    ) -> dict[str, Any]: ...
+    def _build_request(self, logs_text: str) -> dict[str, Any]: ...
     @abstractmethod
-    def _build_prompt(self, logs_text: str) -> list[LLMMessage]: ...
+    def _build_request_from_context(self, context: list[LLMMessage]) -> dict[str, Any]: ...
     @abstractmethod
     def _get_headers(self) -> dict[str, Any]: ...
     @abstractmethod
     def _handle_response(self, response: Response) -> None: ...
     @abstractmethod
-    def _parse_response(
-        self, response_bytes: bytes, messages: list[LLMMessage] | None = None
-    ) -> LLMAnalysisResult: ...
+    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult: ...
     @abstractmethod
     def _get_api_url(self) -> str: ...
 

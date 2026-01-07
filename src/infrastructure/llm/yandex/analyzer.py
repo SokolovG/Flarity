@@ -1,4 +1,3 @@
-import html
 import re
 from http import HTTPStatus
 from logging import getLogger
@@ -9,16 +8,22 @@ from httpx import Response
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import LLMModel, LLMProvider
+from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.dto import LLMMessage
 from src.infrastructure.exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.yandex.responses import YandexResponse
+from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.llm_provider_settings import YandexConfig
 
 logger = getLogger(__name__)
 
 
 class YandexAnalyzer(BaseLLMAnalyzer):
+    def __init__(self, http_client: HTTPClient, settings: AppSettings) -> None:
+        self._messages: list[LLMMessage] | None = None
+        super().__init__(http_client, settings)
+
     def _get_api_url(self) -> str:
         url = self.settings.llm_provider.get_config(YandexConfig).base_url
         return url
@@ -30,18 +35,24 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         }
         return headers
 
-    def _build_request(
-        self, logs_text: str, context: list[LLMMessage] | None = None
-    ) -> dict[str, Any]:
-        if context:
-            messages = context
-        else:
-            messages = [
-                LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
-                LLMMessage(role="user", text=logs_text),
-            ]
+    def _build_request_from_context(self, context: list[LLMMessage]) -> dict[str, Any]:
+        request_data = {
+            "modelUri": self._get_model_uri(),
+            "completionOptions": {
+                "stream": False,
+                "temperature": self.settings.llm_settings.temperature,
+                "maxTokens": self.settings.llm_settings.max_tokens,
+            },
+            "messages": msgspec.to_builtins(context),
+        }
+        return request_data
 
-        print(messages)
+    def _build_request(self, logs_text: str) -> dict[str, Any]:
+        messages = [
+            LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
+            LLMMessage(role="user", text=logs_text),
+        ]
+        self._messages = messages
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {
@@ -69,16 +80,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _build_prompt(self, logs_text: str) -> list[LLMMessage]:
-        data = [
-            LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
-            LLMMessage(role="user", text=logs_text),
-        ]
-        return data
-
-    def _parse_response(
-        self, response_bytes: bytes, messages: list[LLMMessage] | None = None
-    ) -> LLMAnalysisResult:
+    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
         except msgspec.DecodeError as e:
@@ -94,7 +96,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         output_used_token = response_model.result.usage.completionTokens
 
         return LLMAnalysisResult(
-            messages=messages,
+            messages=self._messages,
             analysis_text=text,
             provider=LLMProvider.YANDEX,
             input_tokens_used=int(input_used_token),

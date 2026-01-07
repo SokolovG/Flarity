@@ -36,7 +36,7 @@ class AskLLMUseCase:
 
         session.add_message("user", question)
 
-        answer = await self.llm.ask(question, context=session.messages)
+        answer = await self.llm.ask(context=session.messages)
         if not answer:
             raise AnalysisFailedError("LLM returned empty response.")
 

@@ -196,6 +196,8 @@ async def on_analyze_period(
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
+# TODO: редачит ошибки! стейты
+# TODO: при выходе из ask через любое действие - сбросить сессию. либо по истечении времени.
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(
@@ -277,6 +279,7 @@ async def on_statistics_period(
 
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
+    # TODO: баг - если выбрать не показать все ошибки, отредактируется отчет ошибок
     current_state = await state.get_state()
     print(current_state)
     await callback.answer()
