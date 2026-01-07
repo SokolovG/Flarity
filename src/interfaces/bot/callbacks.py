@@ -13,6 +13,7 @@ from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
 from src.infrastructure.dto import LLMSession
+from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
@@ -186,7 +187,10 @@ async def on_analyze_period(
         await conv_manager.save_session(chat_id, session)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
@@ -225,7 +229,10 @@ async def on_recent_period(
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu()
@@ -257,7 +264,10 @@ async def on_statistics_period(
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.STATS), reply_markup=get_main_menu()
@@ -320,7 +330,10 @@ async def get_more_recent_errors(
         await state.set_state(BotStates.main_menu)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu()

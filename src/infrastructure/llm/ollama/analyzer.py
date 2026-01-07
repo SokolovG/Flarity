@@ -49,9 +49,11 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
                 LLMMessage(role="user", text=logs_text),
             ]
 
+        ollama_messages = [{"role": msg.role, "content": msg.text} for msg in messages]
+
         request_data = {
             "model": self.settings.llm_settings.model,
-            "messages": msgspec.to_builtins(messages),
+            "messages": msgspec.to_builtins(ollama_messages),
             "stream": False,
             "options": {"num_predict": self.settings.llm_settings.max_tokens},
         }

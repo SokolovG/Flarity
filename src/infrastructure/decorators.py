@@ -5,6 +5,8 @@ from functools import wraps
 from logging import getLogger
 from typing import Any, ParamSpec, TypeVar
 
+from src.infrastructure.exceptions.base_exceptions import InfrastructureException
+
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -38,7 +40,10 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.exception(f"✗ {call_name}() failed in {duration:.2f}s: {e}")
+            if not isinstance(e, InfrastructureException):
+                logger.exception(f"✗ {call_name}() unexpected error in {duration:.2f}s")
+            else:
+                logger.error(f"✗ {call_name}() failed in {duration:.2f}s: {e}")
             raise
 
     return wrapper

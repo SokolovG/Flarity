@@ -132,7 +132,7 @@ class HTTPClient(HttpPort):
             logger.error(f"Connection failed: {type(error).__name__}")
             raise NetworkError(
                 f"Connection failed: {type(error).__name__}", is_retryable=True
-            ) from error
+            ) from None
 
         except Exception as error:
             logger.exception(f"Unexpected HTTP error: {error}")

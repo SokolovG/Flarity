@@ -13,6 +13,7 @@ from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUse
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
+from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: F401
 from src.interfaces.bot.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
@@ -76,7 +77,10 @@ async def cmd_analyze(
         await helper.send_menu(chat_id, ask_llm_msg(), get_back_to_menu_button())
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
@@ -110,7 +114,10 @@ async def cmd_stats(
         await state.set_state(BotStates.viewing_report)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
 
@@ -153,7 +160,10 @@ async def cmd_recent(
         await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await message.edit_text(failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu())
 
@@ -237,7 +247,10 @@ async def handle_llm_question(
         await state.update_data(question_count=question_count + 1)
 
     except Exception as e:
-        logger.exception(e)
+        if not isinstance(e, InfrastructureException):
+            logger.exception(e)
+        else:
+            logger.error(e)
         await state.set_state(BotStates.error)
         await loading_msg.delete()
         error_menu_msg = await message.answer(

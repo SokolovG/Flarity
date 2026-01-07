@@ -10,6 +10,7 @@ class LLMModel(str, Enum):
     YANDEX_GPT_LITE = "yandexgpt-lite"
     YANDEX_GPT_5 = "yandexgpt"
     DEEPSEEK_R1_7B = "deepseek-r1:7b"
+    DEEPSEEK_R1_1_5_B = "deepseek-r1:1.5b"
 
     @property
     def provider(self) -> LLMProvider:
@@ -17,6 +18,7 @@ class LLMModel(str, Enum):
             "yandexgpt-lite": LLMProvider.YANDEX,
             "yandexgpt": LLMProvider.YANDEX,
             "deepseek-r1:7b": LLMProvider.OLLAMA,
+            "deepseek-r1:1.5b": LLMProvider.OLLAMA,
         }
 
         provider = _PROVIDERS.get(self.value)
