@@ -49,7 +49,6 @@ logger = getLogger(__name__)
 @bot_router.callback_query(F.data == BotCallback.ANALYZE.value)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-
     await state.set_state(BotStates.period_selection)
 
     await callback.message.edit_text(
@@ -60,7 +59,6 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 @bot_router.callback_query(F.data == BotAction.RECENT.value)
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-
     await send_or_edit_message_from_state(
         callback, state, choose_period_msg(), reply_markup=get_period_options(BotAction.RECENT)
     )
@@ -70,7 +68,6 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
 @bot_router.callback_query(F.data == BotCallback.STATS.value)
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-
     await send_or_edit_message_from_state(
         callback, state, choose_period_msg(), reply_markup=get_period_options(BotAction.STATS)
     )
@@ -85,16 +82,8 @@ async def on_settings(
 ) -> None:
     await callback.answer()
     info = BotTextFormatter.format_settings(app_settings)
+    await send_or_edit_message_from_state(callback, state, info, reply_markup=get_main_menu())
     await state.set_state(BotStates.viewing_data)
-    try:
-        await callback.message.edit_text(
-            info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
-        )
-    except Exception:
-        await callback.message.delete()
-        await callback.message.answer(
-            info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
-        )
 
 
 @bot_router.callback_query(F.data.startswith("analyze_"))
@@ -157,7 +146,6 @@ async def on_analyze_period(
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
-# TODO: настройки редактируются. статистика тоже
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(
@@ -182,10 +170,10 @@ async def on_recent_period(
             keyboard = get_more_errors_menu(len(result.logs))  # type: ignore[arg-type]
             await state.update_data(
                 hours=time_range.hours,
+                report_msg_id=callback.message.message_id,
             )
         else:
             keyboard = get_main_menu()
-
         await callback.message.edit_text(report, reply_markup=keyboard)
         await state.set_state(BotStates.viewing_data)
 
@@ -241,6 +229,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
         except Exception as e:
+            logger.exception(e)
             pass
 
     current_state = await state.get_state()
