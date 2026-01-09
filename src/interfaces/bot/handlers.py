@@ -81,7 +81,6 @@ async def cmd_analyze(
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
@@ -111,14 +110,13 @@ async def cmd_stats(
             menu_msg_id=menu_msg.message_id,
             last_report_msg_id=report_msg.message_id,
         )
-        await state.set_state(BotStates.viewing_report)
+        await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
 
 
@@ -164,25 +162,29 @@ async def cmd_recent(
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await message.edit_text(failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu())
 
 
 @bot_router.message(Command(BotAction.SETTINGS.value))
 @inject
-async def cmd_settings(message: Message, app_settings: FromDishka[AppSettings]) -> None:
+async def cmd_settings(
+    message: Message, app_settings: FromDishka[AppSettings], state: FSMContext
+) -> None:
     info = BotTextFormatter.format_settings(app_settings)
-    await message.answer(info, parse_mode=TextType.HTML.value)
+    await state.set_state(BotStates.viewing_data)
+    await message.answer(info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value)
 
 
 @bot_router.message(Command(BotAction.HELP.value))
-async def cmd_help(message: Message) -> None:
+async def cmd_help(message: Message, state: FSMContext) -> None:
+    await state.set_state(BotStates.viewing_data)
     help_text = BotTextFormatter.format_help()
     await message.answer(help_text, parse_mode=TextType.HTML.value, reply_markup=get_main_menu())
 
 
 @bot_router.message(Command(BotAction.MENU.value))
-async def cmd_menu(message: Message) -> None:
+async def cmd_menu(message: Message, state: FSMContext) -> None:
+    await state.set_state(BotStates.main_menu)
     await message.answer(
         text=choose_an_action_msg(), parse_mode=TextType.HTML.value, reply_markup=get_main_menu()
     )
@@ -245,7 +247,6 @@ async def handle_llm_question(
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await loading_msg.delete()
         error_menu_msg = await message.answer(
             failed_msg(e, BotAction.ASK), reply_markup=get_main_menu()
@@ -254,6 +255,7 @@ async def handle_llm_question(
 
 
 @bot_router.message()
-async def easter_egg(message: Message) -> None:
+async def easter_egg(message: Message, state: FSMContext) -> None:
+    await state.set_state(BotStates.viewing_data)
     if message.text == "ogonek":
-        await message.answer("https://ogonek.app")
+        await message.answer("https://ogonek.app", reply_markup=get_main_menu())

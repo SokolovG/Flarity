@@ -121,7 +121,7 @@ async def on_settings(
 ) -> None:
     await callback.answer()
     info = BotTextFormatter.format_settings(app_settings)
-    await state.set_state(BotStates.viewing_report)
+    await state.set_state(BotStates.viewing_data)
     await callback.message.edit_text(
         info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
     )
@@ -137,7 +137,7 @@ async def on_analyze_period(
     state: FSMContext,
 ) -> None:
     await callback.answer()
-    await state.set_state(BotStates.viewing_report)
+    await state.set_state(BotStates.viewing_data)
 
     chat_id = str(callback.message.chat.id)
     user_id = str(callback.from_user.id)
@@ -192,11 +192,10 @@ async def on_analyze_period(
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
-# TODO: редачит ошибки! стейты
+# TODO: ... and 12 more errors, если выбираем показать все ошибки - не удаляет старое сообщение + старую клаву
 # TODO: при выходе из ask через любое действие - сбросить сессию. либо по истечении времени.
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
@@ -207,7 +206,7 @@ async def on_recent_period(
     state: FSMContext,
 ) -> None:
     await callback.answer()
-    await state.set_state(BotStates.viewing_report)
+    await state.set_state(BotStates.viewing_data)
     time_range = helper.get_time_range_from_callback(callback)
 
     try:
@@ -222,21 +221,19 @@ async def on_recent_period(
             keyboard = get_more_errors_menu(len(result.logs))  # type: ignore[arg-type]
             await state.update_data(
                 hours=time_range.hours,
-                report_msg_id=callback.message.message_id,
             )
         else:
             keyboard = get_main_menu()
 
         await callback.message.edit_text(report, reply_markup=keyboard)
         await state.update_data(last_report_msg_id=callback.message.message_id)
-        await state.set_state(BotStates.viewing_report)
+        await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu()
         )
@@ -251,7 +248,7 @@ async def on_statistics_period(
     state: FSMContext,
 ) -> None:
     await callback.answer()
-    await state.set_state(BotStates.viewing_report)
+    await state.set_state(BotStates.viewing_data)
     time_range = helper.get_time_range_from_callback(callback)
 
     try:
@@ -264,14 +261,13 @@ async def on_statistics_period(
         report = await helper.create_report(result, ReportType.STATS)
         await callback.message.edit_text(report, reply_markup=get_main_menu())
         await state.update_data(last_report_msg_id=callback.message.message_id)
-        await state.set_state(BotStates.viewing_report)
+        await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.STATS), reply_markup=get_main_menu()
         )
@@ -341,7 +337,6 @@ async def get_more_recent_errors(
             logger.exception(e)
         else:
             logger.error(e)
-        await state.set_state(BotStates.error)
         await callback.message.edit_text(
             failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu()
         )

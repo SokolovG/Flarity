@@ -6,8 +6,7 @@ from src.interfaces.bot.keyboards import get_main_menu
 
 STATES_REQUIRING_NEW_MESSAGE = {
     BotStates.start,
-    BotStates.viewing_report,
-    BotStates.error,
+    BotStates.viewing_data,
 }
 STATES_REQUIRING_MAIN_MENU = {BotStates.period_selection, BotStates.waiting_for_question}
 
@@ -32,7 +31,7 @@ async def send_or_edit_message_from_state(
     current_state = await state.get_state()
     data = await state.get_data()
 
-    if current_state in {BotStates.viewing_report, BotStates.error}:
+    if current_state in {BotStates.viewing_data}:
         menu_msg_id = data.get("menu_msg_id")
         if menu_msg_id:
             try:
