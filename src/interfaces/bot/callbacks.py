@@ -5,18 +5,22 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from dishka.integrations.aiogram import FromDishka, inject
 
-from src.application.services.conversation_manager import ConversationManager
-from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
-from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
-from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import ReportType
-from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
-from src.infrastructure.dto import LLMSession
+from src.application import (
+    AnalyzeLogsUseCase,
+    ConversationManager,
+    RecentErrorsUseCase,
+    StatisticsLogsUseCase,
+)
+from src.domain import ReportType, TimeRange
+from src.infrastructure import (
+    MAX_ERRORS_IN_ONE_REPORT,
+    TELEGRAM_MESSAGE_LIMIT,
+    AppSettings,
+    LLMSession,
+    TextType,
+)
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.exceptions.rate_limit_exceptions import RateLimitExceeded
-from src.infrastructure.exceptions.telegram_exceptions import TelegramBadRequestError
-from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
@@ -144,15 +148,16 @@ async def on_analyze_period(
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
-            if not isinstance(e, RateLimitExceeded):
-                logger.exception(e)
-            else:
-                pass
+            logger.exception(e)
         else:
-            logger.error(e)
+            if isinstance(e, RateLimitExceeded):
+                pass
+            else:
+                logger.error(e)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
+# TODO: настройки редактируются. статистика тоже
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(

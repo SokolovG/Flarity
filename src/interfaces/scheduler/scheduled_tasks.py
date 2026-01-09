@@ -4,11 +4,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from dishka import AsyncContainer
 
+from src.application import AnalyzeLogsUseCase
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.notifier import Notifier
-from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
-from src.domain.entities.enums import NotificationProvider, ReportType
-from src.domain.value_objects.time_range import TimeRange
+from src.domain import NotificationProvider, ReportType, TimeRange
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.infrastructure.settings.app_settings import AppSettings
@@ -20,8 +19,8 @@ from src.interfaces.bot.messages import choose_an_action_msg
 logger = getLogger(__name__)
 
 
-def _get_notifier_type(notifcation_settings: NotificationSettings) -> type[Notifier]:
-    match notifcation_settings.provider:
+def _get_notifier_type(notification_settings: NotificationSettings) -> type[Notifier]:
+    match notification_settings.provider:
         case NotificationProvider.TELEGRAM:
             return TelegramNotifier
 

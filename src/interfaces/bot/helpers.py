@@ -3,8 +3,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.analysis_result import LLMAnalysisResult
-from src.domain.entities.enums import ReportType
-from src.domain.value_objects.time_range import TimeRange
+from src.domain import ReportType, TimeRange
 from src.infrastructure.constants import MAX_HOURS_IN_WEEK
 from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
@@ -14,8 +13,8 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.keyboards import get_main_menu, get_period_options
 from src.interfaces.bot.messages import (
     choose_period_msg,
-    fail_hour_number,
-    fail_hour_parsing,
+    invalid_hour_format_msg,
+    invalid_hour_range_msg,
     no_errors_msg,
 )
 
@@ -39,12 +38,12 @@ class TelegramBotHelper:
 
             hours = int(args[0])
             if hours <= 0 or hours > MAX_HOURS_IN_WEEK:
-                await message.answer(fail_hour_number())
+                await message.answer(invalid_hour_range_msg())
                 return None
             return TimeRange(hours)
 
         except ValueError:
-            await message.answer(fail_hour_parsing())
+            await message.answer(invalid_hour_format_msg())
             return None
 
     async def send_followup(

@@ -6,8 +6,9 @@ from aiogram import BaseMiddleware
 from aiogram.types import Update
 from dishka import FromDishka
 
-from src.application.services.conversation_manager import ConversationManager
+from src.application import ConversationManager
 from src.infrastructure.di.middleware_utils import aiogram_middleware_inject
+from src.infrastructure.exceptions.telegram_exceptions import TelegramBadRequestError
 from src.interfaces.bot.entities import BotStates
 
 logger = getLogger(__name__)
@@ -51,8 +52,10 @@ class SessionCleanupMiddleware(BaseMiddleware):
                             message_id=report_msg_id,
                             reply_markup=None,
                         )
-                    except Exception:
-                        pass
+                    except TelegramBadRequestError:
+                        logger.debug("Message already deleted or modified")
+                    except Exception as e:
+                        logger.warning(f"Failed to cleanup markup: {e}")
 
             await state.set_data({})
 

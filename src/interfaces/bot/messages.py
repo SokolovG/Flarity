@@ -1,5 +1,5 @@
-from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.constants import LLM_PROCESSING_TIMEOUT_SECONDS, MAX_HOURS_IN_WEEK
+from src.domain import TimeRange
+from src.infrastructure import MAX_HOURS_IN_WEEK
 from src.interfaces.bot.entities import BotAction
 
 
@@ -43,7 +43,7 @@ def ask_llm_one_more_time_msg() -> str:
     return msg
 
 
-def asking_llm_message() -> str:
+def asking_llm_msg() -> str:
     msg = "Asking LLM..."
     return msg
 
@@ -53,12 +53,12 @@ def greetings_msg() -> str:
     return msg
 
 
-def fail_hour_number() -> str:
+def invalid_hour_range_msg() -> str:
     msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"
     return msg
 
 
-def fail_hour_parsing() -> str:
+def invalid_hour_format_msg() -> str:
     msg = "❌ Invalid number. Example: /analyze 6"
     return msg
 

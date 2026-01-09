@@ -12,10 +12,13 @@ from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
-from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
-from src.infrastructure.dto import LLMSession
+from src.infrastructure import (
+    MAX_ERRORS_IN_ONE_REPORT,
+    AppSettings,
+    LLMSession,
+    TextType,
+)
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
-from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: F401
 from src.interfaces.bot.constants import (
     CHAT_ID_FOR_BUG_REPORT,
@@ -32,7 +35,7 @@ from src.interfaces.bot.keyboards import (
 )
 from src.interfaces.bot.messages import (
     ask_llm_one_more_time_msg,
-    asking_llm_message,
+    asking_llm_msg,
     choose_an_action_msg,
     error_sending_bug_report,
     failed_msg,
@@ -191,6 +194,7 @@ async def cmd_menu(message: Message, state: FSMContext) -> None:
     )
 
 
+# TODO: единый формат логирования и ошибок в тг
 @bot_router.message(BotStates.waiting_for_question)
 @inject
 async def handle_llm_question(
@@ -220,7 +224,7 @@ async def handle_llm_question(
         await state.set_data({})
         return
 
-    if message.text in ["/menu"]:
+    if message.text == "/menu":
         await message.answer(choose_an_action_msg(), reply_markup=get_main_menu())
         await state.set_state(BotStates.main_menu)
         return
@@ -232,7 +236,7 @@ async def handle_llm_question(
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
 
-    loading_msg = await message.answer(text=asking_llm_message())
+    loading_msg = await message.answer(text=asking_llm_msg())
 
     try:
         answer: LLMAnalysisResult = await ask_use_case.execute(question, user_id)
@@ -283,7 +287,7 @@ async def handle_bug_report(message: Message, state: FSMContext) -> None:
 
 
 @bot_router.message()
-async def easter_egg_or_handle_wrong_msg(message: Message, state: FSMContext) -> None:
+async def handle_unknown_message(message: Message, state: FSMContext) -> None:
     if message.text in EASTER_EGGS_WORT_LIST:
         await state.set_state(BotStates.viewing_data)
         match message.text:

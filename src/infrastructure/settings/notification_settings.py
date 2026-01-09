@@ -37,6 +37,6 @@ class NotificationSettings(BaseSettings):
 
     def get_config(self, config_type: type[BaseNotificationConfig]) -> BaseNotificationConfig:
         if config_type == TelegramConfig and self.provider != NotificationProvider.TELEGRAM:
-            raise ValueError("Notifcation provider mismatch!")
+            raise ValueError("Notification provider mismatch!")
 
         return config_type(**self.config)

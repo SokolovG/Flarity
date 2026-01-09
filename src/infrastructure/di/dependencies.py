@@ -4,16 +4,17 @@ from aiogram import Bot, Dispatcher
 from dishka import Provider, Scope, provide
 from redis.asyncio import Redis
 
+from src.application import (
+    AnalyzeLogsUseCase,
+    AskLLMUseCase,
+    ConversationManager,
+    RecentErrorsUseCase,
+    StatisticsLogsUseCase,
+)
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.application.ports.log_source import LogSource
 from src.application.ports.storage import Storage
-from src.application.services.conversation_manager import ConversationManager
-from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
-from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
-from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
-from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
-from src.domain.entities.enums import LLMProvider
-from src.domain.services.error_grouper import ErrorGrouper
+from src.domain import ErrorGrouper, LLMProvider
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.clients.loki_client import LokiClient
 from src.infrastructure.clients.telegram_client import TelegramClient
@@ -33,6 +34,26 @@ from src.interfaces.bot.helpers import TelegramBotHelper
 
 
 class MyProvider(Provider):
+    # ============================================================================
+    # CORE SETTINGS & CONFIGURATION
+    # ============================================================================
+
+    @provide(scope=Scope.APP)
+    def get_app_settings(self) -> AppSettings:
+        return AppSettings()  # type: ignore[call-arg]
+
+    @provide(scope=Scope.APP)
+    def get_report_settings(self) -> ReportSettings:
+        return ReportSettings()
+
+    @provide(scope=Scope.APP)
+    def get_storage_settings(self) -> StorageSettings:
+        return StorageSettings()
+
+    # ============================================================================
+    # BOT & TELEGRAM INFRASTRUCTURE
+    # ============================================================================
+
     @provide(scope=Scope.APP)
     def get_bot(self, settings: AppSettings) -> Bot:
         config = settings.notification.get_config(TelegramConfig)
@@ -43,45 +64,14 @@ class MyProvider(Provider):
         return Dispatcher()
 
     @provide(scope=Scope.APP)
-    def get_app_settings(self) -> AppSettings:
-        return AppSettings()  # type: ignore[call-arg]
-
-    @provide(scope=Scope.APP)
-    def get_ask_llm_use_case(
-        self,
-        llm_analyzer: LLMAnalyzer,
-        conversation_manager: ConversationManager,
-        limiter: RateLimiter,
-    ) -> AskLLMUseCase:
-        return AskLLMUseCase(llm_analyzer, conversation_manager, limiter)
-
-    @provide(scope=Scope.APP)
-    async def get_http_client(self) -> AsyncIterator[HTTPClient]:
-        client = HTTPClient()
-        async with client:
-            yield client
-
-    @provide(scope=Scope.APP)
-    def get_loki_client(self, http_client: HTTPClient, settings: AppSettings) -> LokiClient:
-        return LokiClient(http_client, settings.log_source)
-
-    @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: AppSettings) -> TelegramClient:
         return TelegramClient(http_client, settings.notification)
-
-    @provide(scope=Scope.APP)
-    def get_rate_limiter(self, storage: Storage) -> RateLimiter:
-        return RateLimiter(storage)
 
     @provide(scope=Scope.APP)
     def get_telegram_notifier(
         self, telegram_client: TelegramClient, settings: AppSettings
     ) -> TelegramNotifier:
         return TelegramNotifier(telegram_client, settings.notification)
-
-    @provide(scope=Scope.APP)
-    def get_report_settings(self) -> ReportSettings:
-        return ReportSettings()
 
     @provide(scope=Scope.APP)
     def get_formatter(self, report_settings: ReportSettings) -> ReportFormatter:
@@ -93,13 +83,23 @@ class MyProvider(Provider):
     ) -> TelegramBotHelper:
         return TelegramBotHelper(formatter, notifier)
 
-    @provide(scope=Scope.APP)
-    def get_storage_settings(self) -> StorageSettings:
-        return StorageSettings()
+    # ============================================================================
+    # HTTP CLIENTS & EXTERNAL SERVICES
+    # ============================================================================
 
     @provide(scope=Scope.APP)
-    def get_conv_manager(self, storage: Storage) -> ConversationManager:
-        return ConversationManager(storage)
+    async def get_http_client(self) -> AsyncIterator[HTTPClient]:
+        client = HTTPClient()
+        async with client:
+            yield client
+
+    @provide(scope=Scope.APP)
+    def get_loki_client(self, http_client: HTTPClient, settings: AppSettings) -> LokiClient:
+        return LokiClient(http_client, settings.log_source)
+
+    # ============================================================================
+    # STORAGE & CACHING
+    # ============================================================================
 
     @provide(scope=Scope.APP)
     async def get_redis_client(self, storage_settings: StorageSettings) -> AsyncIterator[Redis]:
@@ -134,6 +134,43 @@ class MyProvider(Provider):
                 raise ValueError(f"Unknown provider: {storage_settings.provider}")
 
     @provide(scope=Scope.APP)
+    def get_rate_limiter(self, storage: Storage) -> RateLimiter:
+        return RateLimiter(storage)
+
+    # ============================================================================
+    # LLM & AI SERVICES
+    # ============================================================================
+
+    @provide(scope=Scope.APP)
+    def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> LLMAnalyzer:
+        provider = LLMProvider(settings.llm_provider.provider)
+        match provider:
+            case LLMProvider.YANDEX:
+                return YandexAnalyzer(http_client, settings)
+            case LLMProvider.OLLAMA:
+                return OllamaAnalyzer(http_client, settings)
+
+    @provide(scope=Scope.APP)
+    def get_conv_manager(self, storage: Storage) -> ConversationManager:
+        return ConversationManager(storage)
+
+    # ============================================================================
+    # DOMAIN SERVICES
+    # ============================================================================
+
+    @provide(scope=Scope.APP)
+    def get_error_grouper(self) -> ErrorGrouper:
+        return ErrorGrouper()
+
+    @provide(scope=Scope.APP)
+    def get_log_source(self, loki_client: LokiClient) -> LogSource:
+        return LokiLogRepository(loki_client)
+
+    # ============================================================================
+    # USE CASES
+    # ============================================================================
+
+    @provide(scope=Scope.APP)
     def get_analyze_logs_use_case(
         self,
         log_source: LogSource,
@@ -142,6 +179,15 @@ class MyProvider(Provider):
         limiter: RateLimiter,
     ) -> AnalyzeLogsUseCase:
         return AnalyzeLogsUseCase(log_source, llm_analyzer, error_grouper, limiter)
+
+    @provide(scope=Scope.APP)
+    def get_ask_llm_use_case(
+        self,
+        llm_analyzer: LLMAnalyzer,
+        conversation_manager: ConversationManager,
+        limiter: RateLimiter,
+    ) -> AskLLMUseCase:
+        return AskLLMUseCase(llm_analyzer, conversation_manager, limiter)
 
     @provide(scope=Scope.APP)
     def get_stats_logs_use_case(
@@ -163,20 +209,3 @@ class MyProvider(Provider):
         llm_analyzer: LLMAnalyzer,
     ) -> RecentErrorsUseCase:
         return RecentErrorsUseCase(log_source, llm_analyzer)
-
-    @provide(scope=Scope.APP)
-    def get_error_grouper(self) -> ErrorGrouper:
-        return ErrorGrouper()
-
-    @provide(scope=Scope.APP)
-    def get_log_source(self, loki_client: LokiClient) -> LogSource:
-        return LokiLogRepository(loki_client)
-
-    @provide(scope=Scope.APP)
-    def get_llm_adapter(self, http_client: HTTPClient, settings: AppSettings) -> LLMAnalyzer:
-        provider = LLMProvider(settings.llm_provider.provider)
-        match provider:
-            case LLMProvider.YANDEX:
-                return YandexAnalyzer(http_client, settings)
-            case LLMProvider.OLLAMA:
-                return OllamaAnalyzer(http_client, settings)
