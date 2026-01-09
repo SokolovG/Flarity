@@ -123,6 +123,12 @@ async def on_analyze_period(
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
 
+        session = LLMSession()
+
+        if report.messages:
+            session.add_bulk_messages(report.messages)
+            await conv_manager.save_session(chat_id, session)
+
         if len(report.llm_analysis.analysis_text) > TELEGRAM_MESSAGE_LIMIT:
             await load_msg.delete()
             await helper.send_report(
@@ -135,13 +141,6 @@ async def on_analyze_period(
         msg = await load_msg.edit_text(report_text, reply_markup=get_back_to_menu_button())
         await state.update_data(report_msg_id=msg.message_id)
         await state.set_state(BotStates.waiting_for_question)
-
-        session = LLMSession()
-
-        if report.messages:
-            session.add_bulk_messages(report.messages)
-
-        await conv_manager.save_session(chat_id, session)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):

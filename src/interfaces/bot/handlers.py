@@ -76,8 +76,8 @@ async def cmd_analyze(
         session = LLMSession()
         if report.messages:
             session.add_bulk_messages(report.messages)
+            await conv_manager.save_session(chat_id, session)
 
-        await conv_manager.save_session(chat_id, session)
         await load_msg.delete()
         await helper.send_report(
             report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
@@ -203,7 +203,7 @@ async def handle_llm_question(
             )
         except Exception:
             pass
-    # TODO: вынести в лимитер?
+
     question_count = data.get("question_count", 0)
 
     if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
