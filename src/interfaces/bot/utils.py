@@ -3,7 +3,7 @@ from logging import getLogger
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
-from src.interfaces.bot.entities import BotStates, MessageAction
+from src.interfaces.bot.entities import BotStates
 from src.interfaces.bot.keyboards import get_main_menu
 
 STATES_REQUIRING_NEW_MESSAGE = {
@@ -19,9 +19,6 @@ async def get_keyboard_from_state(state: FSMContext) -> InlineKeyboardMarkup | N
         keyboard = get_main_menu()
         return keyboard
     return None
-
-
-logger = getLogger(__name__)
 
 
 async def send_or_edit_message_from_state(

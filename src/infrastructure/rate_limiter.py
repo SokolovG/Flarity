@@ -2,6 +2,7 @@ import asyncio
 from weakref import WeakValueDictionary
 
 from src.application.ports.storage import Storage
+from src.infrastructure.decorators import log_calls
 from src.infrastructure.exceptions.rate_limit_exceptions import RateLimitExceeded
 
 
@@ -18,6 +19,7 @@ class RateLimiter:
 
         return lock
 
+    @log_calls
     async def check_limit(self, key: str, prefix: str, calls: int, period: int) -> None:
         full_key = f"{prefix}{key}"
         current = await self.storage.incr_with_expire(full_key, period)

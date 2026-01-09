@@ -6,12 +6,14 @@ from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.dto.analysis_result import LLMAnalysisResult
+from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.entities.enums import ReportType
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
+from src.infrastructure.dto import LLMSession
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: F401
@@ -54,6 +56,7 @@ async def cmd_analyze(
     message: Message,
     use_case: FromDishka[AnalyzeLogsUseCase],
     helper: FromDishka[TelegramBotHelper],
+    conv_manager: FromDishka[ConversationManager],
     state: FSMContext,
 ) -> None:
     chat_id = str(message.chat.id)
@@ -70,6 +73,11 @@ async def cmd_analyze(
             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
+        session = LLMSession()
+        if report.messages:
+            session.add_bulk_messages(report.messages)
+
+        await conv_manager.save_session(chat_id, session)
         await load_msg.delete()
         await helper.send_report(
             report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
@@ -195,7 +203,7 @@ async def handle_llm_question(
             )
         except Exception:
             pass
-
+    # TODO: вынести в лимитер?
     question_count = data.get("question_count", 0)
 
     if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
@@ -228,6 +236,7 @@ async def handle_llm_question(
 
         await helper.send_menu(chat_id, ask_llm_one_more_time_msg(), get_back_to_menu_button())
         await state.update_data(question_count=question_count + 1)
+        await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):

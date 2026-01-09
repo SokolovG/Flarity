@@ -14,6 +14,7 @@ from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
 from src.infrastructure.dto import LLMSession
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
+from src.infrastructure.exceptions.rate_limit_exceptions import RateLimitExceeded
 from src.infrastructure.exceptions.telegram_exceptions import TelegramBadRequestError
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
@@ -26,7 +27,6 @@ from src.interfaces.bot.keyboards import (
     get_period_options,
 )
 from src.interfaces.bot.messages import (
-    ask_llm_msg,
     choose_an_action_msg,
     choose_period_msg,
     failed_msg,
@@ -136,9 +136,7 @@ async def on_analyze_period(
         await state.update_data(report_msg_id=msg.message_id)
         await state.set_state(BotStates.waiting_for_question)
 
-        session = await conv_manager.get_session(chat_id)
-        if not session:
-            session = LLMSession()
+        session = LLMSession()
 
         if report.messages:
             session.add_bulk_messages(report.messages)
@@ -147,13 +145,15 @@ async def on_analyze_period(
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
-            logger.exception(e)
+            if not isinstance(e, RateLimitExceeded):
+                logger.exception(e)
+            else:
+                pass
         else:
             logger.error(e)
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
-# TODO: при выходе из ask через любое действие - сбросить сессию. либо по истечении времени.
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
 async def on_recent_period(
@@ -232,7 +232,6 @@ async def on_statistics_period(
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
     report_msg_id = data.get("report_msg_id")
-    report_msg_id = data.get("report_msg_id")
 
     if report_msg_id:
         try:
@@ -257,6 +256,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
 
     keyboard = get_main_menu()
     await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
+    await state.set_state(BotStates.main_menu)
 
 
 @bot_router.callback_query(F.data == BotCallback.YES_RECENT)
