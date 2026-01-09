@@ -6,7 +6,6 @@ from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.dto.analysis_result import LLMAnalysisResult
-from src.application.services.conversation_manager import ConversationManager
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
@@ -16,7 +15,7 @@ from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TextType
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: F401
-from src.interfaces.bot.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
+from src.interfaces.bot.constants import EASTER_EGGS_WORT_LIST, MAX_LLM_MESSAGES_IN_ONE_CHAT
 from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
@@ -26,7 +25,6 @@ from src.interfaces.bot.keyboards import (
     get_more_errors_menu,
 )
 from src.interfaces.bot.messages import (
-    ask_llm_msg,
     ask_llm_one_more_time_msg,
     asking_llm_message,
     choose_an_action_msg,
@@ -76,6 +74,7 @@ async def cmd_analyze(
         await helper.send_report(
             report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
         )
+        await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
@@ -115,8 +114,6 @@ async def cmd_stats(
         await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
 
 
-# TODO: stats callback  редактирует отчет(если после отчета нгажать на посмотреть статистику, отредактирует отчет)
-# TODO: back_to_menu редактирует отчет ллм
 @bot_router.message(Command(BotAction.RECENT.value))
 @inject
 async def cmd_recent(
@@ -189,14 +186,17 @@ async def handle_llm_question(
     state: FSMContext,
 ) -> None:
     data = await state.get_data()
-    old_menu_msg_id = data.get("menu_msg_id")
-    question_count = data.get("question_count", 0)
+    report_msg_id = data.get("report_msg_id")
 
-    if old_menu_msg_id:
+    if report_msg_id:
         try:
-            await message.bot.delete_message(message.chat.id, old_menu_msg_id)
+            await message.bot.edit_message_reply_markup(
+                chat_id=message.chat.id, message_id=report_msg_id, reply_markup=None
+            )
         except Exception:
             pass
+
+    question_count = data.get("question_count", 0)
 
     if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
         await message.answer(
@@ -226,10 +226,7 @@ async def handle_llm_question(
         await helper.send_llm_answer(answer, chat_id)
         await loading_msg.delete()
 
-        menu_msg = await helper.send_menu(
-            chat_id, ask_llm_one_more_time_msg(), get_back_to_menu_button()
-        )
-        await state.update_data(menu_msg_id=menu_msg.message_id)
+        await helper.send_menu(chat_id, ask_llm_one_more_time_msg(), get_back_to_menu_button())
         await state.update_data(question_count=question_count + 1)
 
     except Exception as e:
@@ -238,17 +235,20 @@ async def handle_llm_question(
         else:
             logger.error(e)
         await loading_msg.delete()
-        error_menu_msg = await message.answer(
-            failed_msg(e, BotAction.ASK), reply_markup=get_main_menu()
-        )
-        await state.update_data(menu_msg_id=error_menu_msg.message_id)
+        await message.answer(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
 
 
 @bot_router.message()
-async def easter_egg(message: Message, state: FSMContext) -> None:
-    await state.set_state(BotStates.viewing_data)
-    if message.text == "ogonek":
-        await message.answer("https://ogonek.app")
+async def easter_egg_or_handle_wrong_msg(message: Message, state: FSMContext) -> None:
+    if message.text in EASTER_EGGS_WORT_LIST:
+        await state.set_state(BotStates.viewing_data)
+        match message.text:
+            case "ogonek":
+                await message.answer("https://ogonek.app")
+            case "author":
+                await message.answer("https://github.com/SokolovG")
+    else:
+        await message.answer("I don't understand you! Please use /help.")
 
 
 @bot_router.message()

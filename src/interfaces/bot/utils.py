@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
@@ -19,6 +21,9 @@ async def get_keyboard_from_state(state: FSMContext) -> InlineKeyboardMarkup | N
     return None
 
 
+logger = getLogger(__name__)
+
+
 async def send_or_edit_message_from_state(
     callback: CallbackQuery,
     state: FSMContext,
@@ -29,21 +34,9 @@ async def send_or_edit_message_from_state(
         return
 
     current_state = await state.get_state()
-    data = await state.get_data()
 
-    if current_state in {BotStates.viewing_data}:
-        menu_msg_id = data.get("menu_msg_id")
-        if menu_msg_id:
-            try:
-                await callback.bot.delete_message(  # type: ignore
-                    chat_id=callback.message.chat.id, message_id=menu_msg_id
-                )
-            except Exception:
-                pass
-
-        new_menu = await callback.message.answer(text, reply_markup=reply_markup)
-
-        await state.update_data(menu_msg_id=new_menu.message_id)
+    if current_state in (BotStates.viewing_data, BotStates.waiting_for_question):
+        await callback.message.answer(text, reply_markup=reply_markup)
         return
 
     await callback.message.edit_text(text, reply_markup=reply_markup)  # type: ignore

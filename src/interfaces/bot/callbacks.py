@@ -14,6 +14,7 @@ from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT, TELEGRAM_MESSAGE_LIMIT, TextType
 from src.infrastructure.dto import LLMSession
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
+from src.infrastructure.exceptions.telegram_exceptions import TelegramBadRequestError
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.entities import BotAction, BotCallback, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
@@ -45,18 +46,7 @@ logger = getLogger(__name__)
 async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
-    data = await state.get_data()
-    old_menu_id = data.get("menu_msg_id")
-
     await state.set_state(BotStates.period_selection)
-
-    if old_menu_id:
-        try:
-            await callback.bot.delete_message(
-                chat_id=callback.message.chat.id, message_id=old_menu_id
-            )
-        except Exception:
-            pass
 
     await callback.message.edit_text(
         choose_period_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
@@ -92,9 +82,15 @@ async def on_settings(
     await callback.answer()
     info = BotTextFormatter.format_settings(app_settings)
     await state.set_state(BotStates.viewing_data)
-    await callback.message.edit_text(
-        info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
-    )
+    try:
+        await callback.message.edit_text(
+            info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
+        )
+    except Exception:
+        await callback.message.delete()
+        await callback.message.answer(
+            info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value
+        )
 
 
 @bot_router.callback_query(F.data.startswith("analyze_"))
@@ -136,7 +132,8 @@ async def on_analyze_period(
             return
 
         report_text = await helper.create_report(report, ReportType.ANALYZE)
-        await load_msg.edit_text(report_text, reply_markup=get_back_to_menu_button())
+        msg = await load_msg.edit_text(report_text, reply_markup=get_back_to_menu_button())
+        await state.update_data(report_msg_id=msg.message_id)
         await state.set_state(BotStates.waiting_for_question)
 
         session = await conv_manager.get_session(chat_id)
@@ -233,7 +230,16 @@ async def on_statistics_period(
 
 @bot_router.callback_query(F.data == BotCallback.BACK_TO_MENU.value)
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
-    # TODO: баг - если выбрать не показать все ошибки, отредактируется отчет ошибок
+    data = await state.get_data()
+    report_msg_id = data.get("report_msg_id")
+    report_msg_id = data.get("report_msg_id")
+
+    if report_msg_id:
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception as e:
+            pass
+
     current_state = await state.get_state()
     await callback.answer()
 
@@ -249,7 +255,6 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
         await state.set_state(BotStates.main_menu)
         return
 
-    await state.set_state(BotStates.main_menu)
     keyboard = get_main_menu()
     await send_or_edit_message_from_state(callback, state, choose_an_action_msg(), keyboard)
 
@@ -279,7 +284,7 @@ async def get_more_recent_errors(
         await helper.send_report(
             report, ReportType.RECENT, chat_id, show_all_errors=True, reply_markup=get_main_menu()
         )
-        await state.set_state(BotStates.main_menu)
+        await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
