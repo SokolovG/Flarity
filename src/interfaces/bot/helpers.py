@@ -65,9 +65,10 @@ class TelegramBotHelper:
         report_type: ReportType,
         chat_id: str,
         show_all_errors: bool = False,
+        reply_markup: InlineKeyboardMarkup | None = None,
     ) -> TelegramMessage:
         html = self.formatter.to_html(report, report_type, show_all_errors)
-        return await self.notifier.send(html, chat_id=chat_id)
+        return await self.notifier.send(html, chat_id=chat_id, reply_markup=reply_markup)
 
     async def create_report(
         self,

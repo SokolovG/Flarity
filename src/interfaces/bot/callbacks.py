@@ -27,6 +27,7 @@ from src.interfaces.bot.keyboards import (
 from src.interfaces.bot.messages import (
     ask_llm_msg,
     choose_an_action_msg,
+    choose_period_msg,
     failed_msg,
     loading_msg,
     no_errors_msg,
@@ -57,17 +58,8 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
         except Exception:
             pass
 
-    old_report_id = data.get("last_report_msg_id")
-    if old_report_id:
-        try:
-            await callback.bot.edit_message_reply_markup(
-                chat_id=callback.message.chat.id, message_id=old_report_id, reply_markup=None
-            )
-        except Exception:
-            pass
-
     await callback.message.edit_text(
-        choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
+        choose_period_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
     )
 
 
@@ -75,19 +67,8 @@ async def on_llm_analysis(callback: CallbackQuery, state: FSMContext) -> None:
 async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
-    data = await state.get_data()
-    old_msg_id = data.get("last_report_msg_id")
-
-    if old_msg_id:
-        try:
-            await callback.bot.edit_message_reply_markup(
-                chat_id=callback.message.chat.id, message_id=old_msg_id, reply_markup=None
-            )
-        except Exception:
-            pass
-
     await send_or_edit_message_from_state(
-        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.RECENT)
+        callback, state, choose_period_msg(), reply_markup=get_period_options(BotAction.RECENT)
     )
     await state.set_state(BotStates.period_selection)
 
@@ -96,19 +77,8 @@ async def on_recent_errors(callback: CallbackQuery, state: FSMContext) -> None:
 async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
-    data = await state.get_data()
-    old_msg_id = data.get("last_report_msg_id")
-
-    if old_msg_id:
-        try:
-            await callback.bot.edit_message_reply_markup(
-                chat_id=callback.message.chat.id, message_id=old_msg_id, reply_markup=None
-            )
-        except Exception:
-            pass
-
     await send_or_edit_message_from_state(
-        callback, state, choose_an_action_msg(), reply_markup=get_period_options(BotAction.ANALYZE)
+        callback, state, choose_period_msg(), reply_markup=get_period_options(BotAction.STATS)
     )
 
     await state.set_state(BotStates.period_selection)
@@ -159,23 +129,14 @@ async def on_analyze_period(
 
         if len(report.llm_analysis.analysis_text) > TELEGRAM_MESSAGE_LIMIT:
             await load_msg.delete()
-            report_msg = await helper.send_report(report, ReportType.ANALYZE, chat_id)
-            menu_msg = await callback.message.answer(
-                ask_llm_msg(), reply_markup=get_back_to_menu_button()
-            )
-            await state.update_data(
-                menu_msg_id=menu_msg.message_id,
-                last_report_msg_id=report_msg.message_id,
+            await helper.send_report(
+                report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
             )
             await state.set_state(BotStates.waiting_for_question)
             return
 
         report_text = await helper.create_report(report, ReportType.ANALYZE)
-        await load_msg.edit_text(report_text)
-        menu_msg = await callback.message.answer(
-            ask_llm_msg(), reply_markup=get_back_to_menu_button()
-        )
-        await state.update_data(menu_msg_id=menu_msg.message_id)
+        await load_msg.edit_text(report_text, reply_markup=get_back_to_menu_button())
         await state.set_state(BotStates.waiting_for_question)
 
         session = await conv_manager.get_session(chat_id)
@@ -195,7 +156,6 @@ async def on_analyze_period(
         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
 
 
-# TODO: ... and 12 more errors, если выбираем показать все ошибки - не удаляет старое сообщение + старую клаву
 # TODO: при выходе из ask через любое действие - сбросить сессию. либо по истечении времени.
 @bot_router.callback_query(F.data.startswith("recent_"))
 @inject
@@ -226,7 +186,6 @@ async def on_recent_period(
             keyboard = get_main_menu()
 
         await callback.message.edit_text(report, reply_markup=keyboard)
-        await state.update_data(last_report_msg_id=callback.message.message_id)
         await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
@@ -260,7 +219,6 @@ async def on_statistics_period(
 
         report = await helper.create_report(result, ReportType.STATS)
         await callback.message.edit_text(report, reply_markup=get_main_menu())
-        await state.update_data(last_report_msg_id=callback.message.message_id)
         await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
@@ -277,7 +235,6 @@ async def on_statistics_period(
 async def back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     # TODO: баг - если выбрать не показать все ошибки, отредактируется отчет ошибок
     current_state = await state.get_state()
-    print(current_state)
     await callback.answer()
 
     await state.set_data({})
@@ -306,15 +263,6 @@ async def get_more_recent_errors(
     state: FSMContext,
 ) -> None:
     data = await state.get_data()
-    old_msg_id = data.get("last_report_msg_id")
-
-    if old_msg_id:
-        try:
-            await callback.bot.edit_message_reply_markup(
-                chat_id=callback.message.chat.id, message_id=old_msg_id, reply_markup=None
-            )
-        except Exception:
-            pass
 
     chat_id = str(callback.message.chat.id)
     time_range = TimeRange(data.get("hours"))  # type: ignore[arg-type]
@@ -327,9 +275,10 @@ async def get_more_recent_errors(
             await callback.message.edit_text(no_errors_msg(time_range), reply_markup=keyboard)
             return
 
-        await helper.send_report(report, ReportType.RECENT, chat_id, show_all_errors=True)
-        await callback.message.edit_text(choose_an_action_msg(), reply_markup=get_main_menu())
-        await state.update_data(menu_msg_id=callback.message.message_id)
+        await callback.message.delete()
+        await helper.send_report(
+            report, ReportType.RECENT, chat_id, show_all_errors=True, reply_markup=get_main_menu()
+        )
         await state.set_state(BotStates.main_menu)
 
     except Exception as e:

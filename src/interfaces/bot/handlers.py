@@ -73,8 +73,9 @@ async def cmd_analyze(
             return
 
         await load_msg.delete()
-        await helper.send_report(report, ReportType.ANALYZE, chat_id)
-        await helper.send_menu(chat_id, ask_llm_msg(), get_back_to_menu_button())
+        await helper.send_report(
+            report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
+        )
 
     except Exception as e:
         if not isinstance(e, InfrastructureException):
@@ -103,13 +104,7 @@ async def cmd_stats(
             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
-        report_msg = await helper.send_report(report, ReportType.STATS, chat_id)
-        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), get_main_menu())
-
-        await state.update_data(
-            menu_msg_id=menu_msg.message_id,
-            last_report_msg_id=report_msg.message_id,
-        )
+        await helper.send_report(report, ReportType.STATS, chat_id, reply_markup=get_main_menu())
         await state.set_state(BotStates.viewing_data)
 
     except Exception as e:
@@ -120,6 +115,8 @@ async def cmd_stats(
         await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
 
 
+# TODO: stats callback  редактирует отчет(если после отчета нгажать на посмотреть статистику, отредактирует отчет)
+# TODO: back_to_menu редактирует отчет ллм
 @bot_router.message(Command(BotAction.RECENT.value))
 @inject
 async def cmd_recent(
@@ -140,21 +137,14 @@ async def cmd_recent(
             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
             return
 
-        report_msg = await helper.send_report(report, ReportType.RECENT, chat_id)
-        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type: ignore[arg-type]
-            keyboard = get_more_errors_menu(len(report.logs))  # type: ignore[arg-type]
-            await state.update_data(
-                hours=time_range.hours,
-                report_msg_id=report_msg.message_id,
-            )
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type:ignore[arg-type]
+            keyboard = get_more_errors_menu(len(report.logs))  # type:ignore[arg-type]
         else:
             keyboard = get_main_menu()
 
-        menu_msg = await helper.send_menu(chat_id, choose_an_action_msg(), keyboard)
-        await state.update_data(
-            menu_msg_id=menu_msg.message_id,
-            last_report_msg_id=report_msg.message_id,
-        )
+        await helper.send_report(report, ReportType.RECENT, chat_id, reply_markup=keyboard)
+        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type:ignore[arg-type]
+            await state.update_data(hours=time_range.hours)
         await state.set_state(BotStates.waiting_for_question)
 
     except Exception as e:
@@ -258,4 +248,11 @@ async def handle_llm_question(
 async def easter_egg(message: Message, state: FSMContext) -> None:
     await state.set_state(BotStates.viewing_data)
     if message.text == "ogonek":
-        await message.answer("https://ogonek.app", reply_markup=get_main_menu())
+        await message.answer("https://ogonek.app")
+
+
+@bot_router.message()
+async def notify_about_bug(message: Message) -> None:
+    if message.text.startswith("bug"):
+        # TODO: notify me
+        ...
