@@ -17,7 +17,11 @@ from src.infrastructure.dto import LLMSession
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot import callbacks  # noqa: F401
-from src.interfaces.bot.constants import EASTER_EGGS_WORT_LIST, MAX_LLM_MESSAGES_IN_ONE_CHAT
+from src.interfaces.bot.constants import (
+    CHAT_ID_FOR_BUG_REPORT,
+    EASTER_EGGS_WORT_LIST,
+    MAX_LLM_MESSAGES_IN_ONE_CHAT,
+)
 from src.interfaces.bot.entities import BotAction, BotStates
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
@@ -30,11 +34,13 @@ from src.interfaces.bot.messages import (
     ask_llm_one_more_time_msg,
     asking_llm_message,
     choose_an_action_msg,
+    error_sending_bug_report,
     failed_msg,
     greetings_msg,
     llm_limit_msg,
     loading_msg,
     no_errors_msg,
+    report_been_sent,
 )
 from src.interfaces.bot.router import bot_router
 
@@ -247,6 +253,35 @@ async def handle_llm_question(
         await message.answer(failed_msg(e, BotAction.ASK), reply_markup=get_main_menu())
 
 
+@bot_router.message(Command(BotAction.BUG.value))
+async def cmd_bug(message: Message, state: FSMContext) -> None:
+    await state.set_state(BotStates.reporting_bug)
+    await message.answer("Describe the problem in one message. Or send /cancel to cancel.")
+
+
+@bot_router.message(BotStates.reporting_bug)
+async def handle_bug_report(message: Message, state: FSMContext) -> None:
+    if message.text == "/cancel":
+        await state.set_state(BotStates.main_menu)
+        await message.answer("Cancelled", reply_markup=get_main_menu())
+        return
+
+    try:
+        await message.bot.send_message(
+            CHAT_ID_FOR_BUG_REPORT,
+            f"Bug Report\n"
+            f"From: {message.from_user.id} (@{message.from_user.username})\n"
+            f"Text: {message.text}",
+        )
+
+        await message.answer(report_been_sent(), reply_markup=get_main_menu())
+    except Exception as e:
+        logger.error(f"Failed to send bug report: {e}")
+        await message.answer(error_sending_bug_report())
+
+    await state.set_state(BotStates.main_menu)
+
+
 @bot_router.message()
 async def easter_egg_or_handle_wrong_msg(message: Message, state: FSMContext) -> None:
     if message.text in EASTER_EGGS_WORT_LIST:
@@ -257,11 +292,4 @@ async def easter_egg_or_handle_wrong_msg(message: Message, state: FSMContext) ->
             case "author":
                 await message.answer("https://github.com/SokolovG")
     else:
-        await message.answer("I don't understand you! Please use /help.")
-
-
-@bot_router.message()
-async def notify_about_bug(message: Message) -> None:
-    if message.text.startswith("bug"):
-        # TODO: notify me
-        ...
+        await message.answer("I don't understand you! Please use /help")

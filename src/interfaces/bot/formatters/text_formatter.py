@@ -39,6 +39,8 @@ Example: <code>/stats 24</code>
 
 /settings - Current app settings (llm and schedule)
 
+/bug - Report a bug
+
 /help - This help message
                 """
         return help_text

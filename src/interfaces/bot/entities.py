@@ -11,6 +11,7 @@ class BotAction(Enum):
     HELP = "help"
     ASK = "ask"
     MENU = "menu"
+    BUG = "bug"
 
 
 class BotCallback(str, Enum):
@@ -36,3 +37,4 @@ class BotStates(StatesGroup):
     viewing_data = State()
     waiting_for_question = State()
     start = State()
+    reporting_bug = State()

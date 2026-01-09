@@ -45,9 +45,10 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             )
 
     def _build_request_from_context(self, context: list[LLMMessage]) -> dict[str, Any]:
+        ollama_messages = [{"role": msg.role, "content": msg.text} for msg in context]
         request_data = {
             "model": self.settings.llm_settings.model,
-            "messages": msgspec.to_builtins(context),
+            "messages": ollama_messages,
             "stream": False,
             "options": {"num_predict": self.settings.llm_settings.max_tokens},
         }
@@ -58,10 +59,8 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", text=logs_text),
         ]
-        # TODO: Incompatible types in assignment (expression has type "list[dict[str, str]]", variable has type "list[LLMMessage] | None")
-        # подумать. либо делать алиасы6 либо хз...
+        self._messages = messages
         ollama_messages = [{"role": msg.role, "content": msg.text} for msg in messages]
-        self._messages = ollama_messages
 
         request_data = {
             "model": self.settings.llm_settings.model,

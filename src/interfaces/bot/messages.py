@@ -61,3 +61,13 @@ def fail_hour_number() -> str:
 def fail_hour_parsing() -> str:
     msg = "❌ Invalid number. Example: /analyze 6"
     return msg
+
+
+def report_been_sent() -> str:
+    msg = "✅ Thank you! The report has been sent."
+    return msg
+
+
+def error_sending_bug_report() -> str:
+    msg = "❌ Failed to send bug report."
+    return msg
