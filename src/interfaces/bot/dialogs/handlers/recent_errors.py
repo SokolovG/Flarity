@@ -17,18 +17,12 @@ async def on_recent(callback: CallbackQuery, widget: Button, manager: DialogMana
     await manager.start(RecentSG.period_selection)
 
 
-@inject
 async def on_show_all_errors(
     callback: CallbackQuery,
     widget: Button,
     manager: DialogManager,
-    formatter: FromDishka[ReportFormatter],
 ) -> None:
-    report: AnalysisReport = manager.dialog_data.get("report")  # type:ignore
-
-    html = formatter.to_html(report, ReportType.RECENT, show_all_errors=True)
-    await callback.message.answer(html)
-    await callback.message.edit_reply_markup(reply_markup=None)
+    await manager.switch_to(RecentSG.viewing_all)
 
 
 @inject
@@ -38,12 +32,12 @@ async def on_recent_period_click(
     manager: DialogManager,
     use_case: FromDishka[RecentErrorsUseCase],
 ) -> None:
-    period = int(widget.widget_id.split("_")[1])
+    period = int(widget.widget_id.split("_")[1])  # type: ignore
     time_range = TimeRange(period)
 
     report = await use_case.execute(time_range)
     if not report.has_errors:
-        await callback.message.answer(no_errors_msg(time_range))
+        await callback.message.answer(no_errors_msg(time_range))  # type: ignore
         return
 
     manager.dialog_data.update({"report": report})

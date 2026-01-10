@@ -1,5 +1,5 @@
 from aiogram_dialog import Window
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Back, Button
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.interfaces.bot.dialogs.getters.recent_getters import recent_report_getter
@@ -16,6 +16,7 @@ def recent_viewing_report_window() -> Window:
             on_click=on_show_all_errors,
             when="has_more_errors",
         ),
+        Back(Const("⬅️ Back")),
         state=RecentSG.viewing_data,
         getter=recent_report_getter,
     )

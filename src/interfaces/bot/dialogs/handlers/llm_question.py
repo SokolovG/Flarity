@@ -14,7 +14,10 @@ async def on_llm_question(
     manager: DialogManager,
     ask_use_case: FromDishka[AskLLMUseCase],
 ) -> None:
-    question: str = message.text
+    if not message:
+        return
+
+    question: str = message.text  # type: ignore
     user_id = str(message.from_user.id)  # type: ignore
 
     answer = await ask_use_case.execute(question, user_id)

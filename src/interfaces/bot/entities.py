@@ -53,6 +53,7 @@ class AnalyzeSG(StatesGroup):
 class RecentSG(StatesGroup):
     period_selection = State()
     viewing_data = State()
+    viewing_all = State()
 
 
 class StatsSG(StatesGroup):

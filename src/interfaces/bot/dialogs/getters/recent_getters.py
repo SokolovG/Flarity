@@ -11,13 +11,26 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 
 @inject
+async def recent_all_getter(
+    dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
+) -> dict[str, str]:
+    report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
+    html = formatter.to_html(report, ReportType.RECENT, show_all_errors=True)
+
+    return {
+        "report_html_all": html,
+    }
+
+
+@inject
 async def recent_report_getter(
     dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
 ) -> dict[str, Any]:
-    report: AnalysisReport = dialog_manager.dialog_data.get("report")
+    report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
 
     total = len(report.logs) if report.logs else 0
-    has_more = total > MAX_ERRORS_IN_ONE_REPORT
+    # has_more = total > MAX_ERRORS_IN_ONE_REPORT
+    has_more = total > 0
 
     html = formatter.to_html(report, ReportType.RECENT, show_all_errors=False)
     return {

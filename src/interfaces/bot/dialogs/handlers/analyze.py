@@ -20,7 +20,7 @@ async def on_analyze_period_click(
     manager: DialogManager,
     use_case: FromDishka[AnalyzeLogsUseCase],
 ) -> None:
-    period = int(widget.widget_id.split("_")[1])
+    period = int(widget.widget_id.split("_")[1])  # type: ignore
     user_id = str(callback.from_user.id)
 
     report = await use_case.execute(TimeRange(period), user_id)

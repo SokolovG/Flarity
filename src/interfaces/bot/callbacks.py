@@ -75,17 +75,6 @@ async def on_statistics_errors(callback: CallbackQuery, state: FSMContext) -> No
     await state.set_state(BotStates.period_selection)
 
 
-@bot_router.callback_query(F.data == BotCallback.SETTINGS.value)
-@inject
-async def on_settings(
-    callback: CallbackQuery, app_settings: FromDishka[AppSettings], state: FSMContext
-) -> None:
-    await callback.answer()
-    info = BotTextFormatter.format_settings(app_settings)
-    await send_or_edit_message_from_state(callback, state, info, reply_markup=get_main_menu())
-    await state.set_state(BotStates.viewing_data)
-
-
 @bot_router.callback_query(F.data.startswith("analyze_"))
 @inject
 async def on_analyze_period(
