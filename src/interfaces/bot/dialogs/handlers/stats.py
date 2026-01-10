@@ -1,0 +1,28 @@
+from aiogram.types import CallbackQuery
+from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.kbd import Button
+from dishka.integrations.aiogram import FromDishka
+from dishka.integrations.aiogram_dialog import inject
+
+from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
+from src.domain.value_objects.time_range import TimeRange
+from src.interfaces.bot.entities import StatsSG
+
+
+async def on_stats(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:
+    await manager.start(StatsSG.period_selection)
+
+
+@inject
+async def on_stats_period_click(
+    callback: CallbackQuery,
+    widget: Button,
+    manager: DialogManager,
+    use_case: FromDishka[StatisticsLogsUseCase],
+) -> None:
+    period = int(widget.widget_id.split("_")[1])  # type: ignore
+
+    report = await use_case.execute(TimeRange(period))
+
+    manager.dialog_data.update({"report": report})
+    await manager.switch_to(StatsSG.viewing_data)

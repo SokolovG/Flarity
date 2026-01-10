@@ -1,8 +1,8 @@
 from aiogram_dialog import Dialog
 
-from src.interfaces.bot.dialogs.handlers.analyze_handlers import on_analyze_period_click
-from src.interfaces.bot.dialogs.handlers.recent_handlers import on_recent_period_click
-from src.interfaces.bot.dialogs.handlers.stats_handlers import on_stats_period_click
+from src.interfaces.bot.dialogs.handlers.analyze import on_analyze_period_click
+from src.interfaces.bot.dialogs.handlers.recent_errors import on_recent_period_click
+from src.interfaces.bot.dialogs.handlers.stats import on_stats_period_click
 from src.interfaces.bot.dialogs.windows.analyze_viewing_report import analyze_viewing_report_window
 from src.interfaces.bot.dialogs.windows.asking_llm import asking_llm_window
 from src.interfaces.bot.dialogs.windows.bug import bug_window

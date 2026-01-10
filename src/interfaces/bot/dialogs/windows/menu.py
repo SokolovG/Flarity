@@ -3,9 +3,9 @@ from aiogram_dialog.widgets.kbd import Button, Column
 from aiogram_dialog.widgets.text import Const
 
 from src.interfaces.bot.callbacks import on_settings
-from src.interfaces.bot.dialogs.handlers.analyze_handlers import on_analyze
-from src.interfaces.bot.dialogs.handlers.recent_handlers import on_recent
-from src.interfaces.bot.dialogs.handlers.stats_handlers import on_stats
+from src.interfaces.bot.dialogs.handlers.analyze import on_analyze
+from src.interfaces.bot.dialogs.handlers.recent_errors import on_recent
+from src.interfaces.bot.dialogs.handlers.stats import on_stats
 from src.interfaces.bot.entities import MainSG
 from src.interfaces.bot.messages import choose_an_action_msg
 
