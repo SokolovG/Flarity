@@ -38,3 +38,31 @@ class BotStates(StatesGroup):
     waiting_for_question = State()
     start = State()
     reporting_bug = State()
+
+
+class MainSG(StatesGroup):
+    menu = State()
+
+
+class AnalyzeSG(StatesGroup):
+    period_selection = State()
+    viewing_data = State()
+    asking_questions = State()
+
+
+class RecentSG(StatesGroup):
+    period_selection = State()
+    viewing_data = State()
+
+
+class StatsSG(StatesGroup):
+    period_selection = State()
+    viewing_data = State()
+
+
+class SettingsSG(StatesGroup):
+    viewing_data = State()
+
+
+class BugSG(StatesGroup):
+    reporting = State()

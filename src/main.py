@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from aiogram_dialog import setup_dialogs
 from dishka import make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
@@ -24,6 +25,7 @@ async def main() -> None:
         dp = await container.get(Dispatcher)
 
         setup_dishka(container, dp)
+        setup_dialogs(dp)
 
         await setup_bot(bot, dp)
 

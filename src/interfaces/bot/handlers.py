@@ -50,13 +50,13 @@ from src.interfaces.bot.router import bot_router
 logger = getLogger(__name__)
 
 
-@bot_router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext) -> None:
-    await state.set_state(BotStates.start)
-    await message.answer(
-        text=greetings_msg(),
-        reply_markup=get_main_menu(),
-    )
+# @bot_router.message(CommandStart())
+# async def cmd_start(message: Message, state: FSMContext) -> None:
+#     await state.set_state(BotStates.start)
+#     await message.answer(
+#         text=greetings_msg(),
+#         reply_markup=get_main_menu(),
+#     )
 
 
 @bot_router.message(Command(BotAction.ANALYZE.value))
