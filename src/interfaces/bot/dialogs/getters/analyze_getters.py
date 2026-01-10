@@ -18,3 +18,14 @@ async def analyze_report_getter(
     return {
         "report_html": html,
     }
+
+
+@inject
+async def ask_llm_report_getter(
+    dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
+) -> dict[str, str]:
+    report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
+    html = formatter.to_html(report, ReportType.ANSWER)
+    return {
+        "answer_html": html,
+    }

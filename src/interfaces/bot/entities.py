@@ -67,3 +67,7 @@ class SettingsSG(StatesGroup):
 
 class BugSG(StatesGroup):
     reporting = State()
+
+
+class HelpSG(StatesGroup):
+    viewing_data = State()

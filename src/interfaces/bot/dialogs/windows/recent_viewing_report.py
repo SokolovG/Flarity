@@ -1,5 +1,5 @@
 from aiogram_dialog import Window
-from aiogram_dialog.widgets.kbd import Back, Button
+from aiogram_dialog.widgets.kbd import Back, Button, Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.interfaces.bot.dialogs.getters.recent_getters import recent_report_getter
@@ -17,6 +17,7 @@ def recent_viewing_report_window() -> Window:
             when="has_more_errors",
         ),
         Back(Const("⬅️ Back")),
+        Cancel(Const("⬅️ To main menu")),
         state=RecentSG.viewing_data,
         getter=recent_report_getter,
     )

@@ -29,8 +29,7 @@ async def recent_report_getter(
     report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
 
     total = len(report.logs) if report.logs else 0
-    # has_more = total > MAX_ERRORS_IN_ONE_REPORT
-    has_more = total > 0
+    has_more = total > MAX_ERRORS_IN_ONE_REPORT
 
     html = formatter.to_html(report, ReportType.RECENT, show_all_errors=False)
     return {

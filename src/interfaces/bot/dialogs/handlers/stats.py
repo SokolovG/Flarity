@@ -7,6 +7,7 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.entities import StatsSG
+from src.interfaces.bot.messages import no_errors_msg
 
 
 async def on_stats(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:
@@ -21,8 +22,12 @@ async def on_stats_period_click(
     use_case: FromDishka[StatisticsLogsUseCase],
 ) -> None:
     period = int(widget.widget_id.split("_")[1])  # type: ignore
+    time_range = TimeRange(period)
 
-    report = await use_case.execute(TimeRange(period))
+    report = await use_case.execute(time_range)
+    if not report.has_errors:
+        await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+        return
 
     manager.dialog_data.update({"report": report})
     await manager.switch_to(StatsSG.viewing_data)

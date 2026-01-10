@@ -5,6 +5,7 @@ from src.interfaces.bot import callbacks, handlers  # noqa: F401
 from src.interfaces.bot.dialogs.dialogs import (
     analyze_dialog,
     bug_dialog,
+    help_dialog,
     main_menu_dialog,
     recent_dialog,
     settings_dialog,
@@ -22,6 +23,7 @@ async def setup_bot(bot: Bot, dp: Dispatcher) -> None:
     dp.include_router(recent_dialog)
     dp.include_router(settings_dialog)
     dp.include_router(bug_dialog)
+    dp.include_router(help_dialog)
     dp.message.middleware(SessionCleanupMiddleware())
     commands = [
         BotCommand(command="start", description="Get started"),
