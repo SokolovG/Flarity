@@ -3,7 +3,7 @@ from aiogram_dialog.widgets.kbd import Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.interfaces.bot.dialogs.getters.settings_getter import settings_getter
-from src.interfaces.bot.entities import SettingsSG
+from src.interfaces.bot.states import SettingsSG
 
 
 def settings_window() -> Window:

@@ -13,7 +13,7 @@ from src.interfaces.bot.dialogs.windows.recent_viewing_all import recent_viewing
 from src.interfaces.bot.dialogs.windows.recent_viewing_report import recent_viewing_report_window
 from src.interfaces.bot.dialogs.windows.settings import settings_window
 from src.interfaces.bot.dialogs.windows.stats_viewing_report import stats_viewing_report_window
-from src.interfaces.bot.entities import AnalyzeSG, RecentSG, StatsSG
+from src.interfaces.bot.states import AnalyzeSG, RecentSG, StatsSG
 
 main_menu_dialog = Dialog(menu_window())
 analyze_dialog = Dialog(

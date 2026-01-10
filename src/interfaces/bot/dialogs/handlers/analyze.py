@@ -6,8 +6,8 @@ from dishka.integrations.aiogram_dialog import inject
 
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.entities import AnalyzeSG, MainSG
-from src.interfaces.bot.messages import no_errors_msg
+from src.interfaces.bot.states import AnalyzeSG, MainSG
+from src.interfaces.bot.utils.messages import no_errors_msg
 
 
 async def on_analyze(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:

@@ -13,8 +13,7 @@ from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
 from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.notification_settings import NotificationSettings
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.keyboards import get_main_menu
-from src.interfaces.bot.messages import choose_an_action_msg
+from src.interfaces.bot.utils.messages import choose_an_action_msg
 
 logger = getLogger(__name__)
 
@@ -41,7 +40,8 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
         if report.has_errors:
             html = formatter.to_html(report, report_type=ReportType.ANALYZE)
             await notifier.send(html)
-            await notifier.send(choose_an_action_msg(), reply_markup=get_main_menu())
+            # TODO
+            # await notifier.send(choose_an_action_msg(), reply_markup=get_main_menu())
             logger.info(f"Scheduled report sent: {report.time_range.hour_and_unit}")
         else:
             logger.info(f"✅ No errors found, skipping notification")

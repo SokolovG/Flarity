@@ -3,7 +3,7 @@ from aiogram_dialog.widgets.kbd import Back, Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.interfaces.bot.dialogs.getters.stats_getters import stats_report_getter
-from src.interfaces.bot.entities import StatsSG
+from src.interfaces.bot.states import StatsSG
 
 
 def stats_viewing_report_window() -> Window:

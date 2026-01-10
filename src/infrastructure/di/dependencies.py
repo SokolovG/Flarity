@@ -30,7 +30,7 @@ from src.infrastructure.settings.storage_settings import RedisConfig, StorageSet
 from src.infrastructure.storage.in_memory_storage import InMemoryStorage
 from src.infrastructure.storage.redis_storage import RedisStorage
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.helpers import TelegramBotHelper
+from src.interfaces.bot.utils.helpers import TelegramBotHelper
 
 
 class MyProvider(Provider):

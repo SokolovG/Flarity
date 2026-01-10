@@ -6,8 +6,8 @@ from dishka.integrations.aiogram_dialog import inject
 
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.entities import StatsSG
-from src.interfaces.bot.messages import no_errors_msg
+from src.interfaces.bot.states import StatsSG
+from src.interfaces.bot.utils.messages import no_errors_msg
 
 
 async def on_stats(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:

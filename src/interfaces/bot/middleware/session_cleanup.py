@@ -9,7 +9,6 @@ from dishka import FromDishka
 from src.application import ConversationManager
 from src.infrastructure.di.middleware_utils import aiogram_middleware_inject
 from src.infrastructure.exceptions.telegram_exceptions import TelegramBadRequestError
-from src.interfaces.bot.entities import BotStates
 
 logger = getLogger(__name__)
 
@@ -28,7 +27,7 @@ class SessionCleanupMiddleware(BaseMiddleware):
         result = await handler(event, data)
         new_state = await state.get_state()
 
-        if old_state == BotStates.waiting_for_question and new_state != old_state:
+        if old_state == "" and new_state != old_state:
             if event.message:
                 user_id = str(event.message.from_user.id)  # type: ignore[union-attr]
                 chat_id = event.message.chat.id

@@ -6,8 +6,8 @@ from src.interfaces.bot.dialogs.handlers.analyze import on_analyze
 from src.interfaces.bot.dialogs.handlers.recent_errors import on_recent
 from src.interfaces.bot.dialogs.handlers.settings import on_settings
 from src.interfaces.bot.dialogs.handlers.stats import on_stats
-from src.interfaces.bot.entities import MainSG
-from src.interfaces.bot.messages import choose_an_action_msg
+from src.interfaces.bot.states import MainSG
+from src.interfaces.bot.utils.messages import choose_an_action_msg
 
 
 def menu_window() -> Window:

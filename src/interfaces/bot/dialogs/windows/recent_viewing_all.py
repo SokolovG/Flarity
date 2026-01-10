@@ -3,7 +3,7 @@ from aiogram_dialog.widgets.kbd import Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.interfaces.bot.dialogs.getters.recent_getters import recent_all_getter
-from src.interfaces.bot.entities import RecentSG
+from src.interfaces.bot.states import RecentSG
 
 
 def recent_viewing_all_window() -> Window:

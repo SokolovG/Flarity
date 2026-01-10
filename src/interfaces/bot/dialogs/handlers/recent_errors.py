@@ -8,9 +8,9 @@ from src.application.dto.analysis_report import AnalysisReport
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.entities import RecentSG
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.messages import no_errors_msg
+from src.interfaces.bot.states import RecentSG
+from src.interfaces.bot.utils.messages import no_errors_msg
 
 
 async def on_recent(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:

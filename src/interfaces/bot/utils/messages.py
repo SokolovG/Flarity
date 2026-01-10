@@ -1,6 +1,5 @@
 from src.domain import TimeRange
 from src.infrastructure import MAX_HOURS_IN_WEEK
-from src.interfaces.bot.entities import BotAction
 
 
 def loading_msg(time_range: TimeRange) -> str:
@@ -20,11 +19,6 @@ def choose_an_action_msg() -> str:
 
 def llm_limit_msg(limit: int) -> str:
     msg = f"Maximum {limit} questions reached. Returning to menu."
-    return msg
-
-
-def failed_msg(error: BaseException, action: BotAction) -> str:
-    msg = f"❌ {action.value.capitalize()} failed: {error}"
     return msg
 
 

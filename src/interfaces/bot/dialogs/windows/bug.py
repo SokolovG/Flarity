@@ -1,6 +1,6 @@
 from aiogram_dialog import Window
 
-from src.interfaces.bot.entities import BugSG
+from src.interfaces.bot.states import BugSG
 
 
 def bug_window() -> Window:

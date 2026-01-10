@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 
-from src.interfaces.bot import callbacks, handlers  # noqa: F401
+from src.interfaces.bot import handlers  # noqa: F401
 from src.interfaces.bot.dialogs.dialogs import (
     analyze_dialog,
     bug_dialog,

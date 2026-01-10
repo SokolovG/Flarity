@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.interfaces.bot.dialogs.getters.analyze_getters import analyze_report_getter
 from src.interfaces.bot.dialogs.handlers.llm_question import on_llm_question
-from src.interfaces.bot.entities import AnalyzeSG
+from src.interfaces.bot.states import AnalyzeSG
 
 
 def analyze_viewing_report_window() -> Window:
