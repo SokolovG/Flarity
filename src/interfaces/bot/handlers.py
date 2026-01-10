@@ -26,7 +26,16 @@ from src.interfaces.bot.constants import (
     EASTER_EGGS_WORT_LIST,
     MAX_LLM_MESSAGES_IN_ONE_CHAT,
 )
-from src.interfaces.bot.entities import BotAction, BotStates, MainSG
+from src.interfaces.bot.entities import (
+    AnalyzeSG,
+    BotAction,
+    BotStates,
+    BugSG,
+    MainSG,
+    RecentSG,
+    SettingsSG,
+    StatsSG,
+)
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
 from src.interfaces.bot.keyboards import (
@@ -55,124 +64,149 @@ async def cmd_start(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(MainSG.menu)
 
 
-@bot_router.message(Command(BotAction.ANALYZE.value))
-@inject
-async def cmd_analyze(
-    message: Message,
-    use_case: FromDishka[AnalyzeLogsUseCase],
-    helper: FromDishka[TelegramBotHelper],
-    conv_manager: FromDishka[ConversationManager],
-    state: FSMContext,
-) -> None:
-    chat_id = str(message.chat.id)
-    user_id = str(message.from_user.id)
-
-    time_range = await helper.get_time_range_from_msg(message, BotAction.ANALYZE, state)
-    if not time_range:
-        return
-    load_msg = await message.answer(loading_msg(time_range))
-
-    try:
-        report = await use_case.execute(time_range, user_id)
-        if not report.has_errors:
-            await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
-            return
-
-        session = LLMSession()
-        if report.messages:
-            session.add_bulk_messages(report.messages)
-            await conv_manager.save_session(chat_id, session)
-
-        await load_msg.delete()
-        await helper.send_report(
-            report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
-        )
-        await state.set_state(BotStates.waiting_for_question)
-
-    except Exception as e:
-        if not isinstance(e, InfrastructureException):
-            logger.exception(e)
-        else:
-            logger.error(e)
-        await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
+@bot_router.message(Command("analyze"))
+async def cmd_analyze(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(AnalyzeSG.period_selection)
 
 
-@bot_router.message(Command(BotAction.STATS.value))
-@inject
-async def cmd_stats(
-    message: Message,
-    use_case: FromDishka[StatisticsLogsUseCase],
-    helper: FromDishka[TelegramBotHelper],
-    state: FSMContext,
-) -> None:
-    chat_id = str(message.chat.id)
-    time_range = await helper.get_time_range_from_msg(message, BotAction.STATS, state)
-    if not time_range:
-        return
-
-    try:
-        report = await use_case.execute(time_range=time_range)
-        if not report.has_errors:
-            await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
-            return
-
-        await helper.send_report(report, ReportType.STATS, chat_id, reply_markup=get_main_menu())
-        await state.set_state(BotStates.viewing_data)
-
-    except Exception as e:
-        if not isinstance(e, InfrastructureException):
-            logger.exception(e)
-        else:
-            logger.error(e)
-        await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
+@bot_router.message(Command("stats"))
+async def cmd_stats(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(StatsSG.period_selection)
 
 
-@bot_router.message(Command(BotAction.RECENT.value))
-@inject
-async def cmd_recent(
-    message: Message,
-    use_case: FromDishka[RecentErrorsUseCase],
-    helper: FromDishka[TelegramBotHelper],
-    state: FSMContext,
-) -> None:
-    chat_id = str(message.chat.id)
-    time_range = await helper.get_time_range_from_msg(message, BotAction.RECENT, state)
-    if not time_range:
-        return
-
-    try:
-        report = await use_case.execute(time_range=time_range)
-
-        if not report.has_errors:
-            await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
-            return
-
-        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type:ignore[arg-type]
-            keyboard = get_more_errors_menu(len(report.logs))  # type:ignore[arg-type]
-        else:
-            keyboard = get_main_menu()
-
-        await helper.send_report(report, ReportType.RECENT, chat_id, reply_markup=keyboard)
-        if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type:ignore[arg-type]
-            await state.update_data(hours=time_range.hours)
-        await state.set_state(BotStates.waiting_for_question)
-
-    except Exception as e:
-        if not isinstance(e, InfrastructureException):
-            logger.exception(e)
-        else:
-            logger.error(e)
-        await message.edit_text(failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu())
+@bot_router.message(Command("recent"))
+async def cmd_stats(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(RecentSG.period_selection)
 
 
-@bot_router.message(Command(BotAction.SETTINGS.value))
-@inject
-async def cmd_settings(
-    message: Message, app_settings: FromDishka[AppSettings], state: FSMContext
-) -> None:
-    info = BotTextFormatter.format_settings(app_settings)
-    await state.set_state(BotStates.viewing_data)
-    await message.answer(info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value)
+@bot_router.message(Command("settings"))
+async def cmd_stats(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(SettingsSG.viewing_data)
+
+
+@bot_router.message(Command("bug"))
+async def cmd_bug(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(BugSG.reporting)
+
+
+# @bot_router.message(Command(BotAction.ANALYZE.value))
+# @inject
+# async def cmd_analyze(
+#     message: Message,
+#     use_case: FromDishka[AnalyzeLogsUseCase],
+#     helper: FromDishka[TelegramBotHelper],
+#     conv_manager: FromDishka[ConversationManager],
+#     state: FSMContext,
+# ) -> None:
+#     chat_id = str(message.chat.id)
+#     user_id = str(message.from_user.id)
+
+#     time_range = await helper.get_time_range_from_msg(message, BotAction.ANALYZE, state)
+#     if not time_range:
+#         return
+#     load_msg = await message.answer(loading_msg(time_range))
+
+#     try:
+#         report = await use_case.execute(time_range, user_id)
+#         if not report.has_errors:
+#             await load_msg.edit_text(no_errors_msg(time_range), reply_markup=get_main_menu())
+#             return
+
+#         session = LLMSession()
+#         if report.messages:
+#             session.add_bulk_messages(report.messages)
+#             await conv_manager.save_session(chat_id, session)
+
+#         await load_msg.delete()
+#         await helper.send_report(
+#             report, ReportType.ANALYZE, chat_id, reply_markup=get_back_to_menu_button()
+#         )
+#         await state.set_state(BotStates.waiting_for_question)
+
+#     except Exception as e:
+#         if not isinstance(e, InfrastructureException):
+#             logger.exception(e)
+#         else:
+#             logger.error(e)
+#         await load_msg.edit_text(failed_msg(e, BotAction.ANALYZE), reply_markup=get_main_menu())
+
+
+# @bot_router.message(Command(BotAction.STATS.value))
+# @inject
+# async def cmd_stats(
+#     message: Message,
+#     use_case: FromDishka[StatisticsLogsUseCase],
+#     helper: FromDishka[TelegramBotHelper],
+#     state: FSMContext,
+# ) -> None:
+#     chat_id = str(message.chat.id)
+#     time_range = await helper.get_time_range_from_msg(message, BotAction.STATS, state)
+#     if not time_range:
+#         return
+
+#     try:
+#         report = await use_case.execute(time_range=time_range)
+#         if not report.has_errors:
+#             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
+#             return
+
+#         await helper.send_report(report, ReportType.STATS, chat_id, reply_markup=get_main_menu())
+#         await state.set_state(BotStates.viewing_data)
+
+#     except Exception as e:
+#         if not isinstance(e, InfrastructureException):
+#             logger.exception(e)
+#         else:
+#             logger.error(e)
+#         await message.edit_text(failed_msg(e, BotAction.STATS), reply_markup=get_main_menu())
+
+
+# @bot_router.message(Command(BotAction.RECENT.value))
+# @inject
+# async def cmd_recent(
+#     message: Message,
+#     use_case: FromDishka[RecentErrorsUseCase],
+#     helper: FromDishka[TelegramBotHelper],
+#     state: FSMContext,
+# ) -> None:
+#     chat_id = str(message.chat.id)
+#     time_range = await helper.get_time_range_from_msg(message, BotAction.RECENT, state)
+#     if not time_range:
+#         return
+
+#     try:
+#         report = await use_case.execute(time_range=time_range)
+
+#         if not report.has_errors:
+#             await message.answer(no_errors_msg(time_range), reply_markup=get_main_menu())
+#             return
+
+#         if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type:ignore[arg-type]
+#             keyboard = get_more_errors_menu(len(report.logs))  # type:ignore[arg-type]
+#         else:
+#             keyboard = get_main_menu()
+
+#         await helper.send_report(report, ReportType.RECENT, chat_id, reply_markup=keyboard)
+#         if len(report.logs) > MAX_ERRORS_IN_ONE_REPORT:  # type:ignore[arg-type]
+#             await state.update_data(hours=time_range.hours)
+#         await state.set_state(BotStates.waiting_for_question)
+
+#     except Exception as e:
+#         if not isinstance(e, InfrastructureException):
+#             logger.exception(e)
+#         else:
+#             logger.error(e)
+#         await message.edit_text(failed_msg(e, BotAction.RECENT), reply_markup=get_main_menu())
+
+
+# @bot_router.message(Command(BotAction.SETTINGS.value))
+# @inject
+# async def cmd_settings(
+#     message: Message, app_settings: FromDishka[AppSettings], state: FSMContext
+# ) -> None:
+#     info = BotTextFormatter.format_settings(app_settings)
+#     await state.set_state(BotStates.viewing_data)
+#     await message.answer(info, reply_markup=get_main_menu(), parse_mode=TextType.HTML.value)
 
 
 @bot_router.message(Command(BotAction.HELP.value))
@@ -259,27 +293,27 @@ async def cmd_bug(message: Message, state: FSMContext) -> None:
     await message.answer("Describe the problem in one message. Or send /cancel to cancel.")
 
 
-@bot_router.message(BotStates.reporting_bug)
-async def handle_bug_report(message: Message, state: FSMContext) -> None:
-    if message.text == "/cancel":
-        await state.set_state(BotStates.main_menu)
-        await message.answer("Cancelled", reply_markup=get_main_menu())
-        return
+# @bot_router.message(BotStates.reporting_bug)
+# async def handle_bug_report(message: Message, state: FSMContext) -> None:
+#     if message.text == "/cancel":
+#         await state.set_state(BotStates.main_menu)
+#         await message.answer("Cancelled", reply_markup=get_main_menu())
+#         return
 
-    try:
-        await message.bot.send_message(
-            CHAT_ID_FOR_BUG_REPORT,
-            f"Bug Report\n"
-            f"From: {message.from_user.id} (@{message.from_user.username})\n"
-            f"Text: {message.text}",
-        )
+#     try:
+#         await message.bot.send_message(
+#             CHAT_ID_FOR_BUG_REPORT,
+#             f"Bug Report\n"
+#             f"From: {message.from_user.id} (@{message.from_user.username})\n"
+#             f"Text: {message.text}",
+#         )
 
-        await message.answer(report_been_sent(), reply_markup=get_main_menu())
-    except Exception as e:
-        logger.error(f"Failed to send bug report: {e}")
-        await message.answer(error_sending_bug_report())
+#         await message.answer(report_been_sent(), reply_markup=get_main_menu())
+#     except Exception as e:
+#         logger.error(f"Failed to send bug report: {e}")
+#         await message.answer(error_sending_bug_report())
 
-    await state.set_state(BotStates.main_menu)
+#     await state.set_state(BotStates.main_menu)
 
 
 @bot_router.message()

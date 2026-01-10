@@ -2,7 +2,14 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 
 from src.interfaces.bot import callbacks, handlers  # noqa: F401
-from src.interfaces.bot.dialogs.dialogs import main_menu_dialog
+from src.interfaces.bot.dialogs.dialogs import (
+    analyze_dialog,
+    bug_dialog,
+    main_menu_dialog,
+    recent_dialog,
+    settings_dialog,
+    stats_dialog,
+)
 from src.interfaces.bot.middleware.session_cleanup import SessionCleanupMiddleware
 from src.interfaces.bot.router import bot_router
 
@@ -10,6 +17,11 @@ from src.interfaces.bot.router import bot_router
 async def setup_bot(bot: Bot, dp: Dispatcher) -> None:
     dp.include_router(bot_router)
     dp.include_router(main_menu_dialog)
+    dp.include_router(analyze_dialog)
+    dp.include_router(stats_dialog)
+    dp.include_router(recent_dialog)
+    dp.include_router(settings_dialog)
+    dp.include_router(bug_dialog)
     dp.message.middleware(SessionCleanupMiddleware())
     commands = [
         BotCommand(command="start", description="Get started"),
