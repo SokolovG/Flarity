@@ -3,6 +3,7 @@ from logging import getLogger
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+from aiogram_dialog import DialogManager
 from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.dto.analysis_result import LLMAnalysisResult
@@ -25,7 +26,7 @@ from src.interfaces.bot.constants import (
     EASTER_EGGS_WORT_LIST,
     MAX_LLM_MESSAGES_IN_ONE_CHAT,
 )
-from src.interfaces.bot.entities import BotAction, BotStates
+from src.interfaces.bot.entities import BotAction, BotStates, MainSG
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
 from src.interfaces.bot.helpers import TelegramBotHelper
 from src.interfaces.bot.keyboards import (
@@ -39,7 +40,6 @@ from src.interfaces.bot.messages import (
     choose_an_action_msg,
     error_sending_bug_report,
     failed_msg,
-    greetings_msg,
     llm_limit_msg,
     loading_msg,
     no_errors_msg,
@@ -50,13 +50,9 @@ from src.interfaces.bot.router import bot_router
 logger = getLogger(__name__)
 
 
-# @bot_router.message(CommandStart())
-# async def cmd_start(message: Message, state: FSMContext) -> None:
-#     await state.set_state(BotStates.start)
-#     await message.answer(
-#         text=greetings_msg(),
-#         reply_markup=get_main_menu(),
-#     )
+@bot_router.message(CommandStart())
+async def cmd_start(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(MainSG.menu)
 
 
 @bot_router.message(Command(BotAction.ANALYZE.value))
