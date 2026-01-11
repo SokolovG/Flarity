@@ -1,14 +1,17 @@
 from logging import getLogger
 
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
+from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.states import AnalyzeSG, MainSG
+from src.interfaces.bot.core.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
+from src.interfaces.bot.core.states import AnalyzeSG, MainSG
 from src.interfaces.bot.utils.messages import loading_msg, no_errors_msg
 
 logger = getLogger(__name__)
@@ -46,5 +49,36 @@ async def on_analyze_period_click(
     except Exception as e:
         logger.exception(f"Operation failed: {e}")
         await callback.message.answer("❌ Something went wrong. Try again.")  # type: ignore[union-attr]
+        await manager.done()
+        await manager.start(MainSG.menu)
+
+
+@inject
+async def on_llm_question(
+    message: Message,
+    widget: MessageInput,
+    manager: DialogManager,
+    ask_use_case: FromDishka[AskLLMUseCase],
+) -> None:
+    try:
+        question_count = manager.dialog_data.get("question_count", 0)
+        if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
+            await message.answer(
+                f"⚠️ You've reached the limit of {MAX_LLM_MESSAGES_IN_ONE_CHAT} questions per analysis.\n"
+                "Start a new analysis to ask more questions."
+            )
+            await manager.done()
+            await manager.start(MainSG.menu)
+
+        question: str = message.text  # type: ignore
+        user_id = str(message.from_user.id)  # type: ignore
+
+        answer = await ask_use_case.execute(question, user_id)
+        manager.dialog_data.update({"report": answer, "question_count": question_count + 1})
+        await manager.switch_to(AnalyzeSG.asking_questions)
+
+    except Exception as e:
+        logger.exception(f"Operation failed: {e}")
+        await message.answer("❌ Something went wrong. Try again.")
         await manager.done()
         await manager.start(MainSG.menu)

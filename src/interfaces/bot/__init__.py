@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 
 from src.interfaces.bot import handlers  # noqa: F401
+from src.interfaces.bot.core.router import bot_router
 from src.interfaces.bot.dialogs.dialogs import (
     analyze_dialog,
     bug_dialog,
@@ -11,7 +12,6 @@ from src.interfaces.bot.dialogs.dialogs import (
     settings_dialog,
     stats_dialog,
 )
-from src.interfaces.bot.router import bot_router
 
 
 async def setup_bot(bot: Bot, dp: Dispatcher) -> None:

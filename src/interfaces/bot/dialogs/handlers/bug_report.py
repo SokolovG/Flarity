@@ -5,8 +5,8 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.input import MessageInput
 from dishka.integrations.aiogram_dialog import inject
 
-from src.interfaces.bot.constants import CHAT_ID_FOR_BUG_REPORT
-from src.interfaces.bot.states import MainSG
+from src.interfaces.bot.core.constants import CHAT_ID_FOR_BUG_REPORT
+from src.interfaces.bot.core.states import MainSG
 
 
 async def on_bug_report(

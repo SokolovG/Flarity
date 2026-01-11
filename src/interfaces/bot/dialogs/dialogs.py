@@ -1,19 +1,25 @@
 from aiogram_dialog import Dialog
 
-from src.interfaces.bot.dialogs.handlers.analyze import on_analyze_period_click
+from src.interfaces.bot.core.states import AnalyzeSG, RecentSG, StatsSG
+from src.interfaces.bot.dialogs.handlers.llm_analyze import on_analyze_period_click
 from src.interfaces.bot.dialogs.handlers.recent_errors import on_recent_period_click
 from src.interfaces.bot.dialogs.handlers.stats import on_stats_period_click
-from src.interfaces.bot.dialogs.windows.analyze_viewing_report import analyze_viewing_report_window
-from src.interfaces.bot.dialogs.windows.asking_llm import asking_llm_window
 from src.interfaces.bot.dialogs.windows.bug import bug_window
-from src.interfaces.bot.dialogs.windows.help import help_window
-from src.interfaces.bot.dialogs.windows.menu import menu_window
+from src.interfaces.bot.dialogs.windows.llm_analyze import (
+    analyze_viewing_report_window,
+    asking_llm_window,
+)
 from src.interfaces.bot.dialogs.windows.period_selection import period_selection_window
-from src.interfaces.bot.dialogs.windows.recent_viewing_all import recent_viewing_all_window
-from src.interfaces.bot.dialogs.windows.recent_viewing_report import recent_viewing_report_window
-from src.interfaces.bot.dialogs.windows.settings import settings_window
-from src.interfaces.bot.dialogs.windows.stats_viewing_report import stats_viewing_report_window
-from src.interfaces.bot.states import AnalyzeSG, RecentSG, StatsSG
+from src.interfaces.bot.dialogs.windows.recent_errors import (
+    recent_viewing_all_window,
+    recent_viewing_report_window,
+)
+from src.interfaces.bot.dialogs.windows.static_windows import (
+    help_window,
+    menu_window,
+    settings_window,
+)
+from src.interfaces.bot.dialogs.windows.stats import stats_viewing_report_window
 
 main_menu_dialog = Dialog(menu_window())
 analyze_dialog = Dialog(
