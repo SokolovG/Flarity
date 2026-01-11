@@ -9,7 +9,7 @@ from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUse
 from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.states import RecentSG
+from src.interfaces.bot.states import MainSG, RecentSG
 from src.interfaces.bot.utils.messages import no_errors_msg
 
 
@@ -38,6 +38,8 @@ async def on_recent_period_click(
     report = await use_case.execute(time_range)
     if not report.has_errors:
         await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+        await manager.done()
+        await manager.start(MainSG.menu)
         return
 
     manager.dialog_data.update({"report": report})

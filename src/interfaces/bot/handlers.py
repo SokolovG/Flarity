@@ -45,7 +45,7 @@ async def cmd_stats(message: Message, dialog_manager: DialogManager) -> None:
 
 @bot_router.message(Command("bug"))
 async def cmd_bug(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(BugSG.reporting)
+    await dialog_manager.start(BugSG.viewing_instructions)
 
 
 @bot_router.message(Command("help"))
@@ -53,9 +53,9 @@ async def cmd_help(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(HelpSG.viewing_data)
 
 
-# @bot_router.message(Command("menu"))
-# async def cmd_menu(message: Message, state: FSMContext) -> None:
-#     await dialog_manager.start(HelpSG.viewing_data)
+@bot_router.message(Command("menu"))
+async def cmd_menu(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(MainSG.menu)
 
 
 # TODO: единый формат логирования и ошибок в тг

@@ -62,6 +62,11 @@ def report_been_sent() -> str:
     return msg
 
 
+def report_bug_msg() -> str:
+    msg = "Describe the problem in one message.\nYou can also add photo of bug."
+    return msg
+
+
 def error_sending_bug_report() -> str:
     msg = "❌ Failed to send bug report."
     return msg

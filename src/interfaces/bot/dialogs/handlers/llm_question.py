@@ -5,6 +5,7 @@ from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
+from src.interfaces.bot.states import AnalyzeSG
 
 
 @inject
@@ -21,4 +22,5 @@ async def on_llm_question(
     user_id = str(message.from_user.id)  # type: ignore
 
     answer = await ask_use_case.execute(question, user_id)
-    await message.answer(answer.analysis_text)
+    manager.dialog_data.update({"report": answer})
+    await manager.switch_to(AnalyzeSG.asking_questions)

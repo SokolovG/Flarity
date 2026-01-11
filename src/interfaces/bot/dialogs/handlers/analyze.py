@@ -30,6 +30,8 @@ async def on_analyze_period_click(
         # TODO: сделать свич на клаву менюшки
         # await manager.switch_to(MainSG.menu)
         await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+        await manager.done()
+        await manager.start(MainSG.menu)
         return
 
     manager.dialog_data.update({"report": report})
