@@ -9,23 +9,28 @@ from src.interfaces.bot.constants import CHAT_ID_FOR_BUG_REPORT
 from src.interfaces.bot.states import MainSG
 
 
-@inject
 async def on_bug_report(
     message: Message,
     widget: MessageInput,
     manager: DialogManager,
 ) -> None:
-    bug_msg: str = message.text  # type: ignore
-    # if message.content_type == "photo":
-    # file_in_io = io.BytesIO()
-    # TODO
-    # file = await message.photo[-1].download(destination_file=file_in_io)
+    bug_text = message.text or message.caption or "No description"
+    user_id = message.from_user.id  # type: ignore[union-attr]
+    username = message.from_user.username or "Unknown"  # type: ignore[union-attr]
 
-    await message.bot.send_message(
-        CHAT_ID_FOR_BUG_REPORT,
-        f"Bug Report\n"
-        f"From: {message.from_user.id} (@{message.from_user.username})\n"
-        f"Text: {message.text}",
-    )
+    bug_report_msg = f"Bug Report\nFrom: {user_id} (@{username})\nText: {bug_text}"
+    if message.photo:
+        photo = message.photo[-1]
+        await message.bot.send_photo(  # type: ignore[union-attr]
+            chat_id=CHAT_ID_FOR_BUG_REPORT,
+            photo=photo.file_id,
+            caption=bug_report_msg,
+        )
+
+    else:
+        await message.bot.send_message(  # type: ignore[union-attr]
+            CHAT_ID_FOR_BUG_REPORT,
+            bug_report_msg,
+        )
     await manager.done()
     await manager.start(MainSG.menu)

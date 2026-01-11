@@ -12,12 +12,3 @@ async def bug_getter(
     return {
         "report_bug": report_bug_msg(),
     }
-
-
-async def bug_been_sent_getter(
-    dialog_manager: DialogManager,
-    **kwargs: Any,
-) -> dict[str, str]:
-    return {
-        "msg_been_sent": report_been_sent(),
-    }

@@ -27,7 +27,6 @@ class SettingsSG(StatesGroup):
 
 
 class BugSG(StatesGroup):
-    viewing_instructions = State()
     reporting = State()
 
 

@@ -18,7 +18,7 @@ def choose_an_action_msg() -> str:
 
 
 def llm_limit_msg(limit: int) -> str:
-    msg = f"Maximum {limit} questions reached. Returning to menu."
+    msg = f"Maximum {limit} questions reached. Please wait."
     return msg
 
 

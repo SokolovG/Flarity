@@ -7,7 +7,7 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.states import AnalyzeSG, MainSG
-from src.interfaces.bot.utils.messages import no_errors_msg
+from src.interfaces.bot.utils.messages import loading_msg, no_errors_msg
 
 
 async def on_analyze(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:
@@ -21,18 +21,25 @@ async def on_analyze_period_click(
     manager: DialogManager,
     use_case: FromDishka[AnalyzeLogsUseCase],
 ) -> None:
-    period = int(widget.widget_id.split("_")[1])  # type: ignore
-    time_range = TimeRange(period)
-    user_id = str(callback.from_user.id)
+    try:
+        await callback.answer()
+        period = int(widget.widget_id.split("_")[1])  # type: ignore
+        time_range = TimeRange(period)
+        load_msg = await callback.message.answer(loading_msg(time_range))  # type: ignore[union-attr]
+        user_id = str(callback.from_user.id)
 
-    report = await use_case.execute(time_range, user_id)
-    if not report.has_errors:
-        # TODO: сделать свич на клаву менюшки
-        # await manager.switch_to(MainSG.menu)
-        await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+        report = await use_case.execute(time_range, user_id)
+        if not report.has_errors:
+            await load_msg.edit_text(no_errors_msg(time_range))
+            await manager.done()
+            await manager.start(MainSG.menu)
+            return
+
+        await load_msg.delete()
+        manager.dialog_data.update({"report": report})
+        await manager.switch_to(AnalyzeSG.viewing_data)
+
+    except Exception as e:
+        manager.dialog_data.update({"report": e})
         await manager.done()
-        await manager.start(MainSG.menu)
-        return
-
-    manager.dialog_data.update({"report": report})
-    await manager.switch_to(AnalyzeSG.viewing_data)
+        await manager.switch_to(MainSG.menu)

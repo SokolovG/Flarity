@@ -2,10 +2,11 @@ from typing import Any
 
 from aiogram.fsm.state import StatesGroup
 from aiogram_dialog import Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Column
+from aiogram_dialog.widgets.kbd import Button, Column
 from aiogram_dialog.widgets.text import Const
 
 from src.interfaces.bot.constants import PERIODS
+from src.interfaces.bot.dialogs.elements import on_cancel
 from src.interfaces.bot.utils.messages import choose_period_msg
 
 
@@ -17,7 +18,9 @@ def period_selection_window(state_group: type[StatesGroup], on_click_handler: An
             Button(Const(f"{period} {unit}"), id=f"period_{period}", on_click=on_click_handler)
         )
 
-    buttons.append(Cancel(Const("⬅️ Back")))
+    buttons.append(
+        Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
+    )
 
     return Window(
         Const(choose_period_msg()),

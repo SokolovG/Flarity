@@ -34,6 +34,15 @@ class RedisStorage(Storage):
             logger.error(f"Failed to get data for key {key}: {str(e)}")
             raise StorageError(f"Failed to get data: {str(e)}")
 
+    async def get_remaining_ttl(self, key: str) -> int | None:
+        try:
+            ttl: int | None = await self.client.get(key)
+            return ttl
+
+        except Exception as e:
+            logger.error(f"Failed to get ttl for key {key}: {str(e)}")
+            raise StorageError(f"Failed to get ttl: {str(e)}")
+
     async def set(self, key: str, value: dict[str, Any], ttl: int | None = None) -> None:
         try:
             serialized = self.encoder.encode(value)

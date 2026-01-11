@@ -68,3 +68,6 @@ class InMemoryStorage(Storage):
 
             await self.expire(key, ttl)
             return new_value
+
+    async def get_remaining_ttl(self, key: str) -> int | None:
+        return None  # TODO!

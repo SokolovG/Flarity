@@ -25,7 +25,16 @@ class RateLimiter:
         current = await self.storage.incr_with_expire(full_key, period)
 
         if current > calls:
-            raise RateLimitExceeded(f"Rate limit exceeded: {current}/{calls}")
+            ttl = self.get_remaining_ttl(full_key)
+            msg = f"Rate limit exceeded: {current}/{calls}.\n"
+            if ttl:
+                msg + f"Please wait more {ttl} seconds."
+
+            raise RateLimitExceeded(msg)
 
     async def reset(self, key: str, prefix: str) -> None:
         await self.storage.delete(f"{prefix}{key}")
+
+    async def get_remaining_ttl(self, key: str) -> int | None:
+        ttl: int | None = await self.storage.get_remaining_ttl(key)
+        return ttl

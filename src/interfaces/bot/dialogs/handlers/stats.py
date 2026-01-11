@@ -21,15 +21,21 @@ async def on_stats_period_click(
     manager: DialogManager,
     use_case: FromDishka[StatisticsLogsUseCase],
 ) -> None:
-    period = int(widget.widget_id.split("_")[1])  # type: ignore
-    time_range = TimeRange(period)
+    try:
+        period = int(widget.widget_id.split("_")[1])  # type: ignore
+        time_range = TimeRange(period)
 
-    report = await use_case.execute(time_range)
-    if not report.has_errors:
-        await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+        report = await use_case.execute(time_range)
+        if not report.has_errors:
+            await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+            await manager.done()
+            await manager.start(MainSG.menu)
+            return
+
+        manager.dialog_data.update({"report": report})
+        await manager.switch_to(StatsSG.viewing_data)
+
+    except Exception as e:
+        manager.dialog_data.update({"report": e})
         await manager.done()
-        await manager.start(MainSG.menu)
-        return
-
-    manager.dialog_data.update({"report": report})
-    await manager.switch_to(StatsSG.viewing_data)
+        await manager.switch_to(MainSG.menu)
