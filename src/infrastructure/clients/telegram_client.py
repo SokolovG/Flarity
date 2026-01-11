@@ -6,12 +6,12 @@ from httpx import Response
 
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.constants import TELEGRAM_MESSAGE_LIMIT, TextType
-from src.infrastructure.dto import TelegramMessage
 from src.infrastructure.exceptions import (
     TelegramBadRequestError,
     TelegramError,
     TelegramRateLimitError,
 )
+from src.infrastructure.notifiers.telegram.dto import TelegramMessage
 from src.infrastructure.settings.notification_settings import NotificationSettings, TelegramConfig
 
 

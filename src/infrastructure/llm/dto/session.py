@@ -1,20 +1,13 @@
 from datetime import datetime
 
-from msgspec import Struct, field
+from msgspec import field
 
-
-class BaseInfrastructureObject(Struct):
-    pass
+from src.infrastructure.base_dto import BaseInfrastructureObject
 
 
 class LLMMessage(BaseInfrastructureObject):
     role: str  # "user" | "assistant"
     text: str
-
-
-class TelegramMessage(BaseInfrastructureObject):
-    message_id: int
-    chat_id: int
 
 
 class LLMSession(BaseInfrastructureObject):

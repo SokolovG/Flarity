@@ -20,9 +20,9 @@ from src.infrastructure.clients.loki_client import LokiClient
 from src.infrastructure.clients.telegram_client import TelegramClient
 from src.infrastructure.llm.ollama.analyzer import OllamaAnalyzer
 from src.infrastructure.llm.yandex.analyzer import YandexAnalyzer
-from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
+from src.infrastructure.notifiers.telegram.telegram_notifier import TelegramNotifier
 from src.infrastructure.rate_limiter import RateLimiter
-from src.infrastructure.repositories.loki_repository import LokiLogRepository
+from src.infrastructure.repositories.loki.loki_repository import LokiLogRepository
 from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.notification_settings import TelegramConfig
 from src.infrastructure.settings.report_settings import ReportSettings

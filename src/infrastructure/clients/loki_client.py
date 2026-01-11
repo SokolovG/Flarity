@@ -8,7 +8,7 @@ import msgspec
 from src.domain.entities.enums import Directions
 from src.infrastructure.clients.http_client import HTTPClient
 from src.infrastructure.exceptions import LokiError, LokiUnavailableError
-from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
+from src.infrastructure.repositories.loki.responses import LokiQueryRangeResponse
 from src.infrastructure.settings.log_source_settings import LogsSourceSettings, LokiConfig
 
 logger = getLogger(__name__)

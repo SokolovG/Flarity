@@ -3,7 +3,7 @@ import msgspec
 from src.application.ports.storage import Storage
 from src.infrastructure.constants import LLM_SESSION_PREFIX, TTL_FOR_STORAGE
 from src.infrastructure.decorators import log_calls
-from src.infrastructure.dto import LLMSession
+from src.infrastructure.llm.dto.session import LLMSession
 
 
 class ConversationManager:

@@ -10,9 +10,9 @@ from httpx import Response
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.enums import LLMProvider
 from src.infrastructure.clients.http_client import HTTPClient
-from src.infrastructure.dto import LLMMessage
 from src.infrastructure.exceptions import LLMError
 from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
+from src.infrastructure.llm.dto.session import LLMMessage
 from src.infrastructure.llm.ollama.responses import OllamaErrorResponse, OllamaResponse
 from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.llm_provider_settings import OllamaConfig

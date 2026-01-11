@@ -8,7 +8,7 @@ from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.clients.loki_client import LokiClient
 from src.infrastructure.decorators import log_calls
-from src.infrastructure.responses.loki_responses import LokiQueryRangeResponse
+from src.infrastructure.repositories.loki.responses import LokiQueryRangeResponse
 
 logger = getLogger(__name__)
 

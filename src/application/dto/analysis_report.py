@@ -3,7 +3,7 @@ from msgspec import Struct
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.log_entry import LogEntry
 from src.domain.value_objects.time_range import TimeRange
-from src.infrastructure.dto import LLMMessage
+from src.infrastructure.llm.dto.session import LLMMessage
 
 
 class AnalysisReport(Struct):

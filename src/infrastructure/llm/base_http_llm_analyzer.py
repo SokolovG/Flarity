@@ -9,7 +9,7 @@ from src.application.ports.http_client_port import HttpPort
 from src.application.ports.llm_analyzer import LLMAnalyzer
 from src.domain.entities.log_entry import LogEntry
 from src.infrastructure.decorators import log_calls
-from src.infrastructure.dto import LLMMessage
+from src.infrastructure.llm.dto.session import LLMMessage
 from src.infrastructure.settings.app_settings import AppSettings
 
 

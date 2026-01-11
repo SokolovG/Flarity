@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain.entities.log_entry import LogEntry
-from src.infrastructure.dto import LLMMessage
+from src.infrastructure.llm.dto.session import LLMMessage
 
 
 class LLMAnalyzer(ABC):

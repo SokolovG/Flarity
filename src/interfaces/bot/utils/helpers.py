@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.domain import ReportType, TimeRange
-from src.infrastructure.dto import TelegramMessage
-from src.infrastructure.notifiers.telegram_notifier import TelegramNotifier
+from src.infrastructure.notifiers.telegram.dto import TelegramMessage
+from src.infrastructure.notifiers.telegram.telegram_notifier import TelegramNotifier
 from src.interfaces.bot.core.exceptions import BotParsingError
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
