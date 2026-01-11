@@ -10,6 +10,8 @@ from src.interfaces.bot.states import BugSG
 
 
 def bug_window() -> Window:
+    # TODO: сохранять ллм сессию. щас ошибка что ее не
+    # TODO: после 1 отправленного бага дальше при вызове команды баг вызывается главное менб
     return Window(
         Format("{report_bug}"),
         MessageInput(on_bug_report),

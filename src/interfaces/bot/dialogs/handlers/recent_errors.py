@@ -1,16 +1,17 @@
+from logging import getLogger
+
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from src.application.dto.analysis_report import AnalysisReport
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
-from src.domain.entities.enums import ReportType
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.states import MainSG, RecentSG
 from src.interfaces.bot.utils.messages import no_errors_msg
+
+logger = getLogger(__name__)
 
 
 async def on_recent(callback: CallbackQuery, widget: Button, manager: DialogManager) -> None:
@@ -47,6 +48,7 @@ async def on_recent_period_click(
         await manager.switch_to(RecentSG.viewing_data)
 
     except Exception as e:
-        manager.dialog_data.update({"report": e})
+        logger.exception(f"Operation failed: {e}")
+        await callback.message.answer("❌ Something went wrong. Try again.")  # type: ignore[union-attr]
         await manager.done()
-        await manager.switch_to(MainSG.menu)
+        await manager.start(MainSG.menu)
