@@ -4,7 +4,6 @@ from src.interfaces.bot.core.states import AnalyzeSG, RecentSG, StatsSG
 from src.interfaces.bot.dialogs.handlers.llm_analyze import on_analyze_period_click
 from src.interfaces.bot.dialogs.handlers.recent_errors import on_recent_period_click
 from src.interfaces.bot.dialogs.handlers.stats import on_stats_period_click
-from src.interfaces.bot.dialogs.windows.bug import bug_window
 from src.interfaces.bot.dialogs.windows.llm_analyze import (
     analyze_viewing_report_window,
     asking_llm_window,
@@ -15,6 +14,7 @@ from src.interfaces.bot.dialogs.windows.recent_errors import (
     recent_viewing_report_window,
 )
 from src.interfaces.bot.dialogs.windows.static_windows import (
+    bug_window,
     help_window,
     menu_window,
     settings_window,

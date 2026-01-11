@@ -9,6 +9,7 @@ from src.interfaces.bot.core.exceptions import BotParsingError
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 
+# TODO: delete>?
 class TelegramBotHelper:
     def __init__(self, formatter: ReportFormatter, notifier: TelegramNotifier):
         self.formatter = formatter

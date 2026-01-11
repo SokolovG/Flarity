@@ -1,9 +1,6 @@
-import io
-
 from aiogram.types import Message
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.input import MessageInput
-from dishka.integrations.aiogram_dialog import inject
 
 from src.interfaces.bot.core.constants import CHAT_ID_FOR_BUG_REPORT
 from src.interfaces.bot.core.states import MainSG

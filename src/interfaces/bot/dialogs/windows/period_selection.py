@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.kbd import Button, Column
 from aiogram_dialog.widgets.text import Const
 
 from src.interfaces.bot.core.constants import PERIODS
-from src.interfaces.bot.dialogs.elements import on_cancel
+from src.interfaces.bot.core.elements import on_cancel
 from src.interfaces.bot.utils.messages import choose_period_msg
 
 

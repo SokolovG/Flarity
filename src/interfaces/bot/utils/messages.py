@@ -7,6 +7,7 @@ def loading_msg(time_range: TimeRange) -> str:
     return msg
 
 
+# TODO: USE!
 def choose_period_msg() -> str:
     msg = "Choose period:"
     return msg

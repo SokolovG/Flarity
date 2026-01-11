@@ -5,12 +5,13 @@ from pydantic_settings import BaseSettings
 
 from src.domain.entities.enums import LLMProvider
 from src.infrastructure.constants import SCHEDULE_INTERVAL_HOURS
-from src.infrastructure.settings.llm_provider_settings import LLMProviderSettings
-from src.infrastructure.settings.llm_settings import LLMSettings
-from src.infrastructure.settings.log_source_settings import LogsSourceSettings
-from src.infrastructure.settings.notification_settings import NotificationSettings
-from src.infrastructure.settings.report_settings import ReportSettings
-from src.infrastructure.settings.storage_settings import StorageSettings
+from src.infrastructure.settings.infrastructure import ReportSettings, StorageSettings
+from src.infrastructure.settings.providers import (
+    LLMProviderSettings,
+    LLMSettings,
+    LogsSourceSettings,
+    NotificationSettings,
+)
 
 
 class AppSettings(BaseSettings):

@@ -11,7 +11,7 @@ from src.domain import NotificationProvider, ReportType, TimeRange
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.notifiers.telegram.telegram_notifier import TelegramNotifier
 from src.infrastructure.settings.app_settings import AppSettings
-from src.infrastructure.settings.notification_settings import NotificationSettings
+from src.infrastructure.settings.providers import NotificationSettings
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.utils.messages import choose_an_action_msg
 

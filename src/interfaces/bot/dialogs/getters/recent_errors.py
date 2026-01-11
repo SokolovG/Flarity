@@ -5,8 +5,8 @@ from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
 from src.application.dto.analysis_report import AnalysisReport
+from src.domain.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.domain.entities.enums import ReportType
-from src.infrastructure.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 
 

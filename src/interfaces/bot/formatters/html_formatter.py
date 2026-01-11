@@ -2,14 +2,14 @@ from jinja2 import Environment, FileSystemLoader
 
 from src.application.dto.analysis_report import AnalysisReport, ErrorGroup
 from src.application.dto.analysis_result import LLMAnalysisResult
+from src.domain.constants import MAX_ERRORS_IN_ONE_REPORT
 from src.domain.entities.enums import ReportType
 from src.infrastructure.constants import (
     BASE_DIR,
-    MAX_ERRORS_IN_ONE_REPORT,
     MAX_GROUPS_IN_REPORT,
     MAX_SYMBOLS_LOG_MSG,
 )
-from src.infrastructure.settings.report_settings import ReportSettings
+from src.infrastructure.settings.infrastructure import ReportSettings
 
 TEMPLATES_DIR = BASE_DIR / "resources" / "templates"
 

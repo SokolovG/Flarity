@@ -6,6 +6,7 @@ from dishka.integrations.aiogram_dialog import inject
 
 from src.infrastructure.settings.app_settings import AppSettings
 from src.interfaces.bot.formatters.text_formatter import BotTextFormatter
+from src.interfaces.bot.utils.messages import report_bug_msg
 
 
 @inject
@@ -27,4 +28,13 @@ async def help_getter(
     help_info = BotTextFormatter.format_help()
     return {
         "help_info": help_info,
+    }
+
+
+async def bug_getter(
+    dialog_manager: DialogManager,
+    **kwargs: Any,
+) -> dict[str, str]:
+    return {
+        "report_bug": report_bug_msg(),
     }

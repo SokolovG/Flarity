@@ -14,7 +14,7 @@ from src.infrastructure.llm.base_http_llm_analyzer import BaseLLMAnalyzer
 from src.infrastructure.llm.dto.session import LLMMessage
 from src.infrastructure.llm.yandex.responses import YandexResponse
 from src.infrastructure.settings.app_settings import AppSettings
-from src.infrastructure.settings.llm_provider_settings import YandexConfig
+from src.infrastructure.settings.providers import YandexConfig
 
 logger = getLogger(__name__)
 

@@ -2,7 +2,7 @@ from logging import getLogger
 
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, LaunchMode, StartMode
+from aiogram_dialog import DialogManager, StartMode
 
 from src.interfaces.bot.core.constants import EASTER_EGGS_WORT_LIST
 from src.interfaces.bot.core.router import bot_router

@@ -1,9 +1,9 @@
 from aiogram_dialog import Window
-from aiogram_dialog.widgets.kbd import Back, Button
+from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.interfaces.bot.core.elements import on_cancel
 from src.interfaces.bot.core.states import StatsSG
-from src.interfaces.bot.dialogs.elements import on_cancel
 from src.interfaces.bot.dialogs.getters.stats import stats_report_getter
 
 

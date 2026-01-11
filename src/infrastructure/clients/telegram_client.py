@@ -12,7 +12,7 @@ from src.infrastructure.exceptions import (
     TelegramRateLimitError,
 )
 from src.infrastructure.notifiers.telegram.dto import TelegramMessage
-from src.infrastructure.settings.notification_settings import NotificationSettings, TelegramConfig
+from src.infrastructure.settings.providers import NotificationSettings, TelegramConfig
 
 
 class TelegramClient:

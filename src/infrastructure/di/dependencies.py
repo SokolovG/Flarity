@@ -7,7 +7,6 @@ from redis.asyncio import Redis
 from src.application import (
     AnalyzeLogsUseCase,
     AskLLMUseCase,
-    ConversationManager,
     RecentErrorsUseCase,
     StatisticsLogsUseCase,
 )
@@ -23,10 +22,10 @@ from src.infrastructure.llm.yandex.analyzer import YandexAnalyzer
 from src.infrastructure.notifiers.telegram.telegram_notifier import TelegramNotifier
 from src.infrastructure.rate_limiter import RateLimiter
 from src.infrastructure.repositories.loki.loki_repository import LokiLogRepository
+from src.infrastructure.services.conversation_manager import ConversationManager
 from src.infrastructure.settings.app_settings import AppSettings
-from src.infrastructure.settings.notification_settings import TelegramConfig
-from src.infrastructure.settings.report_settings import ReportSettings
-from src.infrastructure.settings.storage_settings import RedisConfig, StorageSettings
+from src.infrastructure.settings.infrastructure import RedisConfig, ReportSettings, StorageSettings
+from src.infrastructure.settings.providers import TelegramConfig
 from src.infrastructure.storage.in_memory_storage import InMemoryStorage
 from src.infrastructure.storage.redis_storage import RedisStorage
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter

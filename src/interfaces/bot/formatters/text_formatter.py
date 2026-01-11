@@ -1,4 +1,3 @@
-from src.domain.entities.enums import LLMModel
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.settings.app_settings import AppSettings
 

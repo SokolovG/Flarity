@@ -3,8 +3,8 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.interfaces.bot.core.elements import on_cancel
 from src.interfaces.bot.core.states import AnalyzeSG
-from src.interfaces.bot.dialogs.elements import on_cancel
 from src.interfaces.bot.dialogs.getters.llm_analyze import (
     analyze_report_getter,
     ask_llm_report_getter,
