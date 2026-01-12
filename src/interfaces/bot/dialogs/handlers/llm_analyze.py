@@ -12,7 +12,13 @@ from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.core.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
 from src.interfaces.bot.core.states import AnalyzeSG, MainSG
-from src.interfaces.bot.utils.messages import loading_msg, no_errors_msg
+from src.interfaces.bot.utils.messages import (
+    error_msg,
+    llm_limit_chat_msg,
+    loading_msg,
+    no_errors_msg,
+    operation_failed_msg,
+)
 
 logger = getLogger(__name__)
 
@@ -47,8 +53,8 @@ async def on_analyze_period_click(
         await manager.switch_to(AnalyzeSG.viewing_data)
 
     except Exception as e:
-        logger.exception(f"Operation failed: {e}")
-        await callback.message.answer("❌ Something went wrong. Try again.")  # type: ignore[union-attr]
+        logger.exception(operation_failed_msg(e))
+        await callback.message.answer(error_msg())  # type: ignore[union-attr]
         await manager.done()
         await manager.start(MainSG.menu)
 
@@ -63,10 +69,7 @@ async def on_llm_question(
     try:
         question_count = manager.dialog_data.get("question_count", 0)
         if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
-            await message.answer(
-                f"⚠️ You've reached the limit of {MAX_LLM_MESSAGES_IN_ONE_CHAT} questions per analysis.\n"
-                "Start a new analysis to ask more questions."
-            )
+            await message.answer(llm_limit_chat_msg(MAX_LLM_MESSAGES_IN_ONE_CHAT))
             await manager.done()
             await manager.start(MainSG.menu)
 
@@ -78,7 +81,7 @@ async def on_llm_question(
         await manager.switch_to(AnalyzeSG.asking_questions)
 
     except Exception as e:
-        logger.exception(f"Operation failed: {e}")
-        await message.answer("❌ Something went wrong. Try again.")
+        logger.exception(operation_failed_msg(e))
+        await message.answer(error_msg())
         await manager.done()
         await manager.start(MainSG.menu)

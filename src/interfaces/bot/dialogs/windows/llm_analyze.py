@@ -10,12 +10,13 @@ from src.interfaces.bot.dialogs.getters.llm_analyze import (
     ask_llm_report_getter,
 )
 from src.interfaces.bot.dialogs.handlers.llm_analyze import on_llm_question
+from src.interfaces.bot.utils.messages import ask_llm_more_questions, ask_llm_msg
 
 
 def analyze_viewing_report_window() -> Window:
     return Window(
         Format("{report_html}"),
-        Const("You can ask questions about this report."),
+        Const(ask_llm_msg()),
         MessageInput(on_llm_question),
         Back(Const("⬅️ Back")),
         state=AnalyzeSG.viewing_data,
@@ -27,7 +28,7 @@ def asking_llm_window() -> Window:
     # TODO: при выходе на менб теряется отчет
     return Window(
         Format("{answer_html}"),
-        Const("You can ask more questions about this report, or write /menu to get back."),
+        Const(ask_llm_more_questions()),
         Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
         MessageInput(on_llm_question),
         state=AnalyzeSG.asking_questions,

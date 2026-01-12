@@ -4,6 +4,7 @@ from aiogram_dialog.widgets.input import MessageInput
 
 from src.interfaces.bot.core.constants import CHAT_ID_FOR_BUG_REPORT
 from src.interfaces.bot.core.states import MainSG
+from src.interfaces.bot.utils.messages import report_been_sent
 
 
 async def on_bug_report(
@@ -29,5 +30,6 @@ async def on_bug_report(
             CHAT_ID_FOR_BUG_REPORT,
             bug_report_msg,
         )
+    await message.answer(report_been_sent())
     await manager.done()
     await manager.start(MainSG.menu)

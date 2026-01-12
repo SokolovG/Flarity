@@ -7,7 +7,6 @@ def loading_msg(time_range: TimeRange) -> str:
     return msg
 
 
-# TODO: USE!
 def choose_period_msg() -> str:
     msg = "Choose period:"
     return msg
@@ -18,8 +17,11 @@ def choose_an_action_msg() -> str:
     return msg
 
 
-def llm_limit_msg(limit: int) -> str:
-    msg = f"Maximum {limit} questions reached. Please wait."
+def llm_limit_chat_msg(limit: int) -> str:
+    msg = (
+        f"⚠️ You've reached the limit of {limit} questions per analysis.\n"
+        "Start a new analysis to ask more questions."
+    )
     return msg
 
 
@@ -29,17 +31,12 @@ def no_errors_msg(time_range: TimeRange) -> str:
 
 
 def ask_llm_msg() -> str:
-    msg = "Do you want ask something from LLM about report?\nIf you want, write your question!"
+    msg = "Would you like to ask LLM anything about the report?\nIf you want, write your question!"
     return msg
 
 
-def ask_llm_one_more_time_msg() -> str:
-    msg = "Ask another question or type /menu to return"
-    return msg
-
-
-def asking_llm_msg() -> str:
-    msg = "Asking LLM..."
+def ask_llm_more_questions() -> str:
+    msg = "You can ask more questions about this report, or write /menu to get back."
     return msg
 
 
@@ -48,6 +45,7 @@ def greetings_msg() -> str:
     return msg
 
 
+# TODO: add использование в хендлеры команды номера после команды /analyze 8
 def invalid_hour_range_msg() -> str:
     msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"
     return msg
@@ -68,6 +66,11 @@ def report_bug_msg() -> str:
     return msg
 
 
-def error_sending_bug_report() -> str:
-    msg = "❌ Failed to send bug report."
+def error_msg() -> str:
+    msg = "❌ Something went wrong. Try again."
+    return msg
+
+
+def operation_failed_msg(e: Exception) -> str:
+    msg = f"Operation failed: {e}"
     return msg

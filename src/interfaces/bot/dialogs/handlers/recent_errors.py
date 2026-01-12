@@ -9,7 +9,7 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.core.states import MainSG, RecentSG
-from src.interfaces.bot.utils.messages import no_errors_msg
+from src.interfaces.bot.utils.messages import error_msg, no_errors_msg, operation_failed_msg
 
 logger = getLogger(__name__)
 
@@ -48,7 +48,7 @@ async def on_recent_period_click(
         await manager.switch_to(RecentSG.viewing_data)
 
     except Exception as e:
-        logger.exception(f"Operation failed: {e}")
-        await callback.message.answer("❌ Something went wrong. Try again.")  # type: ignore[union-attr]
+        logger.exception(operation_failed_msg(e))
+        await callback.message.answer(error_msg())  # type: ignore[union-attr]
         await manager.done()
         await manager.start(MainSG.menu)

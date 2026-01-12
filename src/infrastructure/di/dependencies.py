@@ -29,7 +29,6 @@ from src.infrastructure.settings.providers import TelegramConfig
 from src.infrastructure.storage.in_memory_storage import InMemoryStorage
 from src.infrastructure.storage.redis_storage import RedisStorage
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.utils.helpers import TelegramBotHelper
 
 
 class MyProvider(Provider):
@@ -75,12 +74,6 @@ class MyProvider(Provider):
     @provide(scope=Scope.APP)
     def get_formatter(self, report_settings: ReportSettings) -> ReportFormatter:
         return ReportFormatter(report_settings)
-
-    @provide(scope=Scope.APP)
-    def get_telegram_bot_helper(
-        self, formatter: ReportFormatter, notifier: TelegramNotifier
-    ) -> TelegramBotHelper:
-        return TelegramBotHelper(formatter, notifier)
 
     # ============================================================================
     # HTTP CLIENTS & EXTERNAL SERVICES
