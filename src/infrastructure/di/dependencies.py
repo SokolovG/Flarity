@@ -1,6 +1,7 @@
 from typing import AsyncIterator
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage as AiogramRedisStorage
 from dishka import Provider, Scope, provide
 from redis.asyncio import Redis
 
@@ -58,8 +59,12 @@ class MyProvider(Provider):
         return Bot(token=config.bot_token)
 
     @provide(scope=Scope.APP)
-    def get_dispatcher(self) -> Dispatcher:
-        return Dispatcher()
+    def get_aiogram_fsm_storage(self, redis_client: Redis) -> AiogramRedisStorage:
+        return AiogramRedisStorage(redis=redis_client)
+
+    @provide(scope=Scope.APP)
+    def get_dispatcher(self, aiogram_redis_storage: AiogramRedisStorage) -> Dispatcher:
+        return Dispatcher(storage=aiogram_redis_storage)
 
     @provide(scope=Scope.APP)
     def get_telegram_client(self, http_client: HTTPClient, settings: AppSettings) -> TelegramClient:

@@ -32,3 +32,7 @@ class BugSG(StatesGroup):
 
 class HelpSG(StatesGroup):
     viewing_data = State()
+
+
+class ScheduledSG(StatesGroup):
+    asking_questions = State()
