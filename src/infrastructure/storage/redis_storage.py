@@ -36,7 +36,7 @@ class RedisStorage(Storage):
 
     async def get_remaining_ttl(self, key: str) -> int | None:
         try:
-            ttl: int | None = await self.client.get(key)
+            ttl: int | None = await self.client.ttl(key)
             return ttl
 
         except Exception as e:

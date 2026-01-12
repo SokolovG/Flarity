@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import Any
 
 from src.application.ports.storage import Storage
@@ -11,7 +12,7 @@ class InMemoryStorage(Storage):
     def __init__(self) -> None:
         self._data: dict[str, Any] = {}
         self.ttl = TTL_FOR_STORAGE
-        self._expiry_tasks: dict[str, asyncio.Task] = {}
+        self._expiry_tasks: dict[str, tuple[asyncio.Task, float]] = {}
         self._lock = asyncio.Lock()
 
     async def get(self, key: str) -> dict[str, Any] | None:
@@ -25,19 +26,23 @@ class InMemoryStorage(Storage):
     async def delete(self, key: str) -> None:
         self._data.pop(key, None)
         if key in self._expiry_tasks:
-            self._expiry_tasks[key].cancel()
+            task, _ = self._expiry_tasks[key]
+            task.cancel()
             del self._expiry_tasks[key]
 
     async def expire(self, key: str, ttl: int) -> None:
         if key in self._expiry_tasks:
-            self._expiry_tasks[key].cancel()
+            task, _ = self._expiry_tasks[key]
+            task.cancel()
+
+        expiry_timestamp = time.time() + ttl
 
         async def delete_after_ttl() -> None:
             await asyncio.sleep(ttl)
             self._data.pop(key, None)
             self._expiry_tasks.pop(key, None)
 
-        self._expiry_tasks[key] = asyncio.create_task(delete_after_ttl())
+        self._expiry_tasks[key] = (asyncio.create_task(delete_after_ttl()), expiry_timestamp)
 
     async def incr(self, key: str) -> int:
         async with self._lock:
@@ -70,4 +75,10 @@ class InMemoryStorage(Storage):
             return new_value
 
     async def get_remaining_ttl(self, key: str) -> int | None:
-        return None  # TODO!
+        tple = self._expiry_tasks.get(key)
+        if not tple:
+            return None
+
+        _, ttl_timestamp = self._expiry_tasks[key]
+        ttl = int(ttl_timestamp - time.time())
+        return ttl if ttl > 0 else None
