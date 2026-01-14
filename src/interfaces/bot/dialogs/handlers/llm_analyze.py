@@ -10,6 +10,8 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.domain.value_objects.time_range import TimeRange
+from src.infrastructure.llm.dto.session import LLMSession
+from src.infrastructure.services.conversation_manager import ConversationManager
 from src.interfaces.bot.core.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
 from src.interfaces.bot.core.states import AnalyzeSG, MainSG
 from src.interfaces.bot.utils.messages import (
@@ -33,6 +35,7 @@ async def on_analyze_period_click(
     widget: Button,
     manager: DialogManager,
     use_case: FromDishka[AnalyzeLogsUseCase],
+    conv_manager: FromDishka[ConversationManager],
 ) -> None:
     try:
         await callback.answer()
@@ -42,11 +45,17 @@ async def on_analyze_period_click(
         user_id = str(callback.from_user.id)
 
         report = await use_case.execute(time_range, user_id)
+
         if not report.has_errors:
             await load_msg.edit_text(no_errors_msg(time_range))
             await manager.done()
             await manager.start(MainSG.menu)
             return
+
+        if report.messages:
+            session = LLMSession()
+            session.add_bulk_messages(report.messages)
+            await conv_manager.save_session(user_id, session)
 
         await load_msg.delete()
         manager.dialog_data.update({"report": report})

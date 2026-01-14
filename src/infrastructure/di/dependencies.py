@@ -1,6 +1,7 @@
 from typing import AsyncIterator
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage as AiogramRedisStorage
 from dishka import Provider, Scope, provide
 from redis.asyncio import Redis
@@ -59,10 +60,6 @@ class MyProvider(Provider):
         return Bot(token=config.bot_token)
 
     @provide(scope=Scope.APP)
-    def get_aiogram_fsm_storage(self, redis_client: Redis) -> AiogramRedisStorage:
-        return AiogramRedisStorage(redis=redis_client)
-
-    @provide(scope=Scope.APP)
     def get_dispatcher(self, aiogram_redis_storage: AiogramRedisStorage) -> Dispatcher:
         return Dispatcher(storage=aiogram_redis_storage)
 
@@ -115,6 +112,12 @@ class MyProvider(Provider):
             yield client
         finally:
             await client.aclose()
+
+    @provide(scope=Scope.APP)
+    def get_aiogram_fsm_storage(self, redis_client: Redis) -> AiogramRedisStorage:
+        return AiogramRedisStorage(
+            redis=redis_client, key_builder=DefaultKeyBuilder(with_destiny=True)
+        )
 
     @provide(scope=Scope.APP)
     def get_session_storage(

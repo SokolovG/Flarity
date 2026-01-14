@@ -39,6 +39,7 @@ def _get_notifier_type(notification_settings: NotificationSettings) -> type[Noti
 
 
 async def scheduled_analysis(container: AsyncContainer) -> None:
+    # TODO: протестить
     try:
         use_case = await container.get(AnalyzeLogsUseCase)
         settings = await container.get(AppSettings)
