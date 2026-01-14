@@ -17,9 +17,9 @@ def choose_an_action_msg() -> str:
     return msg
 
 
-def llm_limit_chat_msg(limit: int) -> str:
+def llm_limit_chat_msg(limit: int | None = None) -> str:
     msg = (
-        f"⚠️ You've reached the limit of {limit} questions per analysis.\n"
+        f"⚠️ You've reached the limit of {limit if limit else ''} questions per analysis.\n"
         "Start a new analysis to ask more questions."
     )
     return msg
@@ -46,6 +46,7 @@ def greetings_msg() -> str:
 
 
 # TODO: add использование в хендлеры команды номера после команды /analyze 8.
+# TODO: сделать единобразие ошибок и логгинга.
 def invalid_hour_range_msg() -> str:
     msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"
     return msg

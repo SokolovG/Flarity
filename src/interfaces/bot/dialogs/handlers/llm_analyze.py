@@ -8,13 +8,12 @@ from aiogram_dialog.widgets.kbd import Button
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from src.application.dto.analysis_report import AnalysisReport
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
+from src.domain.exceptions import LLMChatLimitExceededError
 from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.llm.dto.session import LLMSession
 from src.infrastructure.services.conversation_manager import ConversationManager
-from src.interfaces.bot.core.constants import MAX_LLM_MESSAGES_IN_ONE_CHAT
 from src.interfaces.bot.core.states import AnalyzeSG, MainSG
 from src.interfaces.bot.utils.messages import (
     error_msg,
@@ -78,20 +77,18 @@ async def on_llm_question(
     ask_use_case: FromDishka[AskLLMUseCase],
 ) -> None:
     try:
-        question_count = manager.dialog_data.get("question_count", 0)
-        if question_count >= MAX_LLM_MESSAGES_IN_ONE_CHAT:
-            await message.answer(llm_limit_chat_msg(MAX_LLM_MESSAGES_IN_ONE_CHAT))
-            await manager.done()
-            await manager.start(MainSG.menu)
-
         question: str = message.text  # type: ignore
         user_id = str(message.from_user.id)  # type: ignore
 
         llm_answer = await ask_use_case.execute(question, user_id)
-        manager.dialog_data.update(
-            {"llm_answer": msgspec.to_builtins(llm_answer), "question_count": question_count + 1}
-        )
+        manager.dialog_data.update({"llm_answer": msgspec.to_builtins(llm_answer)})
         await manager.switch_to(AnalyzeSG.asking_questions)
+
+    except LLMChatLimitExceededError as e:
+        limit = e.details.get("limit")
+        await message.answer(llm_limit_chat_msg(limit))
+        await manager.done()
+        await manager.start(MainSG.menu)
 
     except Exception as e:
         logger.exception(operation_failed_msg(e))

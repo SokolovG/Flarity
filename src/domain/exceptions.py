@@ -1,6 +1,18 @@
+from typing import Any
+
+
 class DomainException(Exception):
     """Base domain exception"""
+
+    def __init__(self, message: str = "", details: dict[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        self.details = details if details else {}
 
 
 class AnalysisFailedError(DomainException):
     """Analysis failed Error"""
+
+
+class LLMChatLimitExceededError(DomainException):
+    """User exceeded limit of questions per session"""

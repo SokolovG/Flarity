@@ -1,6 +1,7 @@
 from src.application.dto.analysis_result import LLMAnalysisResult
 from src.application.ports.llm_analyzer import LLMAnalyzer
-from src.domain.exceptions import AnalysisFailedError
+from src.domain.constants import MAX_QUESTIONS_PER_SESSION
+from src.domain.exceptions import AnalysisFailedError, LLMChatLimitExceededError
 from src.infrastructure.constants import (
     RATE_LIMIT_ASK_LLM_CALLS,
     RATE_LIMIT_ASK_LLM_PERIOD,
@@ -33,6 +34,13 @@ class AskLLMUseCase:
         session = await self.conv_manager.get_session(user_id)
         if not session:
             raise AnalysisFailedError("LLM session is None!")
+
+        question_count = len([m for m in session.messages if m.role == "user"])
+        if question_count >= MAX_QUESTIONS_PER_SESSION:
+            raise LLMChatLimitExceededError(
+                message=f"Exceeded limit of {MAX_QUESTIONS_PER_SESSION} questions",
+                details={"limit": MAX_QUESTIONS_PER_SESSION},
+            )
 
         session.add_message("user", question)
 

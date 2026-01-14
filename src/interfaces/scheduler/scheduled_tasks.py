@@ -14,12 +14,14 @@ from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.notifier import Notifier
 from src.domain import NotificationProvider, ReportType, TimeRange
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
+from src.infrastructure.llm.dto.session import LLMSession
 from src.infrastructure.notifiers.telegram.telegram_notifier import TelegramNotifier
+from src.infrastructure.services.conversation_manager import ConversationManager
 from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.providers import NotificationSettings, TelegramConfig
 from src.interfaces.bot.core.states import ScheduledSG
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.utils.messages import ask_llm_msg
+from src.interfaces.bot.utils.messages import ask_llm_msg, no_errors_msg
 
 logger = getLogger(__name__)
 
@@ -38,8 +40,7 @@ def _get_notifier_type(notification_settings: NotificationSettings) -> type[Noti
             return TelegramNotifier
 
 
-async def scheduled_analysis(container: AsyncContainer) -> None:
-    # TODO: протестить
+async def scheduled_analysis(container: AsyncContainer, is_initial: bool = False) -> None:
     try:
         use_case = await container.get(AnalyzeLogsUseCase)
         settings = await container.get(AppSettings)
@@ -54,13 +55,29 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
             logger.error("chat_id not configured for scheduled reports!")
             return
 
-        report: AnalysisReport = await use_case.execute(
-            TimeRange(int(settings.schedule_interval_hours))
-        )
+        time_range = TimeRange(int(settings.schedule_interval_hours))
 
-        if report.has_errors:
-            logger.info("No errors found, skipping notification")
+        report: AnalysisReport = await use_case.execute(time_range)
+
+        if not report.has_errors:
+            if is_initial:
+                init_msg = (
+                    "🚀 <b>Flarity Scheduler Started</b>\n\n"
+                    f"{no_errors_msg(time_range)}\n\n"
+                    f"📅 Next check: in {settings.schedule_interval_hours}h\n"
+                    f"🔔 You'll be notified only when errors are found"
+                )
+                await notifier.send(init_msg)
+                logger.info("Initial check: No errors found")
+            else:
+                logger.info("No errors found, skipping notification")
             return
+
+        if report.messages:
+            conv_manager = await container.get(ConversationManager)
+            session = LLMSession()
+            session.add_bulk_messages(report.messages)
+            await conv_manager.save_session(str(chat_id), session)
 
         html = formatter.to_html(report, report_type=ReportType.ANALYZE)
         full_message = f"{html}\n\n{ask_llm_msg()}"
@@ -69,7 +86,7 @@ async def scheduled_analysis(container: AsyncContainer) -> None:
         key = StorageKey(bot_id=bot.id, chat_id=int(chat_id), user_id=int(chat_id))
         await fsm_storage.set_state(key=key, state=ScheduledSG.asking_questions)
 
-        data = {"report": msgspec.to_builtins(report)}
+        data = {"analysis_report": msgspec.to_builtins(report)}
         await fsm_storage.set_data(key=key, data=data)
 
         logger.info(f"Scheduled report sent: {report.time_range.hour_and_unit}")
@@ -89,7 +106,7 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     scheduler.add_job(  # type: ignore[no-untyped-call]
         scheduled_analysis,
         trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),  # type: ignore[no-untyped-call]
-        args=[container],
+        args=[container, False],
         id="log_analysis",
         max_instances=1,
         replace_existing=False,
@@ -99,6 +116,6 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     logger.info("Running initial analysis...")
 
     try:
-        await scheduled_analysis(container)
+        await scheduled_analysis(container, is_initial=True)
     except Exception as e:
-        logger.exception(f"Initial analysis failed (non-critical): {e}")
+        logger.exception(f"Initial analysis failed: {e}")

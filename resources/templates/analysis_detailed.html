@@ -12,7 +12,7 @@ Top-{{ groups[:max_groups] | length }} errors:
 {% endif %}
 
 AI analysis:
-{{ ai_analysis}}
+{{ ai_analysis | safe}}
 
 ---
 Technical information:

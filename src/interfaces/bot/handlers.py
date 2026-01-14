@@ -5,11 +5,11 @@ from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, StartMode
-from dishka.integrations.aiogram import FromDishka
-from dishka.integrations.aiogram_dialog import inject
+from dishka.integrations.aiogram import FromDishka, inject
 
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.domain.entities.enums import ReportType
+from src.domain.exceptions import LLMChatLimitExceededError
 from src.interfaces.bot.core.constants import EASTER_EGGS_WORT_LIST
 from src.interfaces.bot.core.router import commands_router, fallback_router
 from src.interfaces.bot.core.states import (
@@ -23,7 +23,12 @@ from src.interfaces.bot.core.states import (
     StatsSG,
 )
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
-from src.interfaces.bot.utils.messages import ask_llm_more_questions, error_msg
+from src.interfaces.bot.utils.messages import (
+    ask_llm_more_questions,
+    error_msg,
+    llm_limit_chat_msg,
+    operation_failed_msg,
+)
 
 logger = getLogger(__name__)
 
@@ -107,12 +112,15 @@ async def on_scheduled_llm_question(
         user_id = str(message.from_user.id)
 
         answer = await ask_use_case.execute(question, user_id)
-
         html = formatter.format_llm_answer(answer, ReportType.ANSWER)
-
         await message.answer(f"{html}\n\n{ask_llm_more_questions()}")
 
+    except LLMChatLimitExceededError as e:
+        limit = e.details.get("limit")
+        await message.answer(llm_limit_chat_msg(limit))
+        await state.clear()
+
     except Exception as e:
-        logger.exception(f"Failed to process LLM question: {e}")
+        logger.exception(operation_failed_msg(e))
         await message.answer(error_msg())
         await state.clear()
