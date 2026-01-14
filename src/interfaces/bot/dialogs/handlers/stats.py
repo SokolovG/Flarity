@@ -1,5 +1,6 @@
 from logging import getLogger
 
+import msgspec
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
@@ -36,7 +37,7 @@ async def on_stats_period_click(
             await manager.start(MainSG.menu)
             return
 
-        manager.dialog_data.update({"report": report})
+        manager.dialog_data.update({"report": msgspec.to_builtins(report)})
         await manager.switch_to(StatsSG.viewing_data)
 
     except Exception as e:

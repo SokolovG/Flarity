@@ -11,7 +11,7 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.domain.entities.enums import ReportType
 from src.interfaces.bot.core.constants import EASTER_EGGS_WORT_LIST
-from src.interfaces.bot.core.router import bot_router
+from src.interfaces.bot.core.router import commands_router, fallback_router
 from src.interfaces.bot.core.states import (
     AnalyzeSG,
     BugSG,
@@ -28,48 +28,50 @@ from src.interfaces.bot.utils.messages import ask_llm_more_questions, error_msg
 logger = getLogger(__name__)
 
 
-@bot_router.message(CommandStart())
+@commands_router.message(CommandStart())
 async def cmd_start(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("analyze"))
+@commands_router.message(Command("analyze"))
 async def cmd_analyze(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(AnalyzeSG.period_selection, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("recent"))
+@commands_router.message(Command("recent"))
 async def cmd_recent(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(RecentSG.period_selection, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("stats"))
+@commands_router.message(Command("stats"))
 async def cmd_stats(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(StatsSG.period_selection, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("settings"))
+@commands_router.message(Command("settings"))
 async def cmd_settings(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(SettingsSG.viewing_data, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("bug"))
+@commands_router.message(Command("bug"))
 async def cmd_bug(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(BugSG.reporting, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("help"))
+@commands_router.message(Command("help"))
 async def cmd_help(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(HelpSG.viewing_data, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(Command("menu"))
+@commands_router.message(Command("menu"))
 async def cmd_menu(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(StateFilter(None))
-async def handle_unknown_message(message: Message, dialog_manager: DialogManager) -> None:
+@fallback_router.message(StateFilter(None))
+async def handle_unknown_message(
+    message: Message, dialog_manager: DialogManager, state: FSMContext
+) -> None:
     if message.text in EASTER_EGGS_WORT_LIST:
         match message.text:
             case "ogonek":
@@ -83,7 +85,7 @@ async def handle_unknown_message(message: Message, dialog_manager: DialogManager
     await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
 
 
-@bot_router.callback_query(F.data == "main_menu")
+@commands_router.callback_query(F.data == "main_menu")
 async def on_scheduled_menu(
     callback: CallbackQuery, dialog_manager: DialogManager, state: FSMContext
 ) -> None:
@@ -92,7 +94,7 @@ async def on_scheduled_menu(
     await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
 
 
-@bot_router.message(StateFilter(ScheduledSG.asking_questions))
+@commands_router.message(StateFilter(ScheduledSG.asking_questions))
 @inject
 async def on_scheduled_llm_question(
     message: Message,

@@ -11,10 +11,11 @@ from src.interfaces.bot.core.dialogs import (
     settings_dialog,
     stats_dialog,
 )
-from src.interfaces.bot.core.router import bot_router
+from src.interfaces.bot.core.router import commands_router, fallback_router
 
 
 async def setup_bot(bot: Bot, dp: Dispatcher) -> None:
+    dp.include_router(commands_router)
     dp.include_router(main_menu_dialog)
     dp.include_router(analyze_dialog)
     dp.include_router(stats_dialog)
@@ -22,7 +23,7 @@ async def setup_bot(bot: Bot, dp: Dispatcher) -> None:
     dp.include_router(settings_dialog)
     dp.include_router(bug_dialog)
     dp.include_router(help_dialog)
-    dp.include_router(bot_router)
+    dp.include_router(fallback_router)
     commands = [
         BotCommand(command="start", description="Get started"),
         BotCommand(command="help", description="List of commands"),

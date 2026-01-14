@@ -1,5 +1,6 @@
 from logging import getLogger
 
+import msgspec
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.input import MessageInput
@@ -7,6 +8,7 @@ from aiogram_dialog.widgets.kbd import Button
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
+from src.application.dto.analysis_report import AnalysisReport
 from src.application.use_cases.analyze_logs_use_case import AnalyzeLogsUseCase
 from src.application.use_cases.ask_llm_use_case import AskLLMUseCase
 from src.domain.value_objects.time_range import TimeRange
@@ -58,7 +60,7 @@ async def on_analyze_period_click(
             await conv_manager.save_session(user_id, session)
 
         await load_msg.delete()
-        manager.dialog_data.update({"report": report})
+        manager.dialog_data.update({"analysis_report": msgspec.to_builtins(report)})
         await manager.switch_to(AnalyzeSG.viewing_data)
 
     except Exception as e:
@@ -85,8 +87,10 @@ async def on_llm_question(
         question: str = message.text  # type: ignore
         user_id = str(message.from_user.id)  # type: ignore
 
-        answer = await ask_use_case.execute(question, user_id)
-        manager.dialog_data.update({"report": answer, "question_count": question_count + 1})
+        llm_answer = await ask_use_case.execute(question, user_id)
+        manager.dialog_data.update(
+            {"llm_answer": msgspec.to_builtins(llm_answer), "question_count": question_count + 1}
+        )
         await manager.switch_to(AnalyzeSG.asking_questions)
 
     except Exception as e:

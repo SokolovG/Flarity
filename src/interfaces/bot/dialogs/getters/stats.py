@@ -1,5 +1,6 @@
 from typing import Any
 
+import msgspec
 from aiogram_dialog import DialogManager
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
@@ -13,7 +14,8 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 async def stats_report_getter(
     dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
 ) -> dict[str, str]:
-    report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
+    report_dict = dialog_manager.dialog_data.get("report")
+    report = msgspec.convert(report_dict, type=AnalysisReport)
     html = formatter.to_html(report, ReportType.STATS)
     return {
         "report_html": html,

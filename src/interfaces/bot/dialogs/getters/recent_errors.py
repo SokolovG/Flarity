@@ -1,5 +1,6 @@
 from typing import Any
 
+import msgspec
 from aiogram_dialog import DialogManager
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
@@ -26,7 +27,8 @@ async def recent_all_getter(
 async def recent_report_getter(
     dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
 ) -> dict[str, Any]:
-    report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
+    report_dict = dialog_manager.dialog_data.get("report")
+    report = msgspec.convert(report_dict, type=AnalysisReport)
 
     total = len(report.logs) if report.logs else 0
     has_more = total > MAX_ERRORS_IN_ONE_REPORT

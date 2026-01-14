@@ -1,3 +1,4 @@
 from aiogram import Router
 
-bot_router = Router()
+commands_router = Router()
+fallback_router = Router()
