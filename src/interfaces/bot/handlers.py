@@ -46,6 +46,7 @@ async def cmd_start(message: Message, dialog_manager: DialogManager) -> None:
 
 
 @commands_router.message(Command("analyze"))
+@inject
 async def cmd_analyze(
     message: Message,
     dialog_manager: DialogManager,
@@ -80,6 +81,7 @@ async def cmd_analyze(
 
 
 @commands_router.message(Command("recent"))
+@inject
 async def cmd_recent(
     message: Message,
     dialog_manager: DialogManager,
@@ -113,6 +115,7 @@ async def cmd_recent(
 
 
 @commands_router.message(Command("stats"))
+@inject
 async def cmd_stats(
     message: Message,
     dialog_manager: DialogManager,
