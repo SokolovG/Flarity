@@ -10,6 +10,10 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.core.states import MainSG, StatsSG
+from src.interfaces.bot.utils.handlers_utils import (
+    send_error_and_exit_dialog,
+    send_no_errors_and_exit_dialog,
+)
 from src.interfaces.bot.utils.messages import error_msg, no_errors_msg, operation_failed_msg
 
 logger = getLogger(__name__)
@@ -27,21 +31,18 @@ async def on_stats_period_click(
     use_case: FromDishka[StatisticsLogsUseCase],
 ) -> None:
     try:
-        period = int(widget.widget_id.split("_")[1])  # type: ignore
+        period = int(widget.widget_id.split("_")[1])  # type:ignore[union-attr]
         time_range = TimeRange(period)
-
         report = await use_case.execute(time_range)
+
         if not report.has_errors:
-            await callback.message.answer(no_errors_msg(time_range))  # type: ignore
-            await manager.done()
-            await manager.start(MainSG.menu)
+            await send_no_errors_and_exit_dialog(callback, manager, time_range)
             return
 
+        await callback.answer()
         manager.dialog_data.update({"report": msgspec.to_builtins(report)})
         await manager.switch_to(StatsSG.viewing_data)
 
     except Exception as e:
-        logger.exception(operation_failed_msg(e))
-        await callback.message.answer(error_msg())  # type: ignore[union-attr]
-        await manager.done()
-        await manager.start(MainSG.menu)
+        logger.exception(f"Failed to get stats: {e}")
+        await send_error_and_exit_dialog(callback, manager)
