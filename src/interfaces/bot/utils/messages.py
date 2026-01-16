@@ -7,6 +7,21 @@ def loading_msg(time_range: TimeRange) -> str:
     return msg
 
 
+def asking_llm_msg() -> str:
+    msg = "🤔 Thinking..."
+    return msg
+
+
+def unknown_command_in_menu_msg() -> str:
+    msg = "I don't understand you! Please use /help or the buttons below 👇"
+    return msg
+
+
+def unknown_command_msg() -> str:
+    msg = "I don't understand you! Please use /help or the buttons bellow 👇"
+    return msg
+
+
 def choose_period_msg() -> str:
     msg = "Choose period:"
     return msg
@@ -35,7 +50,7 @@ def ask_llm_msg() -> str:
     return msg
 
 
-def ask_llm_more_questions() -> str:
+def ask_llm_more_questions_msg() -> str:
     msg = "You can ask more questions about this report, or write /menu to get back."
     return msg
 
@@ -56,7 +71,7 @@ def invalid_hour_format_msg() -> str:
     return msg
 
 
-def report_been_sent() -> str:
+def report_been_sent_msg() -> str:
     msg = "✅ Thank you! The report has been sent."
     return msg
 

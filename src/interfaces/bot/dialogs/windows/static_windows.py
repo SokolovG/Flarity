@@ -11,12 +11,14 @@ from src.interfaces.bot.dialogs.handlers.llm_analyze import on_analyze
 from src.interfaces.bot.dialogs.handlers.recent_errors import on_recent
 from src.interfaces.bot.dialogs.handlers.static import on_settings
 from src.interfaces.bot.dialogs.handlers.stats import on_stats
+from src.interfaces.bot.utils.dialogs_utils import handle_unknown_text_in_dialog
 from src.interfaces.bot.utils.messages import greetings_msg
 
 
 def menu_window() -> Window:
     return Window(
         Const(greetings_msg()),
+        MessageInput(handle_unknown_text_in_dialog),
         Column(
             Button(Const("Analyze"), id="analyze", on_click=on_analyze),
             Button(Const("Stats"), id="stats", on_click=on_stats),
@@ -29,13 +31,19 @@ def menu_window() -> Window:
 
 def help_window() -> Window:
     return Window(
-        Format("{help_info}"), state=HelpSG.viewing_data, getter=help_getter, parse_mode="HTML"
+        Format("{help_info}"),
+        MessageInput(handle_unknown_text_in_dialog),
+        Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
+        state=HelpSG.viewing_data,
+        getter=help_getter,
+        parse_mode="HTML",
     )
 
 
 def settings_window() -> Window:
     return Window(
         Format("{settings_info}"),
+        MessageInput(handle_unknown_text_in_dialog),
         Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
         state=SettingsSG.viewing_data,
         getter=settings_getter,

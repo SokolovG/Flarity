@@ -17,6 +17,7 @@ from src.infrastructure.services.conversation_manager import ConversationManager
 from src.interfaces.bot.core.states import AnalyzeSG, MainSG
 from src.interfaces.bot.utils.handlers_utils import send_error_and_exit_dialog
 from src.interfaces.bot.utils.messages import (
+    asking_llm_msg,
     error_msg,
     llm_limit_chat_msg,
     loading_msg,
@@ -39,6 +40,7 @@ async def on_analyze_period_click(
     use_case: FromDishka[AnalyzeLogsUseCase],
     conv_manager: FromDishka[ConversationManager],
 ) -> None:
+    load_msg = None
     try:
         await callback.answer()
         period = int(widget.widget_id.split("_")[1])  # type: ignore
@@ -59,13 +61,19 @@ async def on_analyze_period_click(
             session.add_bulk_messages(report.messages)
             await conv_manager.save_session(user_id, session)
 
-        await load_msg.delete()
         manager.dialog_data.update({"report": msgspec.to_builtins(report)})
         await manager.switch_to(AnalyzeSG.viewing_data)
 
     except Exception as e:
         logger.exception(operation_failed_msg(e))
         await send_error_and_exit_dialog(callback, manager)
+
+    finally:
+        if load_msg:
+            try:
+                await load_msg.delete()
+            except Exception:
+                pass
 
 
 @inject
@@ -75,7 +83,9 @@ async def on_llm_question(
     manager: DialogManager,
     ask_use_case: FromDishka[AskLLMUseCase],
 ) -> None:
+    load_msg = None
     try:
+        load_msg = await message.answer(asking_llm_msg())
         question: str = message.text  # type: ignore
         user_id = str(message.from_user.id)  # type: ignore
 
@@ -94,3 +104,10 @@ async def on_llm_question(
         await message.answer(error_msg())
         await manager.done()
         await manager.start(MainSG.menu)
+
+    finally:
+        if load_msg:
+            try:
+                await load_msg.delete()
+            except Exception:
+                pass

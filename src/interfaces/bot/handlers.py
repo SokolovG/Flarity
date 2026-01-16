@@ -29,12 +29,14 @@ from src.interfaces.bot.core.states import (
 )
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.utils.messages import (
-    ask_llm_more_questions,
+    ask_llm_more_questions_msg,
     error_msg,
     invalid_hour_range_msg,
     llm_limit_chat_msg,
     no_errors_msg,
     operation_failed_msg,
+    unknown_command_in_menu_msg,
+    unknown_command_msg,
 )
 
 logger = getLogger(__name__)
@@ -168,21 +170,23 @@ async def cmd_menu(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
 
 
-@fallback_router.message(StateFilter(None))
+@fallback_router.message()
 async def handle_unknown_message(
     message: Message, dialog_manager: DialogManager, state: FSMContext
 ) -> None:
+    current_state = await state.get_state()
+
     if message.text in EASTER_EGGS_WORT_LIST:
         match message.text:
             case "ogonek":
                 await message.answer("https://ogonek.app")
             case "author":
                 await message.answer("https://github.com/SokolovG")
-
         return
 
-    await message.answer("I don't understand you! Please use /help")
-    await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
+    if current_state is None:
+        await message.answer(unknown_command_msg())
+        await dialog_manager.start(MainSG.menu, mode=StartMode.RESET_STACK)
 
 
 @commands_router.callback_query(F.data == "main_menu")
@@ -208,7 +212,7 @@ async def on_scheduled_llm_question(
 
         answer = await ask_use_case.execute(question, user_id)
         html = formatter.format_llm_answer(answer, ReportType.ANSWER)
-        await message.answer(f"{html}\n\n{ask_llm_more_questions()}")
+        await message.answer(f"{html}\n\n{ask_llm_more_questions_msg()}")
 
     except LLMChatLimitExceededError as e:
         limit = e.details.get("limit")

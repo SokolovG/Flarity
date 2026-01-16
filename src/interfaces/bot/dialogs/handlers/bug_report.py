@@ -4,12 +4,12 @@ from aiogram_dialog.widgets.input import MessageInput
 from dishka.integrations.aiogram import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from src.infrastructure.settings.providers import NotificationSettings, TelegramConfig
+from src.infrastructure.settings.app_settings import AppSettings
+from src.infrastructure.settings.providers import TelegramConfig
 from src.interfaces.bot.core.states import MainSG
-from src.interfaces.bot.utils.messages import report_been_sent
+from src.interfaces.bot.utils.messages import report_been_sent_msg
 
 # TODO: почистить type:ignore
-# TODO: add loading msg llm
 
 
 @inject
@@ -17,8 +17,9 @@ async def on_bug_report(
     message: Message,
     widget: MessageInput,
     manager: DialogManager,
-    notification_settings: FromDishka[NotificationSettings],
+    settings: FromDishka[AppSettings],
 ) -> None:
+    notification_settings = settings.notification
     settings_config = notification_settings.get_config(TelegramConfig)
 
     bug_text = message.text or message.caption or "No description"
@@ -39,6 +40,6 @@ async def on_bug_report(
             settings_config.chat_id_for_bug_report,
             bug_report_msg,
         )
-    await message.answer(report_been_sent())
+    await message.answer(report_been_sent_msg())
     await manager.done()
     await manager.start(MainSG.menu)

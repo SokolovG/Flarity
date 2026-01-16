@@ -10,7 +10,7 @@ from src.interfaces.bot.dialogs.getters.llm_analyze import (
     ask_llm_report_getter,
 )
 from src.interfaces.bot.dialogs.handlers.llm_analyze import on_llm_question
-from src.interfaces.bot.utils.messages import ask_llm_more_questions, ask_llm_msg
+from src.interfaces.bot.utils.messages import ask_llm_more_questions_msg, ask_llm_msg
 
 
 def analyze_viewing_report_window() -> Window:
@@ -27,7 +27,7 @@ def analyze_viewing_report_window() -> Window:
 def asking_llm_window() -> Window:
     return Window(
         Format("{answer_html}"),
-        Const(ask_llm_more_questions()),
+        Const(ask_llm_more_questions_msg()),
         Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
         MessageInput(on_llm_question),
         state=AnalyzeSG.asking_questions,
