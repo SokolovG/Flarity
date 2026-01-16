@@ -4,7 +4,7 @@ from pydantic import BaseModel, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.domain.entities.enums import LLMModel, NotificationProvider
-from src.infrastructure.constants import BASE_DIR
+from src.infrastructure.constants import BASE_DIR, CHAT_ID_FOR_BUG_REPORT
 
 # ============================================================================
 # LLM & AI SERVICES
@@ -155,6 +155,7 @@ class BaseNotificationConfig(BaseModel):
 class TelegramConfig(BaseNotificationConfig):
     bot_token: str
     chat_id: int | str | None = None
+    chat_id_for_bug_report: int | str = CHAT_ID_FOR_BUG_REPORT
 
     @field_validator("bot_token")
     @classmethod

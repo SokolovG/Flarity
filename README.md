@@ -73,7 +73,7 @@ pip install uv
 uv sync
 ```
 
-3. **Configure environment**
+3. **Configure282138506ironment**
 ```bash
 cp .env.example .env
 # Edit .env with your settings
@@ -118,6 +118,8 @@ LLM_PROVIDER_CONFIG__BASE_URL=http://localhost:11434
 NOTIFICATION_PROVIDER=telegram
 NOTIFICATION_CONFIG__BOT_TOKEN=your-bot-token
 NOTIFICATION_CONFIG__CHAT_ID=your-chat-id
+(Optional)
+NOTIFICATION_CONFIG__CHAT_ID_FOR_BUG_REPORT=your_chat_id_for_get_app_bugs_from_user
 
 # Storage (optional)
 STORAGE_PROVIDER=redis  # or memory

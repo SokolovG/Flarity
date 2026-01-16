@@ -25,7 +25,6 @@ def analyze_viewing_report_window() -> Window:
 
 
 def asking_llm_window() -> Window:
-    # TODO: при выходе на менб теряется отчет
     return Window(
         Format("{answer_html}"),
         Const(ask_llm_more_questions()),

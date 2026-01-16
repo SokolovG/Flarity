@@ -15,6 +15,7 @@ from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.llm.dto.session import LLMSession
 from src.infrastructure.services.conversation_manager import ConversationManager
 from src.interfaces.bot.core.states import AnalyzeSG, MainSG
+from src.interfaces.bot.utils.handlers_utils import send_error_and_exit_dialog
 from src.interfaces.bot.utils.messages import (
     error_msg,
     llm_limit_chat_msg,
@@ -64,9 +65,7 @@ async def on_analyze_period_click(
 
     except Exception as e:
         logger.exception(operation_failed_msg(e))
-        await callback.message.answer(error_msg())  # type: ignore[union-attr]
-        await manager.done()
-        await manager.start(MainSG.menu)
+        await send_error_and_exit_dialog(callback, manager)
 
 
 @inject

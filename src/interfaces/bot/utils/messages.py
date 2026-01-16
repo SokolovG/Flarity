@@ -45,7 +45,6 @@ def greetings_msg() -> str:
     return msg
 
 
-# TODO: add использование в хендлеры команды номера после команды /analyze 8.
 # TODO: сделать единобразие ошибок и логгинга.
 def invalid_hour_range_msg() -> str:
     msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"

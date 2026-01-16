@@ -15,6 +15,9 @@ RATE_LIMITER_ASK_LLM_PREFIX: Final[str] = "ask_llm_rate_limit:"
 # Telegram limits
 TELEGRAM_MESSAGE_LIMIT: Final[int] = 4096  # Telegram API limit for message length
 
+# Telegram settings
+CHAT_ID_FOR_BUG_REPORT: Final[str] = "282138506"
+
 # Report display limits
 MAX_SYMBOLS_LOG_MSG: Final[int] = 150
 MAX_GROUPS_IN_REPORT: Final[int] = 5
