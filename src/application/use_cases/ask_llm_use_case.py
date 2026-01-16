@@ -12,6 +12,7 @@ from src.infrastructure.rate_limiter import RateLimiter
 from src.infrastructure.services.conversation_manager import ConversationManager
 
 
+# TODO: докинуть везде лог левел в exceptions
 class AskLLMUseCase:
     def __init__(
         self,
@@ -37,7 +38,6 @@ class AskLLMUseCase:
 
         question_count = len([m for m in session.messages if m.role == "user"])
         if question_count >= MAX_QUESTIONS_PER_SESSION:
-            # TODO: убрать в логах трейс
             raise LLMChatLimitExceededError(
                 message=f"Exceeded limit of {MAX_QUESTIONS_PER_SESSION} questions",
                 details={"limit": MAX_QUESTIONS_PER_SESSION},

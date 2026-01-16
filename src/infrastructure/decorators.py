@@ -2,9 +2,10 @@ import asyncio
 import time
 from collections.abc import Callable, Coroutine
 from functools import wraps
-from logging import getLogger
+from logging import WARNING, getLogger
 from typing import Any, ParamSpec, TypeVar
 
+from src.domain.exceptions import DomainException
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 
 T = TypeVar("T")
@@ -38,12 +39,20 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
             logger.warning(f"⚠ {call_name}() validation error in {duration:.2f}s: {e}")
             raise
 
+        except DomainException as e:
+            duration = time.time() - start_time
+            level = getattr(e, "log_level", WARNING)
+            logger.log(level, f"⚠ {call_name}() domain exception in {duration:.2f}s: {e.message}")
+            raise
+
+        except InfrastructureException as e:
+            duration = time.time() - start_time
+            logger.error(f"✗ {call_name}() infrastructure error in {duration:.2f}s: {e}")
+            raise
+
         except Exception as e:
             duration = time.time() - start_time
-            if not isinstance(e, InfrastructureException):
-                logger.exception(f"✗ {call_name}() unexpected error in {duration:.2f}s")
-            else:
-                logger.error(f"✗ {call_name}() failed in {duration:.2f}s: {e}")
+            logger.exception(f"✗ {call_name}() unexpected error in {duration:.2f}s")
             raise
 
     return wrapper

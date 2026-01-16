@@ -60,7 +60,7 @@ async def on_analyze_period_click(
             await conv_manager.save_session(user_id, session)
 
         await load_msg.delete()
-        manager.dialog_data.update({"analysis_report": msgspec.to_builtins(report)})
+        manager.dialog_data.update({"report": msgspec.to_builtins(report)})
         await manager.switch_to(AnalyzeSG.viewing_data)
 
     except Exception as e:

@@ -15,7 +15,7 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 async def analyze_report_getter(
     dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
 ) -> dict[str, str]:
-    report_dict = dialog_manager.dialog_data.get("analysis_report")
+    report_dict = dialog_manager.dialog_data.get("report")
     report = msgspec.convert(report_dict, type=AnalysisReport)
     html = formatter.to_html(report, ReportType.ANALYZE)
     return {

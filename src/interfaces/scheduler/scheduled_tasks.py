@@ -86,7 +86,7 @@ async def scheduled_analysis(container: AsyncContainer, is_initial: bool = False
         key = StorageKey(bot_id=bot.id, chat_id=int(chat_id), user_id=int(chat_id))
         await fsm_storage.set_state(key=key, state=ScheduledSG.asking_questions)
 
-        data = {"analysis_report": msgspec.to_builtins(report)}
+        data = {"report": msgspec.to_builtins(report)}
         await fsm_storage.set_data(key=key, data=data)
 
         logger.info(f"Scheduled report sent: {report.time_range.hour_and_unit}")

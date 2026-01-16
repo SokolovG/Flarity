@@ -9,6 +9,7 @@ from src.interfaces.bot.core.states import MainSG
 from src.interfaces.bot.utils.messages import report_been_sent
 
 # TODO: почистить type:ignore
+# TODO: add loading msg llm
 
 
 @inject
