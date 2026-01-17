@@ -38,7 +38,6 @@ class LokiLogRepository(LogSource):
         for stream in response.data.result:
             for timestamp_ns, message in stream.values:
                 parsed = self._parse_log_message(message)
-                actual_message = parsed.get("message", message)
                 logs.append(
                     LogEntry(
                         timestamp=datetime.fromtimestamp(int(timestamp_ns) / 1e9),

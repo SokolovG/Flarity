@@ -5,7 +5,7 @@ from typing import Any
 
 from src.application.ports.storage import Storage
 from src.infrastructure.constants import TTL_FOR_STORAGE
-from src.infrastructure.exceptions.storage_exceptions import StorageTypeError
+from src.infrastructure.exceptions import StorageTypeError
 
 logger = getLogger(__name__)
 
@@ -89,6 +89,6 @@ class InMemoryStorage(Storage):
         if not tple:
             return None
 
-        _, ttl_timestamp = self._expiry_tasks[key]
+        _, ttl_timestamp = tple
         ttl = int(ttl_timestamp - time.time())
         return ttl if ttl > 0 else None

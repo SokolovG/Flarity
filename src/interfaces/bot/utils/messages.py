@@ -59,11 +59,6 @@ def greetings_msg() -> str:
     return msg
 
 
-def invalid_hour_range_msg() -> str:
-    msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"
-    return msg
-
-
 def invalid_hour_format_msg() -> str:
     msg = "❌ Invalid number. Example: /analyze 6"
     return msg

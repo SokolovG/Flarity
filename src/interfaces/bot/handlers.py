@@ -32,7 +32,6 @@ from src.interfaces.bot.utils.error_handler import handle_bot_error
 from src.interfaces.bot.utils.error_messages import BotErrorMessages
 from src.interfaces.bot.utils.messages import (
     ask_llm_more_questions_msg,
-    invalid_hour_range_msg,
     llm_limit_chat_msg,
     no_errors_msg,
     unknown_command_msg,
@@ -74,8 +73,8 @@ async def cmd_analyze(
             data={"report": msgspec.to_builtins(report)},
         )
 
-    except ValueError:
-        await message.answer(invalid_hour_range_msg())
+    except ValueError as e:
+        await message.answer(f"❌ {str(e)}")
     except Exception as e:
         await handle_bot_error(e, message, dialog_manager, context="cmd_analyze")
 
@@ -107,8 +106,8 @@ async def cmd_recent(
             data={"report": msgspec.to_builtins(report)},
         )
 
-    except ValueError:
-        await message.answer(invalid_hour_range_msg())
+    except ValueError as e:
+        await message.answer(f"❌ {str(e)}")
     except Exception as e:
         await handle_bot_error(e, message, dialog_manager, context="cmd_recent")
 
@@ -140,8 +139,8 @@ async def cmd_stats(
             data={"report": msgspec.to_builtins(report)},
         )
 
-    except ValueError:
-        await message.answer(invalid_hour_range_msg())
+    except ValueError as e:
+        await message.answer(f"❌ {str(e)}")
     except Exception as e:
         await handle_bot_error(e, message, dialog_manager, context="cmd_stats")
 

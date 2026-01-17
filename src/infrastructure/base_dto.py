@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from msgspec import Struct, field
+from msgspec import Struct
 
 
 class BaseInfrastructureObject(Struct):
