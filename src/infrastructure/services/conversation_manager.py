@@ -1,9 +1,13 @@
+from logging import getLogger
+
 import msgspec
 
 from src.application.ports.storage import Storage
 from src.infrastructure.constants import LLM_SESSION_PREFIX, TTL_FOR_STORAGE
 from src.infrastructure.decorators import log_calls
 from src.infrastructure.llm.dto.session import LLMSession
+
+logger = getLogger(__name__)
 
 
 class ConversationManager:
@@ -18,7 +22,12 @@ class ConversationManager:
         if not data:
             return None
 
-        return msgspec.convert(data, type=LLMSession)
+        try:
+            return msgspec.convert(data, type=LLMSession)
+        except (msgspec.ValidationError, msgspec.DecodeError) as e:
+            logger.warning(f"Invalid session data for {session_id}: {e}")
+            await self.storage.delete(key)
+            return None
 
     @log_calls
     async def save_session(

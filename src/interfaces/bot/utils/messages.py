@@ -1,4 +1,5 @@
 from src.domain import TimeRange
+from src.domain.constants import MAX_QUESTIONS_PER_SESSION
 from src.infrastructure import MAX_HOURS_IN_WEEK
 
 
@@ -33,10 +34,8 @@ def choose_an_action_msg() -> str:
 
 
 def llm_limit_chat_msg(limit: int | None = None) -> str:
-    msg = (
-        f"⚠️ You've reached the limit of {limit if limit else ''} questions per analysis.\n"
-        "Start a new analysis to ask more questions."
-    )
+    limit_str = str(limit) if limit else str(MAX_QUESTIONS_PER_SESSION)
+    msg = f"⚠️ You've reached the limit of {limit_str} questions..."
     return msg
 
 
@@ -60,7 +59,6 @@ def greetings_msg() -> str:
     return msg
 
 
-# TODO: сделать единобразие ошибок и логгинга.
 def invalid_hour_range_msg() -> str:
     msg = f"❌ Hours must be between 1 and {MAX_HOURS_IN_WEEK}"
     return msg

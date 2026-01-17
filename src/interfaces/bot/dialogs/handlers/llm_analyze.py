@@ -93,6 +93,8 @@ async def on_llm_question(
     except LLMChatLimitExceededError as e:
         user_msg = BotErrorMessages.get_user_message(e)
         await message.answer(user_msg)
+        await manager.done()
+        await manager.start(MainSG.menu)
 
     except Exception as e:
         await handle_bot_error(e, message, manager, context="llm_question")

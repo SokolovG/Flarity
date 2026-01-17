@@ -1,9 +1,13 @@
 import asyncio
 import time
+from logging import getLogger
 from typing import Any
 
 from src.application.ports.storage import Storage
 from src.infrastructure.constants import TTL_FOR_STORAGE
+from src.infrastructure.exceptions.storage_exceptions import StorageTypeError
+
+logger = getLogger(__name__)
 
 
 class InMemoryStorage(Storage):
@@ -49,7 +53,10 @@ class InMemoryStorage(Storage):
             value = self._data.get(key, 0)
 
             if not isinstance(value, int):
-                raise TypeError(
+                logger.error(
+                    f"Invalid type for key {key}: expected int, got {type(value).__name__}"
+                )
+                raise StorageTypeError(
                     f"WRONGTYPE Operation against a key holding the wrong kind of value. "
                     f"Expected int, got {type(value).__name__}"
                 )
@@ -63,7 +70,10 @@ class InMemoryStorage(Storage):
             value = self._data.get(key, 0)
 
             if not isinstance(value, int):
-                raise TypeError(
+                logger.error(
+                    f"Invalid type for key {key}: expected int, got {type(value).__name__}"
+                )
+                raise StorageTypeError(
                     f"WRONGTYPE Operation against a key holding the wrong kind of value. "
                     f"Expected int, got {type(value).__name__}"
                 )

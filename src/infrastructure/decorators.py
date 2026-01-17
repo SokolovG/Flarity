@@ -2,7 +2,7 @@ import asyncio
 import time
 from collections.abc import Callable, Coroutine
 from functools import wraps
-from logging import ERROR, WARNING, getLogger
+from logging import getLogger
 from typing import Any, ParamSpec, TypeVar
 
 from src.domain.exceptions import DomainException
@@ -48,7 +48,9 @@ def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutin
 
         except InfrastructureException as e:
             duration = time.time() - start_time
-            logger.log(e.log_level, f"✗ {call_name}() infrastructure error in {duration:.2f}s: {e}")
+            logger.log(
+                e.log_level, f"✗ {call_name}() infrastructure error in {duration:.2f}s: {e.message}"
+            )
             raise
 
         except Exception as e:

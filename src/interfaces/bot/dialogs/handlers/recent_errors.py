@@ -9,11 +9,9 @@ from dishka.integrations.aiogram_dialog import inject
 
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.core.states import MainSG, RecentSG
+from src.interfaces.bot.core.states import RecentSG
 from src.interfaces.bot.utils.error_handler import handle_bot_error
-from src.interfaces.bot.utils.handlers_utils import (
-    send_no_errors_and_exit_dialog,
-)
+from src.interfaces.bot.utils.handlers_utils import send_no_errors_and_exit_dialog
 
 logger = getLogger(__name__)
 

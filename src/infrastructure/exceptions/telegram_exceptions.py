@@ -5,6 +5,7 @@ from src.infrastructure.exceptions.base_exceptions import InfrastructureExceptio
 
 class TelegramError(InfrastructureException):
     default_retryable = True
+    log_level = logging.ERROR
 
 
 class TelegramRateLimitError(TelegramError):

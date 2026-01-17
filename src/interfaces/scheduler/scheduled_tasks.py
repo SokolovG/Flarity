@@ -13,7 +13,6 @@ from src.application import AnalyzeLogsUseCase
 from src.application.dto.analysis_report import AnalysisReport
 from src.application.ports.notifier import Notifier
 from src.domain import NotificationProvider, ReportType, TimeRange
-from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.llm.dto.session import LLMSession
 from src.infrastructure.notifiers.telegram.telegram_notifier import TelegramNotifier
 from src.infrastructure.services.conversation_manager import ConversationManager

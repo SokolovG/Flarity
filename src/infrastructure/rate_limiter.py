@@ -25,7 +25,7 @@ class RateLimiter:
         current = await self.storage.incr_with_expire(full_key, period)
 
         if current > calls:
-            ttl = self.get_remaining_ttl(full_key)
+            ttl = await self.get_remaining_ttl(full_key)
             msg = f"Rate limit exceeded: {current}/{calls}.\n"
 
             raise RateLimitExceeded(msg, details={"ttl": ttl})

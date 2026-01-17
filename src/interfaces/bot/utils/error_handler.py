@@ -1,7 +1,4 @@
-# src/interfaces/bot/utils/error_handler.py
-
 from logging import getLogger
-from typing import NoReturn
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
