@@ -21,6 +21,7 @@ from src.infrastructure.settings.app_settings import AppSettings
 from src.infrastructure.settings.providers import NotificationSettings, TelegramConfig
 from src.interfaces.bot.core.states import ScheduledSG
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
+from src.interfaces.bot.utils.error_messages import BotErrorMessages
 from src.interfaces.bot.utils.messages import ask_llm_msg, no_errors_msg
 
 logger = getLogger(__name__)
@@ -91,10 +92,9 @@ async def scheduled_analysis(container: AsyncContainer, is_initial: bool = False
 
         logger.info(f"Scheduled report sent: {report.time_range.hour_and_unit}")
 
-    except InfrastructureException as e:
-        logger.exception(f"Analysis failed: {e.__class__.__name__}: {e}")
     except Exception as e:
-        logger.exception(f"Unexpected error during analysis: {e}")
+        log_msg = BotErrorMessages.get_log_message(e, "scheduled_analysis")
+        logger.exception(log_msg)
 
 
 async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> None:

@@ -29,6 +29,7 @@ from src.interfaces.bot.core.states import (
 )
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 from src.interfaces.bot.utils.error_handler import handle_bot_error
+from src.interfaces.bot.utils.error_messages import BotErrorMessages
 from src.interfaces.bot.utils.messages import (
     ask_llm_more_questions_msg,
     invalid_hour_range_msg,
@@ -215,5 +216,8 @@ async def on_scheduled_llm_question(
         await state.clear()
 
     except Exception as e:
-        await handle_bot_error(e, message, None, context="scheduled_llm_question")  # type: ignore
+        log_msg = BotErrorMessages.get_log_message(e, "scheduled_llm_question")
+        logger.exception(log_msg)
+        user_msg = BotErrorMessages.get_user_message(e)
+        await message.answer(user_msg)
         await state.clear()

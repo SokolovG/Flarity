@@ -79,13 +79,3 @@ def report_been_sent_msg() -> str:
 def report_bug_msg() -> str:
     msg = "Describe the problem in one message.\nYou can also add photo of bug."
     return msg
-
-
-def error_msg() -> str:
-    msg = "❌ Something went wrong. Try again."
-    return msg
-
-
-def operation_failed_msg(e: Exception) -> str:
-    msg = f"Operation failed: {e}"
-    return msg
