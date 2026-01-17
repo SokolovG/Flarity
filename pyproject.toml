@@ -59,3 +59,8 @@ disable_error_code = ["union-attr"]
 [[tool.mypy.overrides]]
 module = "src.interfaces.bot.handlers"
 disable_error_code = ["union-attr"]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.12",
+]

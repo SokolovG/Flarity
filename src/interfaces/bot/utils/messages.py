@@ -70,5 +70,5 @@ def report_been_sent_msg() -> str:
 
 
 def report_bug_msg() -> str:
-    msg = "Describe the problem in one message.\nYou can also add photo of bug."
+    msg = "Describe the problem in one message.\nYou can also add a photo/video/other type of file with an error."
     return msg
