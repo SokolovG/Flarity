@@ -12,7 +12,6 @@ from src.infrastructure.rate_limiter import RateLimiter
 from src.infrastructure.services.conversation_manager import ConversationManager
 
 
-# TODO: докинуть везде лог левел в exceptions
 class AskLLMUseCase:
     def __init__(
         self,

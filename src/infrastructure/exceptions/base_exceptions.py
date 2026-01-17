@@ -1,8 +1,10 @@
+import logging
 from typing import Any
 
 
 class InfrastructureException(Exception):
     default_retryable: bool = False
+    log_level = logging.ERROR
 
     def __init__(
         self,

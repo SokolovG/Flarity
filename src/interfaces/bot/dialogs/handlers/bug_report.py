@@ -9,8 +9,6 @@ from src.infrastructure.settings.providers import TelegramConfig
 from src.interfaces.bot.core.states import MainSG
 from src.interfaces.bot.utils.messages import report_been_sent_msg
 
-# TODO: почистить type:ignore
-
 
 @inject
 async def on_bug_report(

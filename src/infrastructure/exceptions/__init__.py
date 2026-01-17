@@ -1,7 +1,6 @@
 from src.infrastructure.exceptions.base_exceptions import InfrastructureException
 from src.infrastructure.exceptions.llm_exceptions import LLMAuthError, LLMError, LLMRateLimitError
 from src.infrastructure.exceptions.loki_exceptions import (
-    LogParsingError,
     LokiError,
     LokiUnavailableError,
 )
@@ -14,7 +13,6 @@ from src.infrastructure.exceptions.telegram_exceptions import (
 
 __all__ = [
     "InfrastructureException",
-    "LogParsingError",
     "LLMRateLimitError",
     "LLMAuthError",
     "LLMError",
