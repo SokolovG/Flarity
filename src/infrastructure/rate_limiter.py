@@ -27,10 +27,8 @@ class RateLimiter:
         if current > calls:
             ttl = self.get_remaining_ttl(full_key)
             msg = f"Rate limit exceeded: {current}/{calls}.\n"
-            if ttl:
-                msg + f"Please wait more {ttl} seconds."
 
-            raise RateLimitExceeded(msg)
+            raise RateLimitExceeded(msg, details={"ttl": ttl})
 
     async def reset(self, key: str, prefix: str) -> None:
         await self.storage.delete(f"{prefix}{key}")

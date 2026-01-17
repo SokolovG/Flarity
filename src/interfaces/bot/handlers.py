@@ -28,14 +28,12 @@ from src.interfaces.bot.core.states import (
     StatsSG,
 )
 from src.interfaces.bot.formatters.html_formatter import ReportFormatter
+from src.interfaces.bot.utils.error_handler import handle_bot_error
 from src.interfaces.bot.utils.messages import (
     ask_llm_more_questions_msg,
-    error_msg,
     invalid_hour_range_msg,
     llm_limit_chat_msg,
     no_errors_msg,
-    operation_failed_msg,
-    unknown_command_in_menu_msg,
     unknown_command_msg,
 )
 
@@ -78,8 +76,7 @@ async def cmd_analyze(
     except ValueError:
         await message.answer(invalid_hour_range_msg())
     except Exception as e:
-        logger.exception(f"Failed to get stats: {e}")
-        await message.answer(error_msg())
+        await handle_bot_error(e, message, dialog_manager, context="cmd_analyze")
 
 
 @commands_router.message(Command("recent"))
@@ -112,8 +109,7 @@ async def cmd_recent(
     except ValueError:
         await message.answer(invalid_hour_range_msg())
     except Exception as e:
-        logger.exception(f"Failed to get stats: {e}")
-        await message.answer(error_msg())
+        await handle_bot_error(e, message, dialog_manager, context="cmd_recent")
 
 
 @commands_router.message(Command("stats"))
@@ -146,8 +142,7 @@ async def cmd_stats(
     except ValueError:
         await message.answer(invalid_hour_range_msg())
     except Exception as e:
-        logger.exception(f"Failed to get stats: {e}")
-        await message.answer(error_msg())
+        await handle_bot_error(e, message, dialog_manager, context="cmd_stats")
 
 
 @commands_router.message(Command("settings"))
@@ -220,6 +215,5 @@ async def on_scheduled_llm_question(
         await state.clear()
 
     except Exception as e:
-        logger.exception(operation_failed_msg(e))
-        await message.answer(error_msg())
+        await handle_bot_error(e, message, None, context="scheduled_llm_question")  # type: ignore
         await state.clear()

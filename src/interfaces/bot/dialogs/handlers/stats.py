@@ -9,12 +9,11 @@ from dishka.integrations.aiogram_dialog import inject
 
 from src.application.use_cases.get_statistics_use_case import StatisticsLogsUseCase
 from src.domain.value_objects.time_range import TimeRange
-from src.interfaces.bot.core.states import MainSG, StatsSG
+from src.interfaces.bot.core.states import StatsSG
+from src.interfaces.bot.utils.error_handler import handle_bot_error
 from src.interfaces.bot.utils.handlers_utils import (
-    send_error_and_exit_dialog,
     send_no_errors_and_exit_dialog,
 )
-from src.interfaces.bot.utils.messages import error_msg, no_errors_msg, operation_failed_msg
 
 logger = getLogger(__name__)
 
@@ -44,5 +43,4 @@ async def on_stats_period_click(
         await manager.switch_to(StatsSG.viewing_data)
 
     except Exception as e:
-        logger.exception(f"Failed to get stats: {e}")
-        await send_error_and_exit_dialog(callback, manager)
+        await handle_bot_error(e, callback, manager, context="stats_period_selection")

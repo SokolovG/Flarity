@@ -15,14 +15,12 @@ from src.domain.value_objects.time_range import TimeRange
 from src.infrastructure.llm.dto.session import LLMSession
 from src.infrastructure.services.conversation_manager import ConversationManager
 from src.interfaces.bot.core.states import AnalyzeSG, MainSG
-from src.interfaces.bot.utils.handlers_utils import send_error_and_exit_dialog
+from src.interfaces.bot.utils.error_handler import handle_bot_error
+from src.interfaces.bot.utils.error_messages import BotErrorMessages
 from src.interfaces.bot.utils.messages import (
     asking_llm_msg,
-    error_msg,
-    llm_limit_chat_msg,
     loading_msg,
     no_errors_msg,
-    operation_failed_msg,
 )
 
 logger = getLogger(__name__)
@@ -65,8 +63,7 @@ async def on_analyze_period_click(
         await manager.switch_to(AnalyzeSG.viewing_data)
 
     except Exception as e:
-        logger.exception(operation_failed_msg(e))
-        await send_error_and_exit_dialog(callback, manager)
+        await handle_bot_error(e, callback, manager, context="analyze_period")
 
     finally:
         if load_msg:
@@ -94,16 +91,11 @@ async def on_llm_question(
         await manager.switch_to(AnalyzeSG.asking_questions)
 
     except LLMChatLimitExceededError as e:
-        limit = e.details.get("limit")
-        await message.answer(llm_limit_chat_msg(limit))
-        await manager.done()
-        await manager.start(MainSG.menu)
+        user_msg = BotErrorMessages.get_user_message(e)
+        await message.answer(user_msg)
 
     except Exception as e:
-        logger.exception(operation_failed_msg(e))
-        await message.answer(error_msg())
-        await manager.done()
-        await manager.start(MainSG.menu)
+        await handle_bot_error(e, message, manager, context="llm_question")
 
     finally:
         if load_msg:

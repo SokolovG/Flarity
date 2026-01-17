@@ -10,11 +10,10 @@ from dishka.integrations.aiogram_dialog import inject
 from src.application.use_cases.get_recent_errors_use_case import RecentErrorsUseCase
 from src.domain.value_objects.time_range import TimeRange
 from src.interfaces.bot.core.states import MainSG, RecentSG
+from src.interfaces.bot.utils.error_handler import handle_bot_error
 from src.interfaces.bot.utils.handlers_utils import (
-    send_error_and_exit_dialog,
     send_no_errors_and_exit_dialog,
 )
-from src.interfaces.bot.utils.messages import error_msg, no_errors_msg, operation_failed_msg
 
 logger = getLogger(__name__)
 
@@ -52,5 +51,4 @@ async def on_recent_period_click(
         await manager.switch_to(RecentSG.viewing_data)
 
     except Exception as e:
-        logger.exception(operation_failed_msg(e))
-        await send_error_and_exit_dialog(callback, manager)
+        await handle_bot_error(e, callback, manager, context="recent_period")
