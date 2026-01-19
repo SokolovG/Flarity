@@ -79,8 +79,12 @@ class HTTPClient(HttpPort):
                 f"{method} REQUEST to {url} {(p := f', params: {params}') if params else ''}"
             )
             if method == HTTPMethod.GET:
+                if not self._client:
+                    raise RuntimeError(
+                        "HTTPClient not initialized. Use 'async with' context manager."
+                    )
                 params = params or {}
-                response = await self._client.request(  # ty: ignore
+                response = await self._client.request(
                     method=method.value,
                     url=url,
                     headers=headers,
@@ -99,7 +103,11 @@ class HTTPClient(HttpPort):
                     content = data
                 else:
                     content = None
-                response = await self._client.request(  # ty: ignore
+                if not self._client:
+                    raise RuntimeError(
+                        "HTTPClient not initialized. Use 'async with' context manager."
+                    )
+                response = await self._client.request(
                     method=method.value,
                     url=url,
                     headers=headers,
@@ -140,3 +148,4 @@ class HTTPClient(HttpPort):
 
     async def close(self) -> None:
         await self._client.aclose()  # ty: ignore
+        logger.info("HTTP client closed.")

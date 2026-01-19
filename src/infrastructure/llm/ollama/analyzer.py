@@ -22,7 +22,6 @@ logger = getLogger(__name__)
 
 class OllamaAnalyzer(BaseLLMAnalyzer):
     def __init__(self, http_client: HTTPClient, settings: AppSettings) -> None:
-        self._messages: list[LLMMessage] | None = None
         super().__init__(http_client, settings)
 
     def _handle_response(self, response: Response) -> None:
@@ -54,12 +53,11 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
         }
         return request_data
 
-    def _build_request(self, logs_text: str) -> dict[str, Any]:
+    def _build_request(self, logs_text: str) -> tuple[dict[str, Any], list[LLMMessage]]:
         messages = [
             LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", text=logs_text),
         ]
-        self._messages = messages
         ollama_messages = [{"role": msg.role, "content": msg.text} for msg in messages]
 
         request_data = {
@@ -68,9 +66,11 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             "stream": False,
             "options": {"num_predict": self.settings.llm_settings.max_tokens},
         }
-        return request_data
+        return request_data, messages
 
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage]
+    ) -> LLMAnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=OllamaResponse)
         except msgspec.DecodeError:
@@ -87,7 +87,7 @@ class OllamaAnalyzer(BaseLLMAnalyzer):
             raise LLMError("LLM returned empty or too short response")
 
         return LLMAnalysisResult(
-            messages=self._messages,
+            messages=messages,
             analysis_text=text,
             provider=LLMProvider.OLLAMA,
             input_tokens_used=response_model.prompt_eval_count,

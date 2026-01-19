@@ -21,7 +21,6 @@ logger = getLogger(__name__)
 
 class YandexAnalyzer(BaseLLMAnalyzer):
     def __init__(self, http_client: HTTPClient, settings: AppSettings) -> None:
-        self._messages: list[LLMMessage] | None = None
         super().__init__(http_client, settings)
 
     def _get_api_url(self) -> str:
@@ -47,12 +46,11 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         }
         return request_data
 
-    def _build_request(self, logs_text: str) -> dict[str, Any]:
+    def _build_request(self, logs_text: str) -> tuple[dict[str, Any], list[LLMMessage]]:
         messages = [
             LLMMessage(role="system", text=self.settings.llm_settings.system_prompt),
             LLMMessage(role="user", text=logs_text),
         ]
-        self._messages = messages
         request_data = {
             "modelUri": self._get_model_uri(),
             "completionOptions": {
@@ -62,7 +60,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
             },
             "messages": msgspec.to_builtins(messages),
         }
-        return request_data
+        return request_data, messages
 
     def _handle_response(self, response: Response) -> None:
         if response.status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
@@ -80,7 +78,9 @@ class YandexAnalyzer(BaseLLMAnalyzer):
                 details={"status": response.status_code, "response": response.text},
             )
 
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult:
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage]
+    ) -> LLMAnalysisResult:
         try:
             response_model = msgspec.json.decode(response_bytes, type=YandexResponse)
         except msgspec.DecodeError as e:
@@ -96,7 +96,7 @@ class YandexAnalyzer(BaseLLMAnalyzer):
         output_used_token = response_model.result.usage.completionTokens
 
         return LLMAnalysisResult(
-            messages=self._messages,
+            messages=messages,
             analysis_text=text,
             provider=LLMProvider.YANDEX,
             input_tokens_used=int(input_used_token),

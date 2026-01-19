@@ -21,20 +21,20 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
     @log_calls
     async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
         formatted_logs = self._format_logs_for_llm(logs)
-        request_data = self._build_request(formatted_logs)
+        request_data, messages = self._build_request(formatted_logs)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
-        return self._parse_response(response.content)
+        return self._parse_response(response.content, messages)
 
     @log_calls
     async def ask(self, context: list[LLMMessage]) -> LLMAnalysisResult:
         request_data = self._build_request_from_context(context)
         response = await self._make_http_request(request_data)
         self._handle_response(response)
-        return self._parse_response(response.content)
+        return self._parse_response(response.content, context)
 
     @abstractmethod
-    def _build_request(self, logs_text: str) -> dict[str, Any]: ...
+    def _build_request(self, logs_text: str) -> tuple[dict[str, Any], list[LLMMessage]]: ...
     @abstractmethod
     def _build_request_from_context(self, context: list[LLMMessage]) -> dict[str, Any]: ...
     @abstractmethod
@@ -42,7 +42,9 @@ class BaseLLMAnalyzer(LLMAnalyzer, ABC):
     @abstractmethod
     def _handle_response(self, response: Response) -> None: ...
     @abstractmethod
-    def _parse_response(self, response_bytes: bytes) -> LLMAnalysisResult: ...
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage]
+    ) -> LLMAnalysisResult: ...
     @abstractmethod
     def _get_api_url(self) -> str: ...
 

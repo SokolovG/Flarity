@@ -61,8 +61,8 @@ class InMemoryStorage(Storage):
                     f"Expected int, got {type(value).__name__}"
                 )
 
-            self._data[key] = value + 1
-            new_value: int = self._data[key]
+            new_value = value + 1
+            self._data[key] = new_value
             return new_value
 
     async def incr_with_expire(self, key: str, ttl: int) -> int:
@@ -78,9 +78,8 @@ class InMemoryStorage(Storage):
                     f"Expected int, got {type(value).__name__}"
                 )
 
-            self._data[key] = value + 1
-            new_value: int = self._data[key]
-
+            new_value = value + 1
+            self._data[key] = new_value
             await self.expire(key, ttl)
             return new_value
 

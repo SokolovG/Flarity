@@ -13,10 +13,10 @@ class RateLimiter:
 
     def acquire_user_lock(self, user_id: str) -> asyncio.Lock:
         lock = self._user_locks.get(user_id)
+
         if lock is None:
             lock = asyncio.Lock()
-            self._user_locks[user_id] = lock
-
+            lock = self._user_locks.setdefault(user_id, lock)
         return lock
 
     @log_calls

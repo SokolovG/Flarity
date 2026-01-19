@@ -40,16 +40,15 @@ def setup_logging(level: str = "INFO") -> None:
     file_handler.setLevel(level)
     file_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
 
-    # handlers = [console_handler, file_handler]
-    handlers = [console_handler]
+    handlers = [console_handler, file_handler]
 
     logging.basicConfig(level=level, handlers=handlers, force=True)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-    # logging.getLogger("aiogram.event").setLevel(logging.WARNING)
-    # dispatcher_logger = logging.getLogger("aiogram.dispatcher")
-    # dispatcher_logger.setLevel(logging.WARNING)
-    # dispatcher_logger.addFilter(IgnoreNetworkTimeouts())
+    logging.getLogger("aiogram.event").setLevel(logging.WARNING)
+    dispatcher_logger = logging.getLogger("aiogram.dispatcher")
+    dispatcher_logger.setLevel(logging.WARNING)
+    dispatcher_logger.addFilter(IgnoreNetworkTimeouts())
 
 
 setup_logging(level="INFO")

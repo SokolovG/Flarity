@@ -84,10 +84,15 @@ async def scheduled_analysis(container: AsyncContainer, is_initial: bool = False
 
         await notifier.send(full_message, reply_markup=get_scheduled_report_keyboard())
         key = StorageKey(bot_id=bot.id, chat_id=int(chat_id), user_id=int(chat_id))
-        await fsm_storage.set_state(key=key, state=ScheduledSG.asking_questions)
+        current_state = await fsm_storage.get_state(key)
 
-        data = {"report": msgspec.to_builtins(report)}
-        await fsm_storage.set_data(key=key, data=data)
+        if current_state is None:
+            await notifier.send(full_message, reply_markup=get_scheduled_report_keyboard())
+            await fsm_storage.set_state(key=key, state=ScheduledSG.asking_questions)
+            data = {"report": msgspec.to_builtins(report)}
+            await fsm_storage.set_data(key=key, data=data)
+        else:
+            await notifier.send(full_message)
 
         logger.info(f"Scheduled report sent: {report.time_range.hour_and_unit}")
 
