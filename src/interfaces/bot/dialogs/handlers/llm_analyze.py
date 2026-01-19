@@ -41,7 +41,10 @@ async def on_analyze_period_click(
     load_msg = None
     try:
         await callback.answer()
-        period = int(widget.widget_id.split("_")[1])
+        widget_id = widget.widget_id
+        if not widget_id:
+            raise ValueError("Widget ID is missing")
+        period = int(widget_id.split("_")[1])
         time_range = TimeRange(period)
         load_msg = await callback.message.answer(  # ty:ignore[possibly-missing-attribute]
             loading_msg(time_range)
