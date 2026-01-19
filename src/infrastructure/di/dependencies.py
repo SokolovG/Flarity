@@ -40,7 +40,7 @@ class MyProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_app_settings(self) -> AppSettings:
-        return AppSettings()  # type: ignore[call-arg]
+        return AppSettings()  # ty:ignore[missing-argument]
 
     @provide(scope=Scope.APP)
     def get_report_settings(self) -> ReportSettings:

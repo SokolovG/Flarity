@@ -155,11 +155,6 @@ venv.bak/
 # mkdocs documentation
 /site
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
 # Pyre type checker
 .pyre/
 
@@ -191,6 +186,8 @@ cython_debug/
 
 # Ruff stuff:
 .ruff_cache/
+
+.ty_cache/
 
 # PyPI configuration file
 .pypirc

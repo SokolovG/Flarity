@@ -71,7 +71,7 @@ class HTTPClient(HttpPort):
             Response | None: The response object or None in case of an error.
         """
         if headers is None:
-            headers: dict = {}  # type: ignore
+            headers: dict = {}
         start_time = time.time()
 
         try:
@@ -80,7 +80,7 @@ class HTTPClient(HttpPort):
             )
             if method == HTTPMethod.GET:
                 params = params or {}
-                response = await self._client.request(  # type: ignore
+                response = await self._client.request(  # ty: ignore
                     method=method.value,
                     url=url,
                     headers=headers,
@@ -91,15 +91,15 @@ class HTTPClient(HttpPort):
             else:
                 if isinstance(data, dict):
                     content = msgspec.json.encode(data)
-                    if "Content-Type" not in headers:  # type: ignore
-                        headers = {**headers, "Content-Type": "application/json"}  # type: ignore
+                    if "Content-Type" not in headers:
+                        headers = {**headers, "Content-Type": "application/json"}  # ty: ignore
                 elif isinstance(data, str):
                     content = data.encode("utf-8")
                 elif isinstance(data, bytes):
                     content = data
                 else:
                     content = None
-                response = await self._client.request(  # type: ignore
+                response = await self._client.request(  # ty: ignore
                     method=method.value,
                     url=url,
                     headers=headers,
@@ -139,4 +139,4 @@ class HTTPClient(HttpPort):
             raise
 
     async def close(self) -> None:
-        await self._client.aclose()  # type: ignore
+        await self._client.aclose()  # ty: ignore

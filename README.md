@@ -194,7 +194,7 @@ uv run pytest
 
 # Run linting
 uv run ruff check --fix
-uv run mypy src/
+uv run ty check src/
 ```
 
 

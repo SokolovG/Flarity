@@ -12,13 +12,13 @@ class TelegramNotifier(Notifier):
         self.telegram_client = telegram_client
         self.settings = settings
 
-    async def send(  # type: ignore
+    async def send(
         self,
         message: str,
         chat_id: str | None = None,
         parse_mode: TextType | None = TextType.HTML,
         reply_markup: InlineKeyboardMarkup | None = None,
-    ) -> TelegramMessage:
+    ) -> TelegramMessage:  # ty:ignore[invalid-method-override]
         return await self.telegram_client.send_message(
             message,
             parse_mode=parse_mode,

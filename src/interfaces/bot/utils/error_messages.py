@@ -19,10 +19,10 @@ class BotErrorMessages:
     _MESSAGES: dict[type[Exception], Callable[[Exception], str]] = {
         # User-caused errors (INFO level)
         RateLimitExceeded: lambda e: (
-            f"⏳ Too many requests!\nPlease wait {e.details.get('ttl', 'a few')} seconds."  # type: ignore[attr-defined]
+            f"⏳ Too many requests!\nPlease wait {e.details.get('ttl', 'a few')} seconds."
         ),
         LLMChatLimitExceededError: lambda e: (
-            f"💬 You've reached the limit of {e.details.get('limit', 10)} questions.\n"  # type: ignore[attr-defined]
+            f"💬 You've reached the limit of {e.details.get('limit', 10)} questions.\n"
             f"Start a new analysis to continue."
         ),
         # Infrastructure errors (retryable, WARNING level)
@@ -37,7 +37,7 @@ class BotErrorMessages:
         LokiError: lambda e: "📊 Error fetching logs. Try again later.",
         LLMError: lambda e: "AI service error. Please try again.",
         TelegramError: lambda e: "Messaging error. Please try again.",
-        AnalysisFailedError: lambda e: f"⚠️ Analysis failed: {e.message}",  # type: ignore[attr-defined]
+        AnalysisFailedError: lambda e: f"⚠️ Analysis failed: {e.message}",
     }
 
     @classmethod
@@ -47,7 +47,7 @@ class BotErrorMessages:
 
         for exc_type in type(e).__mro__:
             if exc_type in cls._MESSAGES:
-                return cls._MESSAGES[exc_type](e)
+                return cls._MESSAGES[exc_type](e)  # ty:ignore[invalid-argument-type]
 
         return "❌ Something went wrong. Please try again."
 

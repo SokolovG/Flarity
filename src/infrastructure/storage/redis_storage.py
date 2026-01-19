@@ -79,7 +79,9 @@ class RedisStorage(Storage):
 
     async def incr_with_expire(self, key: str, ttl: int) -> int:
         try:
-            result: int = await self.client.eval(LUA_INCR_AND_EXPIRE_SCRIPT, 1, key, ttl)  # type: ignore
+            result: int = await self.client.eval(
+                LUA_INCR_AND_EXPIRE_SCRIPT, 1, key, ttl
+            )  # ty:ignore[invalid-await]
             return int(result)
         except Exception as e:
             logger.error(f"Failed to increment value of key {key}: {str(e)}")

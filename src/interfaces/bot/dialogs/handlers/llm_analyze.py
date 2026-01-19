@@ -41,9 +41,11 @@ async def on_analyze_period_click(
     load_msg = None
     try:
         await callback.answer()
-        period = int(widget.widget_id.split("_")[1])  # type: ignore
+        period = int(widget.widget_id.split("_")[1])
         time_range = TimeRange(period)
-        load_msg = await callback.message.answer(loading_msg(time_range))  # type: ignore[union-attr]
+        load_msg = await callback.message.answer(  # ty:ignore[possibly-missing-attribute]
+            loading_msg(time_range)
+        )
         user_id = str(callback.from_user.id)
 
         report = await use_case.execute(time_range, user_id)
@@ -83,8 +85,13 @@ async def on_llm_question(
     load_msg = None
     try:
         load_msg = await message.answer(asking_llm_msg())
-        question: str = message.text  # type: ignore
-        user_id = str(message.from_user.id)  # type: ignore
+
+        if not message.text:
+            await message.answer("Please send a text message.")
+            return
+
+        question: str = message.text
+        user_id = str(message.from_user.id)  # ty:ignore[possibly-missing-attribute]
 
         llm_answer = await ask_use_case.execute(question, user_id)
         manager.dialog_data.update({"llm_answer": msgspec.to_builtins(llm_answer)})

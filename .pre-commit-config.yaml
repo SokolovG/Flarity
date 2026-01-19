@@ -12,7 +12,11 @@ repos:
       - id: ruff
       - id: ruff-format
 
-  - repo: https://github.com/allganize/ty-pre-commit
-    rev: v0.0.12
+  - repo: local
     hooks:
       - id: ty-check
+        name: ty type check
+        entry: uv run ty check
+        language: system
+        types: [python]
+        pass_filenames: false

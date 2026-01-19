@@ -28,5 +28,5 @@ def period_selection_window(state_group: type[StatesGroup], on_click_handler: An
         Const(choose_period_msg()),
         MessageInput(handle_unknown_text_in_dialog),
         Column(*buttons),
-        state=state_group.period_selection,  # type: ignore
+        state=state_group.period_selection,  # ty:ignore[unresolved-attribute]
     )

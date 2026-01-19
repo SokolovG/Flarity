@@ -52,8 +52,12 @@ async def cmd_analyze(
     dialog_manager: DialogManager,
     analyze_use_case: FromDishka[AnalyzeLogsUseCase],
 ) -> None:
-    user_id = message.from_user.id
+    user_id = message.from_user.id  # ty:ignore[possibly-missing-attribute]
     try:
+        if not message.text:
+            await dialog_manager.start(AnalyzeSG.period_selection, mode=StartMode.RESET_STACK)
+            return
+
         period = message.text.split(" ")[-1]
 
         if not period.isdigit():
@@ -61,7 +65,7 @@ async def cmd_analyze(
             return
 
         time_range = TimeRange(int(period))
-        report = await analyze_use_case.execute(time_range, int(user_id))  # type:ignore[arg-type]
+        report = await analyze_use_case.execute(time_range, str(user_id))
 
         if not report.has_errors:
             await message.answer(no_errors_msg(time_range))
@@ -87,6 +91,10 @@ async def cmd_recent(
     recent_use_case: FromDishka[RecentErrorsUseCase],
 ) -> None:
     try:
+        if not message.text:
+            await dialog_manager.start(RecentSG.period_selection, mode=StartMode.RESET_STACK)
+            return
+
         period = message.text.split(" ")[-1]
 
         if not period.isdigit():
@@ -120,8 +128,11 @@ async def cmd_stats(
     stats_use_case: FromDishka[StatisticsLogsUseCase],
 ) -> None:
     try:
-        period = message.text.split(" ")[-1]
+        if not message.text:
+            await dialog_manager.start(StatsSG.period_selection, mode=StartMode.RESET_STACK)
+            return
 
+        period = message.text.split(" ")[-1]
         if not period.isdigit():
             await dialog_manager.start(StatsSG.period_selection, mode=StartMode.RESET_STACK)
             return
@@ -202,8 +213,12 @@ async def on_scheduled_llm_question(
     formatter: FromDishka[ReportFormatter],
 ) -> None:
     try:
-        question: str = message.text  # type: ignore
-        user_id = str(message.from_user.id)
+        if not message.text:
+            await message.answer("Пожалуйста, отправьте текстовое сообщение")
+            return
+
+        question: str = message.text
+        user_id = str(message.from_user.id)  # ty:ignore[possibly-missing-attribute]
 
         answer = await ask_use_case.execute(question, user_id)
         html = formatter.format_llm_answer(answer, ReportType.ANSWER)

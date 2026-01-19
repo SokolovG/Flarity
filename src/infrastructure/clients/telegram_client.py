@@ -66,7 +66,7 @@ class TelegramClient:
         data = {
             "text": text,
             "chat_id": chat_id if chat_id else self.config.chat_id,
-            "parse_mode": parse_mode.value,  # type: ignore
+            "parse_mode": parse_mode.value,  # ty: ignore
         }
 
         if reply_markup:

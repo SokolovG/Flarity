@@ -12,6 +12,7 @@ async def send_no_errors_and_exit_dialog(
     time_range: TimeRange,
 ) -> None:
     await callback.answer()
-    await callback.message.answer(no_errors_msg(time_range))  # type: ignore
+    if callback.message:
+        await callback.message.answer(no_errors_msg(time_range))
     await manager.done()
     await manager.start(MainSG.menu)

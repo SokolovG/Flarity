@@ -36,7 +36,7 @@ async def on_recent_period_click(
     use_case: FromDishka[RecentErrorsUseCase],
 ) -> None:
     try:
-        period = int(widget.widget_id.split("_")[1])  # type: ignore
+        period = int(widget.widget_id.split("_")[1])  # ty:ignore[possibly-missing-attribute]
         time_range = TimeRange(period)
         report = await use_case.execute(time_range)
 

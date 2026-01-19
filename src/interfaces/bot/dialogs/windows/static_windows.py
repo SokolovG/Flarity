@@ -53,7 +53,7 @@ def settings_window() -> Window:
 def bug_window() -> Window:
     return Window(
         Format("{report_bug}"),
-        MessageInput(on_bug_report),
+        MessageInput(on_bug_report),  # ty: ignore[invalid-argument-type]
         Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
         state=BugSG.reporting,
         getter=bug_getter,

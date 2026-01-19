@@ -15,10 +15,10 @@ from src.infrastructure.settings.providers import (
 
 
 class AppSettings(BaseSettings):
-    log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)  # type: ignore[arg-type]
-    llm_settings: LLMSettings = Field(default_factory=LLMSettings)  # type: ignore[arg-type]
-    llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)  # type: ignore[arg-type]
-    notification: NotificationSettings = Field(default_factory=NotificationSettings)  # type: ignore[arg-type]
+    log_source: LogsSourceSettings = Field(default_factory=LogsSourceSettings)
+    llm_settings: LLMSettings = Field(default_factory=LLMSettings)
+    llm_provider: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
+    notification: NotificationSettings = Field(default_factory=NotificationSettings)
     report: ReportSettings = Field(default_factory=ReportSettings)
     storage: StorageSettings | None = Field(default_factory=StorageSettings)
     schedule_interval_hours: str | int = SCHEDULE_INTERVAL_HOURS

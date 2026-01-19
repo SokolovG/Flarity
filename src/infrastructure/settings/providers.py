@@ -133,10 +133,12 @@ class LogsSourceSettings(BaseSettings):
         env_prefix="LOG_SOURCE_", case_sensitive=False, env_nested_delimiter="__"
     )
 
-    @overload  # type: ignore[misc]
+    @overload
     def get_config(self, config_type: type[LokiConfig]) -> LokiConfig: ...
 
-    def get_config(self, config_type: type[BaseLogsSourceConfig]) -> BaseLogsSourceConfig:
+    def get_config(  # ty:ignore[invalid-overload]
+        self, config_type: type[BaseLogsSourceConfig]
+    ) -> BaseLogsSourceConfig:
         if config_type == LokiConfig and self.provider != "loki":
             raise ValueError("Log source provider mismatch!")
 
@@ -175,10 +177,12 @@ class NotificationSettings(BaseSettings):
         env_prefix="NOTIFICATION_", case_sensitive=False, env_nested_delimiter="__"
     )
 
-    @overload  # type: ignore[misc]
+    @overload
     def get_config(self, config_type: type[TelegramConfig]) -> TelegramConfig: ...
 
-    def get_config(self, config_type: type[BaseNotificationConfig]) -> BaseNotificationConfig:
+    def get_config(  # ty:ignore[invalid-overload]
+        self, config_type: type[BaseNotificationConfig]
+    ) -> BaseNotificationConfig:
         if config_type == TelegramConfig and self.provider != NotificationProvider.TELEGRAM:
             raise ValueError("Notification provider mismatch!")
 

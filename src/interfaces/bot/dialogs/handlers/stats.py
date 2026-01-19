@@ -30,7 +30,10 @@ async def on_stats_period_click(
     use_case: FromDishka[StatisticsLogsUseCase],
 ) -> None:
     try:
-        period = int(widget.widget_id.split("_")[1])  # type:ignore[union-attr]
+        widget_id = widget.widget_id
+        if not widget_id:
+            raise ValueError("Widget ID is missing")
+        period = int(widget_id.split("_")[1])
         time_range = TimeRange(period)
         report = await use_case.execute(time_range)
 

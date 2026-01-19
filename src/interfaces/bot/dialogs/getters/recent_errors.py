@@ -15,7 +15,9 @@ from src.interfaces.bot.formatters.html_formatter import ReportFormatter
 async def recent_all_getter(
     dialog_manager: DialogManager, formatter: FromDishka[ReportFormatter], **kwargs: Any
 ) -> dict[str, str]:
-    report: AnalysisReport = dialog_manager.dialog_data.get("report")  # type: ignore
+    report: AnalysisReport = dialog_manager.dialog_data.get(
+        "report"
+    )  # ty:ignore[invalid-assignment]
     html = formatter.to_html(report, ReportType.RECENT, show_all_errors=True)
 
     return {

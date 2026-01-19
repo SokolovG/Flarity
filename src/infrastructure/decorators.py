@@ -17,12 +17,13 @@ logger = getLogger(__name__)
 def log_calls(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
-        parts = func.__qualname__.split(".")
+        qualname = getattr(func, "__qualname__", getattr(func, "__name__", "unknown"))
+        parts = qualname.split(".")
         if len(parts) == 2:
             class_name, func_name = parts
             call_name = f"{class_name}.{func_name}"
         else:
-            call_name = func.__qualname__
+            call_name = qualname
 
         logger.info(f"→ {call_name}()")
 

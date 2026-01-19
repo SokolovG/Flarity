@@ -17,11 +17,9 @@ async def on_dialog_start(_: Any, manager: DialogManager) -> None:
     if not manager.start_data:
         return
 
-    report = manager.start_data.get("report")  # type: ignore
+    report = manager.start_data.get("report")  # ty:ignore[possibly-missing-attribute]
     if report:
         manager.dialog_data["report"] = report
-
-    return
 
 
 @inject
@@ -34,9 +32,9 @@ async def on_analyze_dialog_start(
         return
 
     event = manager.event
-    user_id = str(event.from_user.id)  # type: ignore[union-attr]
+    user_id = str(event.from_user.id)  # ty:ignore[possibly-missing-attribute]
 
-    report = manager.start_data.get("report")  # type: ignore[union-attr]
+    report = manager.start_data.get("report")  # ty:ignore[possibly-missing-attribute]
     if report:
         manager.dialog_data["report"] = report
 
@@ -50,7 +48,7 @@ async def handle_unknown_text_in_dialog(
     message: Message, widget: MessageInput, manager: DialogManager
 ) -> None:
     if message.text in EASTER_EGGS_WORT_LIST:
-        match message.text.lower():  # type: ignore[union-attr]
+        match message.text.lower():
             case "ogonek":
                 await message.answer("https://ogonek.app")
             case "author":

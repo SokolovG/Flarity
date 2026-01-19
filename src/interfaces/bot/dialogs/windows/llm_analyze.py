@@ -17,7 +17,7 @@ def analyze_viewing_report_window() -> Window:
     return Window(
         Format("{report_html}"),
         Const(ask_llm_msg()),
-        MessageInput(on_llm_question),
+        MessageInput(on_llm_question),  # ty: ignore[invalid-argument-type]
         Back(Const("⬅️ Back")),
         state=AnalyzeSG.viewing_data,
         getter=analyze_report_getter,
@@ -29,7 +29,7 @@ def asking_llm_window() -> Window:
         Format("{answer_html}"),
         Const(ask_llm_more_questions_msg()),
         Button(Const("⬅️ Back"), id="cancel", on_click=on_cancel),
-        MessageInput(on_llm_question),
+        MessageInput(on_llm_question),  # ty: ignore[invalid-argument-type]
         state=AnalyzeSG.asking_questions,
         getter=ask_llm_report_getter,
     )

@@ -8,7 +8,9 @@ class BotTextFormatter:
         llm_model = app_settings.llm_settings.model
         llm_provider = app_settings.llm_provider.provider
         storage_provider = (
-            app_settings.storage.provider if app_settings.storage.provider else "In memory"  # type: ignore[union-attr]
+            app_settings.storage.provider  # ty:ignore[possibly-missing-attribute]
+            if app_settings.storage.provider  # ty:ignore[possibly-missing-attribute]
+            else "In memory"
         )
         log_source_provider = app_settings.log_source.provider
 

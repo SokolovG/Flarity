@@ -100,17 +100,17 @@ async def start_scheduler(container: AsyncContainer, settings: AppSettings) -> N
     if not settings.schedule_enabled:
         return
 
-    scheduler = AsyncIOScheduler()  # type: ignore[no-untyped-call]
+    scheduler = AsyncIOScheduler()
     SCHEDULE_INTERVAL_HOURS = settings.schedule_interval_hours
-    scheduler.add_job(  # type: ignore[no-untyped-call]
+    scheduler.add_job(
         scheduled_analysis,
-        trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),  # type: ignore[no-untyped-call]
+        trigger=IntervalTrigger(hours=int(settings.schedule_interval_hours)),
         args=[container, False],
         id="log_analysis",
         max_instances=1,
         replace_existing=False,
     )
-    scheduler.start()  # type: ignore[no-untyped-call]
+    scheduler.start()
     logger.info(f"Scheduler started. Will run every {SCHEDULE_INTERVAL_HOURS} hour/s.")
     logger.info("Running initial analysis...")
 
