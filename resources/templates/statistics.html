@@ -1,0 +1,17 @@
+{{ title }}
+
+Time range: {{ time_range_hours }}h
+Total errors: {{ total_errors }}
+Unique types: {{ unique_types }}
+
+{% if groups and groups | length > 0 %}
+Top {{ groups[:max_errors] | length }} errors:
+{% for group in groups[:max_errors] %}
+{{ loop.index }}. {{ group.error_type }}
+   └─ {{ group.count }} occurrence{{ 's' if group.count > 1 else '' }}
+{% endfor %}
+{% endif %}
+
+{% if groups | length > max_errors %}
+... and {{ groups | length - max_errors }} more error types
+{% endif %}

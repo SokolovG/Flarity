@@ -1,0 +1,23 @@
+{{ title }}
+
+Time range: {{ time_range_hours }} h
+- Total errors: {{ total_errors }}
+- Unique types: {{ unique_types }}
+
+{% if groups %}
+Top-{{ groups[:max_groups] | length }} errors:
+{% for group in groups[:max_groups] %}
+{{ loop.index }}. {{ group.error_type }} ({{ group.count }} times)
+{% endfor %}
+{% endif %}
+
+AI analysis:
+{{ ai_analysis | safe}}
+
+---
+Technical information:
+
+Provider: {{ provider }}
+{% if tokens_in %}
+Tokens: {{ tokens_in }} in / {{ tokens_out }} out
+{% endif %}

@@ -1,0 +1,67 @@
+from abc import ABC, abstractmethod
+from http import HTTPMethod
+from typing import Any
+
+from httpx import Response
+
+from src.application.dto.analysis_result import LLMAnalysisResult
+from src.application.ports.http_client_port import HttpPort
+from src.application.ports.llm_analyzer import LLMAnalyzer
+from src.domain.entities.log_entry import LogEntry
+from src.infrastructure.decorators import log_calls
+from src.infrastructure.llm.dto.session import LLMMessage
+from src.infrastructure.settings.app_settings import AppSettings
+
+
+class BaseLLMAnalyzer(LLMAnalyzer, ABC):
+    def __init__(self, http_client: HttpPort, settings: AppSettings):
+        self.http = http_client
+        self.settings = settings
+
+    @log_calls
+    async def analyze(self, logs: list[LogEntry]) -> LLMAnalysisResult:
+        formatted_logs = self._format_logs_for_llm(logs)
+        request_data, messages = self._build_request(formatted_logs)
+        response = await self._make_http_request(request_data)
+        self._handle_response(response)
+        return self._parse_response(response.content, messages)
+
+    @log_calls
+    async def ask(self, context: list[LLMMessage]) -> LLMAnalysisResult:
+        request_data = self._build_request_from_context(context)
+        response = await self._make_http_request(request_data)
+        self._handle_response(response)
+        return self._parse_response(response.content, context)
+
+    @abstractmethod
+    def _build_request(self, logs_text: str) -> tuple[dict[str, Any], list[LLMMessage]]: ...
+    @abstractmethod
+    def _build_request_from_context(self, context: list[LLMMessage]) -> dict[str, Any]: ...
+    @abstractmethod
+    def _get_headers(self) -> dict[str, Any]: ...
+    @abstractmethod
+    def _handle_response(self, response: Response) -> None: ...
+    @abstractmethod
+    def _parse_response(
+        self, response_bytes: bytes, messages: list[LLMMessage]
+    ) -> LLMAnalysisResult: ...
+    @abstractmethod
+    def _get_api_url(self) -> str: ...
+
+    def _format_logs_for_llm(self, logs: list[LogEntry]) -> str:
+        logs_text = ""
+        for log in logs:
+            clean_message = log.message.encode().decode("unicode_escape")
+            logs_text += f"[{log.timestamp}] {log.level.value} {clean_message}\n"
+        return logs_text
+
+    async def _make_http_request(self, data: dict) -> Response:
+        response: Response = await self.http.make_request(
+            method=HTTPMethod.POST,
+            url=self._get_api_url(),
+            data=data,
+            timeout=120,
+            headers=self._get_headers(),
+            no_log_answer=True,
+        )
+        return response

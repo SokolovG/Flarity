@@ -1,0 +1,47 @@
+name: flarity
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    networks:
+      - flarity
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - flarity
+  redis:
+    image: redis:latest
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6739:6379"
+    networks:
+      - flarity
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+networks:
+  flarity:
+    driver: bridge
+
+volumes:
+  ollama-data:
+    name: ollama-flarity
+  redis-data:
+    name: redis-flarity

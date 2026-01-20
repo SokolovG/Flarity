@@ -1,0 +1,18 @@
+{{ title }}
+
+Time range: {{ time_range_hours }}h
+Total errors: {{ total_errors }}
+Latest errors (newest first):
+
+{% set display_logs = logs if show_all_errors else logs[:max_errors] %}
+{% for log in display_logs %}
+{{ loop.index }}. [{{ log.timestamp.strftime('%H:%M:%S') }}]
+{{ log.message[:max_symbols] }}
+{%- if log.metadata.get('request_id') -%}
+REQUEST ID: {{ log.metadata.get('request_id') }}
+{%- endif -%}
+{% endfor %}
+
+{% if not show_all_errors and total_errors > max_errors %}
+... and {{ total_errors - max_errors }} more errors
+{% endif %}
